@@ -6,9 +6,11 @@
 //
 
 import UIKit
+import SwiftData
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   var window: UIWindow?
+  var modelContainer: ModelContainer!
 
   func scene(_ scene: UIScene,
              willConnectTo session: UISceneSession,
@@ -16,6 +18,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   {
     guard let windowScene = scene as? UIWindowScene else { return }
 
+    do {
+      modelContainer = try ModelContainer(for: TimerModel.self, StatsModel.self)
+    } catch {
+        fatalError("Failed to initialize ModelContainer: \(error)")
+    }
+    
     let window = UIWindow(windowScene: windowScene)
 
     let rootVC = MainTabBarController()
