@@ -29,7 +29,13 @@ final class StatsModel {
   var date: Date
   var dayTotalTime: Int
   var monthTotalTime: Int
+
+  // 하루 카테고리별 시간들
+  @Relationship(deleteRule: .cascade)
   var dayCategoryTimes: [CategoryTimeModel] = []
+
+  // 월간 카테고리별 시간들
+  @Relationship(deleteRule: .cascade)
   var monthCategoryTimes: [CategoryTimeModel] = []
 
   init(
