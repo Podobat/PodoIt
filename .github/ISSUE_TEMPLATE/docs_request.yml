@@ -1,0 +1,24 @@
+name: "📋 docs"
+description: "데이터 파일, 문서, 자료"
+labels: ["docs"]
+body:
+  - type: textarea
+    attributes:
+      label: "🌱 브랜치 이름"
+      description: "작업할 브랜치 이름을 입력해주세요."
+      placeholder: "docs/?-"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "🏷️ 작업할 내용"
+      description: "요청하시는 작업 내용을 구체적으로 작성해주세요."
+      placeholder: "최대한 세분화 해서 적어주세요!"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "🧠 참고 자료"
+      description: "참고 자료가 있다면 작성해 주세요."

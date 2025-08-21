@@ -1,0 +1,68 @@
+//
+//  MainTabBarController.swift
+//  PodoIt
+//
+//  Created by 노가현 on 8/20/25.
+//
+
+import UIKit
+
+final class MainTabBarController: UITabBarController {
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    setupAppearance() // 탭바 (컬러/폰트) 설정
+    setupViewControllers() // 탭별 화면 연결
+  }
+
+  private func setupAppearance() {
+    let selected = Palette.Violet.v500 // 선택된 아이템 색상
+    let unselected = Palette.Gray.g400 // 미선택 아이템 색상
+    let bg = Palette.App.white // 탭바 배경색
+
+    if #available(iOS 15.0, *) {
+      let appearance = UITabBarAppearance()
+      appearance.configureWithOpaqueBackground()
+      appearance.backgroundColor = bg
+
+      // 선택/미선택 상태
+      func style(_ item: UITabBarItemAppearance) {
+        item.normal.iconColor = unselected
+        item.normal.titleTextAttributes = [.foregroundColor: unselected]
+        item.selected.iconColor = selected
+        item.selected.titleTextAttributes = [.foregroundColor: selected]
+      }
+
+      // 모든 레이아웃 모드에 동일하게
+      [appearance.stackedLayoutAppearance,
+       appearance.inlineLayoutAppearance,
+       appearance.compactInlineLayoutAppearance].forEach(style)
+
+      tabBar.standardAppearance = appearance
+      tabBar.scrollEdgeAppearance = appearance
+    } else {
+      tabBar.barTintColor = bg
+      tabBar.tintColor = selected
+      tabBar.unselectedItemTintColor = unselected
+    }
+  }
+
+  // 탭에 표시할 뷰컨트롤러들 세팅
+  private func setupViewControllers() {
+    viewControllers = [
+      makeNav(TimerViewController(), "타이머", "timer"),
+      makeNav(StatsViewController(), "통계", "stats"),
+      makeNav(SettingViewController(), "설정", "setting")
+    ]
+  }
+
+  // 탭바 아이템 설정
+  private func makeNav(_ root: UIViewController, _ title: String, _ icon: String) -> UINavigationController {
+    let nav = UINavigationController(rootViewController: root)
+    nav.tabBarItem = UITabBarItem(
+      title: title,
+      image: UIImage(named: icon)?.withRenderingMode(.alwaysTemplate),
+      selectedImage: UIImage(named: icon)?.withRenderingMode(.alwaysTemplate)
+    )
+    return nav
+  }
+}
