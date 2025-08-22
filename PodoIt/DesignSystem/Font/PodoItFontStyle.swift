@@ -9,15 +9,16 @@ import UIKit
 
 enum Typography {
   enum Style {
-    case display1(weight: AppFontWeight = .semibold) // 18 / 26
-    case display2(weight: AppFontWeight = .semibold) // 32 / 40
-    case title1 // 18 / 26 Bold
-    case title2 // 16 / 24 Semi
-    case body1 // 14 / 20 Regular
-    case label1 // 16 / 24 Regular
-    case label2 // 14 / 20 Regular
-    case caption1 // 12 / 18 Regular
-    case caption2 // 11 / 16 Regular
+    case displayLg(weight: AppFontWeight = .semibold) // 48 / 64
+    case displayMd(weight: AppFontWeight = .semibold) // 32 / 40
+    case titleLg // 18 / 26 Bold
+    case titleMd // 16 / 24 Semi
+    case bodyLg // 16 / 24 Regular
+    case bodyMd // 14 / 20 Regular
+    case labelLg // 16 / 24 Regular
+    case labelMd // 14 / 20 Regular
+    case captionLg // 12 / 18 Regular
+    case captionMd // 11 / 16 Regular
   }
 
   struct Spec {
@@ -28,23 +29,25 @@ enum Typography {
 
   static func spec(for style: Style) -> Spec {
     switch style {
-    case .display1(let w):
-      return .init(size: 18, lineHeight: 26, weight: w)
-    case .display2(let w):
+    case .displayLg(let w):
+      return .init(size: 48, lineHeight: 64, weight: w)
+    case .displayMd(let w):
       return .init(size: 32, lineHeight: 40, weight: w)
-    case .title1:
+    case .titleLg:
       return .init(size: 18, lineHeight: 26, weight: .bold)
-    case .title2:
+    case .titleMd:
       return .init(size: 16, lineHeight: 24, weight: .semibold)
-    case .body1:
-      return .init(size: 14, lineHeight: 20, weight: .regular)
-    case .label1:
+    case .bodyLg:
       return .init(size: 16, lineHeight: 24, weight: .regular)
-    case .label2:
+    case .bodyMd:
       return .init(size: 14, lineHeight: 20, weight: .regular)
-    case .caption1:
+    case .labelLg:
+      return .init(size: 16, lineHeight: 24, weight: .regular)
+    case .labelMd:
+      return .init(size: 14, lineHeight: 20, weight: .regular)
+    case .captionLg:
       return .init(size: 12, lineHeight: 18, weight: .regular)
-    case .caption2:
+    case .captionMd:
       return .init(size: 11, lineHeight: 16, weight: .regular)
     }
   }

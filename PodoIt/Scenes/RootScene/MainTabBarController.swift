@@ -15,7 +15,7 @@ final class MainTabBarController: UITabBarController {
   }
 
   private func setupAppearance() {
-    let selected = Palette.Violet.v500 // 선택된 아이템 색상
+    let selected = Palette.Primary.p600 // 선택된 아이템 색상
     let unselected = Palette.Gray.g400 // 미선택 아이템 색상
     let bg = Palette.App.white // 탭바 배경색
 
