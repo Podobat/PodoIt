@@ -16,6 +16,7 @@
 		E873907A2E56BCB100941B2A /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E87390792E56BCB100941B2A /* Lottie */; };
 		E873907D2E56BCC200941B2A /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = E873907C2E56BCC200941B2A /* Algorithms */; };
 		E87390802E56BCED00941B2A /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = E873907F2E56BCED00941B2A /* KeychainAccess */; };
+		F2715BAF2E5840A9001FDECE /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = F2715BAE2E5840A9001FDECE /* Dependencies */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 				E87390802E56BCED00941B2A /* KeychainAccess in Frameworks */,
 				E87390772E56BC9E00941B2A /* FSCalendar in Frameworks */,
 				E87390692E56B84A00941B2A /* SnapKit in Frameworks */,
+				F2715BAF2E5840A9001FDECE /* Dependencies in Frameworks */,
 				E873907D2E56BCC200941B2A /* Algorithms in Frameworks */,
 				E87390742E56BC8B00941B2A /* DGCharts in Frameworks */,
 				E87390712E56BC6700941B2A /* RxRelay in Frameworks */,
@@ -67,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				E8571A132E50B3B2001CAD9D /* PodoIt */,
+				F2DEA0CD2E58548E00484FE7 /* Frameworks */,
 				E8571A122E50B3B2001CAD9D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -77,6 +80,13 @@
 				E8571A112E50B3B2001CAD9D /* PodoIt.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F2DEA0CD2E58548E00484FE7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -108,6 +118,7 @@
 				E87390792E56BCB100941B2A /* Lottie */,
 				E873907C2E56BCC200941B2A /* Algorithms */,
 				E873907F2E56BCED00941B2A /* KeychainAccess */,
+				F2715BAE2E5840A9001FDECE /* Dependencies */,
 			);
 			productName = PodoIt;
 			productReference = E8571A112E50B3B2001CAD9D /* PodoIt.app */;
@@ -146,6 +157,7 @@
 				E87390782E56BCB100941B2A /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				E873907B2E56BCC200941B2A /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				E873907E2E56BCED00941B2A /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E8571A122E50B3B2001CAD9D /* Products */;
@@ -453,6 +465,14 @@
 				kind = branch;
 			};
 		};
+		F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-dependencies.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.4;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -500,6 +520,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E873907E2E56BCED00941B2A /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
+		};
+		F2715BAE2E5840A9001FDECE /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = Dependencies;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
