@@ -11,14 +11,14 @@ enum Typography {
   enum Style {
     case displayLg(weight: AppFontWeight = .semibold) // 48 / 64
     case displayMd(weight: AppFontWeight = .semibold) // 32 / 40
-    case titleLg // 18 / 26 Bold
-    case titleMd // 16 / 24 Semi
-    case bodyLg // 16 / 24 Regular
-    case bodyMd // 14 / 20 Regular
-    case labelLg // 16 / 24 Regular
-    case labelMd // 14 / 20 Regular
-    case captionLg // 12 / 18 Regular
-    case captionMd // 11 / 16 Regular
+    case headingLg // 18 / 28 Bold
+    case headingMd // 16 / 24 Semi
+    case bodyLg(weight: AppFontWeight = .regular) // 16 / 24 Regular or Medium
+    case bodyMd(weight: AppFontWeight = .regular) // 14 / 20 Regular or Medium
+    case labelLg(weight: AppFontWeight = .regular) // 16 / 24 Regular or Medium
+    case labelMd(weight: AppFontWeight = .regular) // 14 / 20 Regular or Medium
+    case captionLg(weight: AppFontWeight = .regular) // 12 / 18 Regular or Medium
+    case captionMd(weight: AppFontWeight = .regular) // 11 / 16 Regular or Medium
   }
 
   struct Spec {
@@ -33,22 +33,22 @@ enum Typography {
       return .init(size: 48, lineHeight: 64, weight: w)
     case .displayMd(let w):
       return .init(size: 32, lineHeight: 40, weight: w)
-    case .titleLg:
-      return .init(size: 18, lineHeight: 26, weight: .bold)
-    case .titleMd:
+    case .headingLg:
+      return .init(size: 18, lineHeight: 28, weight: .bold)
+    case .headingMd:
       return .init(size: 16, lineHeight: 24, weight: .semibold)
-    case .bodyLg:
-      return .init(size: 16, lineHeight: 24, weight: .regular)
-    case .bodyMd:
-      return .init(size: 14, lineHeight: 20, weight: .regular)
-    case .labelLg:
-      return .init(size: 16, lineHeight: 24, weight: .regular)
-    case .labelMd:
-      return .init(size: 14, lineHeight: 20, weight: .regular)
-    case .captionLg:
-      return .init(size: 12, lineHeight: 18, weight: .regular)
-    case .captionMd:
-      return .init(size: 11, lineHeight: 16, weight: .regular)
+    case .bodyLg(let w):
+      return .init(size: 16, lineHeight: 24, weight: w)
+    case .bodyMd(let w):
+      return .init(size: 14, lineHeight: 20, weight: w)
+    case .labelLg(let w):
+      return .init(size: 16, lineHeight: 24, weight: w)
+    case .labelMd(let w):
+      return .init(size: 14, lineHeight: 20, weight: w)
+    case .captionLg(let w):
+      return .init(size: 12, lineHeight: 18, weight: w)
+    case .captionMd(let w):
+      return .init(size: 11, lineHeight: 16, weight: w)
     }
   }
 
