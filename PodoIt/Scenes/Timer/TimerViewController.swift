@@ -12,16 +12,36 @@ import UIKit
 final class TimerViewController: UIViewController {
   private let paddedContainer = PaddedContainerView()
 
-  private let testLabel = UILabel().then {
-    $0.text = "테스트 문장입니다."
+  // MARK: - Header
+
+  private let dateLabel = UILabel().then {
     $0.attributedText = Typography.attributed(
-      "테스트 문장입니다.",
-      style: .displayMd(weight: .bold),
-      color: Palette.Primary.p500
+      "8월 19일",
+      style: .headingLg,
+      color: .appBlack
     )
-    $0.textAlignment = .center
-    $0.numberOfLines = 0
-    $0.backgroundColor = Palette.Primary.p100
+    $0.textAlignment = .left
+  }
+
+  private let dividerView = UIView().then {
+    $0.backgroundColor = .gray100
+  }
+
+  private let descriptionLabel = UILabel().then {
+    $0.attributedText = Typography.attributed(
+      "오늘의 집중 시간",
+      style: .labelMd(weight: .semibold),
+      color: .gray500
+    )
+    $0.textAlignment = .left
+  }
+
+  private let timeLabel = UILabel().then {
+    $0.attributedText = Typography.attributed(
+      "00:00:00",
+      style: .displayMd(weight: .bold),
+      color: .appBlack
+    )
   }
 
   // MARK: - Lifecycle
@@ -34,19 +54,31 @@ final class TimerViewController: UIViewController {
   // MARK: - Private Methods
 
   private func configureUI() {
-    view.backgroundColor = .systemBackground
-    title = "타이머"
-    view.addSubview(paddedContainer)
+    view.backgroundColor = .appWhite
 
-    paddedContainer.snp.makeConstraints {
-      $0.top.equalTo(view.safeAreaLayoutGuide).offset(40)
-      $0.leading.trailing.equalToSuperview()
-      $0.height.equalTo(80)
+    for item in [dateLabel, dividerView, descriptionLabel, timeLabel] {
+      view.addSubview(item)
     }
 
-    paddedContainer.contentView.addSubview(testLabel)
-    testLabel.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+    dateLabel.snp.makeConstraints {
+      $0.top.equalTo(view.safeAreaLayoutGuide).offset(0)
+      $0.leading.equalToSuperview().offset(20)
+    }
+
+    dividerView.snp.makeConstraints {
+      $0.top.equalTo(dateLabel.snp.bottom).offset(12)
+      $0.leading.trailing.equalToSuperview()
+      $0.height.equalTo(1)
+    }
+
+    descriptionLabel.snp.makeConstraints {
+      $0.top.equalTo(dividerView.snp.bottom).offset(16)
+      $0.leading.equalToSuperview().offset(20)
+    }
+
+    timeLabel.snp.makeConstraints {
+      $0.top.equalTo(descriptionLabel.snp.bottom).offset(2)
+      $0.leading.equalToSuperview().offset(20)
     }
   }
 }
