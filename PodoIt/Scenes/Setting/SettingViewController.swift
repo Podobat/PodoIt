@@ -13,10 +13,14 @@ final class SettingViewController: UIViewController {
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.dataSource = self
     $0.delegate = self
-    $0.register(SettingHeaderView.self, forHeaderFooterViewReuseIdentifier: SettingHeaderView.id)
     $0.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
     $0.separatorInset = .zero // 구분선의 시스템 마진을 zero로
+    $0.alwaysBounceHorizontal = false
+    $0.showsHorizontalScrollIndicator = false
+    $0.isDirectionalLockEnabled = true
   }
+
+  private let headerView = SettingHeaderView()
 
   // MARK: - Lifecycle
 
@@ -26,9 +30,16 @@ final class SettingViewController: UIViewController {
     configureLayout()
   }
 
+  // 오토레이아웃 제약 조건 반영 후, frame 계산이 끝난 후에 호출
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    updateTableHeaderHeight()
+  }
+
   // MARK: - Private Methods
 
   private func configureUI() {
+    self.navigationController?.isNavigationBarHidden = true
     view.backgroundColor = .systemBackground
     view.addSubview(tableView)
   }
@@ -38,19 +49,19 @@ final class SettingViewController: UIViewController {
       $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
     }
   }
-}
 
-extension SettingViewController: UITableViewDelegate {
-  // 섹션 헤더에 커스텀 뷰 보여줌
-  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: SettingHeaderView.id) as? SettingHeaderView else { return UIView() }
-    return header
-  }
+  private func updateTableHeaderHeight() {
+    // 헤더의 레이아웃을 기반으로 높이 계산 (UIView의 오토 레이아웃으로 적용)
+    let size = headerView.systemLayoutSizeFitting(
+      CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height)
+    )
+    headerView.frame.size.height = size.height
 
-  func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-    return UITableView.automaticDimension
+    tableView.tableHeaderView = headerView
   }
 }
+
+extension SettingViewController: UITableViewDelegate {}
 
 extension SettingViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

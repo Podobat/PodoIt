@@ -8,32 +8,24 @@
 import SnapKit
 import UIKit
 
-final class SettingHeaderView: UITableViewHeaderFooterView {
-  static let id = "SettingHeaderView"
-
-  private let titleLabel = UILabel().then {
-    $0.attributedText = Typography.attributed(
-      "설정",
-      style: .headingLg,
-      color: .appBlack // 다크모드 분기로 .appWhite? 아니면 .label사용?
-    )
-  }
-
-  override init(reuseIdentifier: String?) {
-    super.init(reuseIdentifier: reuseIdentifier)
+final class SettingHeaderView: UIView {
+  private let titleLabel = UILabel.makeAttributed(text: "설정", style: .headingLg, color: .appBlack)
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
     configureUI()
     configureLayout()
   }
-
+  
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-
+  
   private func configureUI() {
-    contentView.addSubview(titleLabel)
+    addSubview(titleLabel)
   }
-
+  
   private func configureLayout() {
     titleLabel.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(12)
