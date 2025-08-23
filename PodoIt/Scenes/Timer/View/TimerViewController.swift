@@ -73,7 +73,7 @@ final class TimerViewController: UIViewController {
   private func setupConstraints() {
     headerView.snp.makeConstraints {
       $0.top.equalTo(view.safeAreaLayoutGuide).offset(12)
-      $0.leading.trailing.equalToSuperview().inset(Layout.horizontalPadding)
+      $0.leading.trailing.equalToSuperview()
     }
 
     backgroundContainerView.snp.makeConstraints {

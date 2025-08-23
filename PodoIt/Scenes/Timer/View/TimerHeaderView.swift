@@ -10,6 +10,10 @@ import Then
 import UIKit
 
 final class TimerHeaderView: UIView {
+  private enum Layout {
+    static let horizontalPadding: CGFloat = 20
+  }
+
   private let dateLabel = UILabel.makeAttributed(
     text: "8월 19일", style: .headingLg, color: .appBlack, alignment: .left
   )
@@ -46,7 +50,7 @@ final class TimerHeaderView: UIView {
   private func setupConstraints() {
     dateLabel.snp.makeConstraints {
       $0.top.equalToSuperview()
-      $0.leading.equalToSuperview()
+      $0.leading.equalToSuperview().offset(Layout.horizontalPadding)
     }
 
     dividerView.snp.makeConstraints {
@@ -57,12 +61,12 @@ final class TimerHeaderView: UIView {
 
     descriptionLabel.snp.makeConstraints {
       $0.top.equalTo(dividerView.snp.bottom).offset(16)
-      $0.leading.equalToSuperview()
+      $0.leading.equalToSuperview().offset(Layout.horizontalPadding)
     }
 
     timeLabel.snp.makeConstraints {
       $0.top.equalTo(descriptionLabel.snp.bottom).offset(2)
-      $0.leading.equalToSuperview()
+      $0.leading.equalToSuperview().offset(Layout.horizontalPadding)
       $0.bottom.equalToSuperview() // 전체 높이 계산
     }
   }
