@@ -54,6 +54,12 @@ final class TimerViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     configureUI()
+    addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+  }
+
+  @objc private func addButtonTapped() {
+    let editVC = TimerEditViewController()
+    navigationController?.pushViewController(editVC, animated: true)
   }
 
   // MARK: - UI Setup
