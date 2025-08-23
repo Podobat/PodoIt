@@ -21,6 +21,7 @@ final class SettingViewController: UIViewController {
   }
 
   private let headerView = SettingHeaderView()
+  private let footerView = SettingFooterView()
 
   // MARK: - Lifecycle
 
@@ -28,12 +29,14 @@ final class SettingViewController: UIViewController {
     super.viewDidLoad()
     configureUI()
     configureLayout()
+    tableView.tableFooterView = footerView
   }
 
   // 오토레이아웃 제약 조건 반영 후, frame 계산이 끝난 후에 호출
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    updateTableHeaderHeight()
+    updateTableHeaderFooterHeight(headerView, assign: { tableView.tableHeaderView = $0 })
+    updateTableHeaderFooterHeight(footerView, assign: { tableView.tableFooterView = $0 })
   }
 
   // MARK: - Private Methods
@@ -50,14 +53,16 @@ final class SettingViewController: UIViewController {
     }
   }
 
-  private func updateTableHeaderHeight() {
-    // 헤더의 레이아웃을 기반으로 높이 계산 (UIView의 오토 레이아웃으로 적용)
-    let size = headerView.systemLayoutSizeFitting(
+  // MARK: - updateTableHeaderFooterHeight
+
+  // header,footer 의 레이아웃을 기반으로 높이 계산 (UIView의 오토 레이아웃으로 적용)
+  // 중복 코드가 많아서 하나로 사용
+  private func updateTableHeaderFooterHeight(_ view: UIView, assign: (UIView) -> Void) {
+    let size = view.systemLayoutSizeFitting(
       CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height)
     )
-    headerView.frame.size.height = size.height
-
-    tableView.tableHeaderView = headerView
+    view.frame.size.height = size.height
+    assign(view)
   }
 }
 
