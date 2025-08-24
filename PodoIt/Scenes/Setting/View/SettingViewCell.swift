@@ -37,5 +37,28 @@ final class SettingViewCell: UITableViewCell {
   
   func configure(_ item: SettingItem) {
     itemLabel.attributedText = Typography.attributed(item.title, style: .headingMd, color: .gray800)
+    // 셀은 재사용되니 문제 생기지 않도록 초기화
+    accessoryType = .none
+    accessoryView = nil
+    
+    switch item.accessory {
+    case .toggle(let isOn):
+      let toggleSwitch = UISwitch()
+      toggleSwitch.isOn = isOn
+      toggleSwitch.onTintColor = .primary600
+      accessoryView = toggleSwitch
+    case .value(let text):
+      let valueLabel = UILabel.makeAttributed(
+        text: text,
+        style: .labelMd(weight: .medium),
+        color: .gray500,
+        alignment: .right
+      )
+      valueLabel.sizeToFit() // 라벨 크기를 텍스트 내용에 맞도록
+      accessoryView = valueLabel
+    case .disclosure:
+      accessoryType = .disclosureIndicator // 시스템에서 제공하는 ">" 표시
+      accessoryView = nil
+    }
   }
 }
