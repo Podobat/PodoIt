@@ -43,13 +43,14 @@ final class SettingViewCell: UITableViewCell {
     
     switch item.accessory {
     case .toggle(let isOn):
+      selectionStyle = .none
       let toggleSwitch = UISwitch()
       toggleSwitch.isOn = isOn
       toggleSwitch.onTintColor = .primary600
       accessoryView = toggleSwitch
-    case .value(let text):
+    case .value(let theme):
       let valueLabel = UILabel.makeAttributed(
-        text: text,
+        text: theme.displayName,
         style: .labelMd(weight: .medium),
         color: .gray500,
         alignment: .right

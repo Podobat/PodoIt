@@ -8,43 +8,8 @@
 import SnapKit
 import UIKit
 
-enum Theme: String {
-  case system = "시스템 설정"
-  case light = "라이트 모드"
-}
-
-enum SettingItem {
-  case notification(isOn: Bool) // 알림 설정
-  case theme(current: String) // 테마 변경
-  case inquiry // 문의/건의하기
-  case review // 리뷰 남기기
-
-  var title: String {
-    switch self {
-    case .notification: return "알림 설정"
-    case .theme: return "테마 설정"
-    case .inquiry: return "문의·건의하기"
-    case .review: return "리뷰 남기기"
-    }
-  }
-
-  enum Accessory {
-    case toggle(isOn: Bool) // 토클
-    case value(text: String) // Label
-    case disclosure // >
-  }
-
-  var accessory: Accessory {
-    switch self {
-    case .notification(let isOn): return .toggle(isOn: isOn)
-    case .theme(let current): return .value(text: current)
-    case .inquiry, .review: return .disclosure
-    }
-  }
-}
-
 final class SettingViewController: UIViewController {
-  private let items: [SettingItem] = [.notification(isOn: false), .theme(current: "시스템"), .inquiry, .review]
+  private let items: [SettingItem] = [.notification(isOn: false), .theme(current: .system), .inquiry, .review]
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.dataSource = self
