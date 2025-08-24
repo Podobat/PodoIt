@@ -9,7 +9,7 @@ import SnapKit
 import UIKit
 
 final class SettingViewController: UIViewController {
-  private let items: [SettingItem] = [.notification(isOn: false), .theme(current: .system), .inquiry, .review]
+  private let viewModel = SettingViewModel()
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.dataSource = self
@@ -70,12 +70,12 @@ extension SettingViewController: UITableViewDelegate {}
 
 extension SettingViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return items.count
+    return viewModel.items.count
   }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     guard let cell = tableView.dequeueReusableCell(withIdentifier: SettingViewCell.id, for: indexPath) as? SettingViewCell else { return UITableViewCell() }
-    let item = items[indexPath.row]
+    let item = viewModel.items[indexPath.row]
     cell.configure(item)
     return cell
   }
