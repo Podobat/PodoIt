@@ -38,6 +38,62 @@ final class TimerEditViewController: UIViewController {
     $0.setLeftPadding(16)
   }
 
+  private let goalContainerView = UIView().then {
+    $0.backgroundColor = .appWhite
+    $0.layer.cornerRadius = 8
+    $0.clipsToBounds = true
+  }
+
+  private let goalTitleLabel = UILabel().then {
+    $0.attributedText = Typography.attributed(
+      "목표 집중 시간",
+      style: .labelLg(weight: .semibold),
+      color: Palette.Gray.g500
+    )
+    $0.textAlignment = .left
+  }
+
+  private let goalValueArea = UIView().then {
+    $0.backgroundColor = .gray50
+    $0.layer.cornerRadius = 8
+    $0.clipsToBounds = true
+  }
+
+  private let goalValueStack = UIStackView().then {
+    $0.axis = .horizontal
+    $0.alignment = .center
+    $0.distribution = .fill
+    $0.spacing = 6
+  }
+
+  private let goalValueNumberLabel = UILabel().then {
+    $0.attributedText = Typography.attributed(
+      "50",
+      style: .displayMd(weight: .bold),
+      color: .appBlack
+    )
+  }
+
+  private let goalValueUnitLabel = UILabel().then {
+    $0.attributedText = Typography.attributed(
+      "분",
+      style: .headingLg,
+      color: Palette.Gray.g500
+    )
+  }
+
+  private let saveButton = UIButton(type: .system).then {
+    $0.backgroundColor = Palette.Primary.p600
+    $0.layer.cornerRadius = 12
+    $0.clipsToBounds = true
+    $0.setAttributedTitle(
+      Typography.attributed("저장하기", style: .labelLg(weight: .semibold), color: .appWhite),
+      for: .normal
+    )
+    $0.contentEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
+    $0.isEnabled = true
+  }
+
   // MARK: - Lifecycle
 
   override func viewDidLoad() {
@@ -47,6 +103,7 @@ final class TimerEditViewController: UIViewController {
     setupConstraints()
     setupDashedCircle()
     backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+    // saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
   }
 
   @objc private func backButtonTapped() {
@@ -56,9 +113,15 @@ final class TimerEditViewController: UIViewController {
   // MARK: - Setup
 
   private func setupView() {
-    for item in [backButton, titleLabel, emojiButton, nameTextField] {
+    for item in [backButton, titleLabel, emojiButton, nameTextField, goalContainerView, saveButton] {
       view.addSubview(item)
     }
+    goalContainerView.addSubview(goalTitleLabel)
+    goalContainerView.addSubview(goalValueArea)
+
+    goalValueArea.addSubview(goalValueStack)
+    goalValueStack.addArrangedSubview(goalValueNumberLabel)
+    goalValueStack.addArrangedSubview(goalValueUnitLabel)
   }
 
   private func setupConstraints() {
@@ -84,6 +147,34 @@ final class TimerEditViewController: UIViewController {
       $0.leading.equalTo(emojiButton.snp.trailing).offset(8)
       $0.trailing.equalToSuperview().inset(20)
       $0.height.equalTo(56)
+    }
+
+    goalContainerView.snp.makeConstraints {
+      $0.top.equalTo(emojiButton.snp.bottom).offset(12)
+      $0.leading.trailing.equalToSuperview().inset(20)
+      $0.height.equalTo(113)
+    }
+
+    goalTitleLabel.snp.makeConstraints {
+      $0.leading.equalToSuperview().offset(16)
+      $0.top.equalToSuperview().offset(16)
+    }
+
+    goalValueArea.snp.makeConstraints {
+      $0.top.equalTo(goalTitleLabel.snp.bottom).offset(8)
+      $0.leading.equalToSuperview().offset(16)
+      $0.trailing.equalToSuperview().inset(16)
+      $0.bottom.equalToSuperview().inset(16)
+    }
+
+    goalValueStack.snp.makeConstraints {
+      $0.center.equalToSuperview()
+    }
+
+    saveButton.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(20)
+      $0.height.equalTo(48)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(20)
     }
   }
 

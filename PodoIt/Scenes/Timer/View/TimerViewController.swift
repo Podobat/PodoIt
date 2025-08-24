@@ -59,6 +59,7 @@ final class TimerViewController: UIViewController {
 
   @objc private func addButtonTapped() {
     let editVC = TimerEditViewController()
+    editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
   }
 
