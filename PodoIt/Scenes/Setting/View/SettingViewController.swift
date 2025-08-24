@@ -9,11 +9,29 @@ import SnapKit
 import SwiftUI
 import UIKit
 
+enum SettingItem {
+  case notification // 알림 설정
+  case theme // 테마 변경
+  case inquiry // 문의/건의하기
+  case review // 리뷰 남기기
+
+  var title: String {
+    switch self {
+    case .notification: return "알림 설정"
+    case .theme: return "테마 설정"
+    case .inquiry: return "문의·건의하기"
+    case .review: return "리뷰 남기기"
+    }
+  }
+}
+
 final class SettingViewController: UIViewController {
+  private let items: [SettingItem] = [.notification, .theme, .inquiry, .review]
+
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.dataSource = self
     $0.delegate = self
-    $0.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+    $0.register(SettingViewCell.self, forCellReuseIdentifier: SettingViewCell.id)
     $0.separatorInset = .zero // 구분선의 시스템 마진을 zero로
     $0.alwaysBounceHorizontal = false
     $0.showsHorizontalScrollIndicator = false
@@ -70,12 +88,13 @@ extension SettingViewController: UITableViewDelegate {}
 
 extension SettingViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    3
+    return items.count
   }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-    cell.textLabel?.text = "테스트"
+    guard let cell = tableView.dequeueReusableCell(withIdentifier: SettingViewCell.id, for: indexPath) as? SettingViewCell else { return UITableViewCell() }
+    let item = items[indexPath.row]
+    cell.configure(item)
     return cell
   }
 }
