@@ -12,11 +12,21 @@ final class ThemeSheetViewController: UIViewController {
   private let onSelect: (Theme) -> Void // 선택 결과 전달
   private var selectedTheme: Theme // 현재 선택된 테마
 
+  private let titleLabel = UILabel.makeAttributed(
+    text: "테마 변경",
+    style: .headingLg,
+    color: .appBlack,
+    alignment: .center
+  )
+
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.dataSource = self
     $0.delegate = self
     $0.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     $0.isScrollEnabled = false
+    $0.separatorStyle = .none
+    $0.rowHeight = UITableView.automaticDimension
+    $0.estimatedRowHeight = 56
   }
 
   init(onSelect: @escaping (Theme) -> Void, selectedTheme: Theme) {
@@ -38,12 +48,19 @@ final class ThemeSheetViewController: UIViewController {
   }
 
   private func configureUI() {
-    view.addSubview(tableView)
+    view.backgroundColor = .appWhite
+    [titleLabel, tableView].forEach { view.addSubview($0) }
   }
 
   private func configureLayout() {
+    titleLabel.snp.makeConstraints {
+      $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(37) // grabber + padding
+      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
+    }
+
     tableView.snp.makeConstraints {
-      $0.edges.equalTo(view.safeAreaLayoutGuide)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(16)
+      $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
     }
   }
 
@@ -61,7 +78,7 @@ final class ThemeSheetViewController: UIViewController {
     sheet.detents = [fixed337, .large()] // 시작은 337, 올리면 large
     sheet.selectedDetentIdentifier = .init("fixed337") // 처음 나타날 때 337pt 높이
     sheet.prefersGrabberVisible = true // 위 아래로 잡아당기는 grabber(작은 막대) 표시
-    sheet.prefersScrollingExpandsWhenScrolledToEdge = true // 얘는 빼야할지 넣어야할지..
+    sheet.preferredCornerRadius = 16
   }
 }
 
