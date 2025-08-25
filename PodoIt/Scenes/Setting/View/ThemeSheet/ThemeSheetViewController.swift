@@ -53,6 +53,10 @@ final class ThemeSheetViewController: UIViewController {
     super.viewDidLoad()
     configureUI()
     configureLayout()
+  }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
     configureSheet()
   }
 
@@ -76,33 +80,33 @@ final class ThemeSheetViewController: UIViewController {
     saveButton.snp.makeConstraints {
       $0.top.equalTo(tableView.snp.bottom).offset(20)
       $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
       $0.height.equalTo(48)
     }
   }
-
+  
   // MARK: - configureSheet
 
   private func configureSheet() {
     guard let sheet = sheetPresentationController else { return }
     let fit = UISheetPresentationController.Detent.custom(identifier: .init("fit")) { [weak self] ctx in
       guard let self = self else { return 300 }
+      // 최소 높이 계산 전 최신의 레이아웃을 반영
+      self.view.layoutIfNeeded()
       // 현재 레이아웃이 필요로 하는 최소 높이 계산
       let needed = self.view.systemLayoutSizeFitting(
         CGSize(width: self.view.bounds.width, height: .greatestFiniteMagnitude),
-        withHorizontalFittingPriority: .required,
-        verticalFittingPriority: .fittingSizeLevel
-      ).height
+        withHorizontalFittingPriority: .required,  // 가로는 반드시 이 폭을 지킴.
+        verticalFittingPriority: .fittingSizeLevel // 세로는 제약을 만족하는 '최소'높이를 맞춤
+      ).height // '세로 길이'만 사용
 
-      let bottom = self.view.safeAreaInsets.bottom
-      return min(max(needed - bottom, 240), ctx.maximumDetentValue)
+      let bottom = self.view.safeAreaInsets.bottom // VC 하단 세이프 에어리어 값
+      return min(max(needed - bottom, 240), ctx.maximumDetentValue) // 최대 높이랑 비교하여, 화면의 최대 높이를 넘어가지 않도록 조절
     }
 
-    sheet.detents = [fit, .large()]
-    sheet.selectedDetentIdentifier = .init("fit")
-    sheet.prefersGrabberVisible = true
+    sheet.detents = [fit]
+    sheet.prefersGrabberVisible = true // gabber 모습 보임
     sheet.preferredCornerRadius = 16
-    sheet.prefersScrollingExpandsWhenScrolledToEdge = false
   }
 }
 
@@ -128,6 +132,7 @@ extension ThemeSheetViewController: UITableViewDataSource {
     cell.contentConfiguration = config
     cell.accessoryType = (theme == selectedTheme) ? .checkmark : .none
     cell.tintColor = .primary500
+    cell.selectionStyle = .none
     return cell
   }
 }
