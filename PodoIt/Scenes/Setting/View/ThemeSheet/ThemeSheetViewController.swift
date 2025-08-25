@@ -29,6 +29,15 @@ final class ThemeSheetViewController: UIViewController {
     $0.estimatedRowHeight = 56
   }
 
+  private let saveButton = UIButton(type: .system).then {
+    $0.setTitle("저장하기", for: .normal)
+    $0.setTitleColor(.appWhite, for: .normal)
+    $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
+    $0.backgroundColor = .primary600
+    $0.layer.cornerRadius = 12
+    $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
+  }
+
   init(onSelect: @escaping (Theme) -> Void, selectedTheme: Theme) {
     self.onSelect = onSelect
     self.selectedTheme = selectedTheme
@@ -49,18 +58,26 @@ final class ThemeSheetViewController: UIViewController {
 
   private func configureUI() {
     view.backgroundColor = .appWhite
-    [titleLabel, tableView].forEach { view.addSubview($0) }
+    [titleLabel, tableView, saveButton].forEach { view.addSubview($0) }
   }
 
   private func configureLayout() {
     titleLabel.snp.makeConstraints {
       $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(37) // grabber + padding
-      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
+      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
     }
 
     tableView.snp.makeConstraints {
       $0.top.equalTo(titleLabel.snp.bottom).offset(16)
-      $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
+      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide)
+      $0.height.equalTo(CGFloat(Theme.allCases.count) * 56) // 셀 3개 → 168
+    }
+
+    saveButton.snp.makeConstraints {
+      $0.top.equalTo(tableView.snp.bottom).offset(20)
+      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide)
+      $0.height.equalTo(48)
     }
   }
 
@@ -68,17 +85,24 @@ final class ThemeSheetViewController: UIViewController {
 
   private func configureSheet() {
     guard let sheet = sheetPresentationController else { return }
+    let fit = UISheetPresentationController.Detent.custom(identifier: .init("fit")) { [weak self] ctx in
+      guard let self = self else { return 300 }
+      // 현재 레이아웃이 필요로 하는 최소 높이 계산
+      let needed = self.view.systemLayoutSizeFitting(
+        CGSize(width: self.view.bounds.width, height: .greatestFiniteMagnitude),
+        withHorizontalFittingPriority: .required,
+        verticalFittingPriority: .fittingSizeLevel
+      ).height
 
-    // iOS 16+ 커스텀 detent: 처음 높이를 337pt로
-    let fixed337 = UISheetPresentationController.Detent.custom(identifier: .init("fixed337")) { content in
-      // large 보다 클 수 없으니 캡핑
-      min(337, content.maximumDetentValue)
+      let bottom = self.view.safeAreaInsets.bottom
+      return min(max(needed - bottom, 240), ctx.maximumDetentValue)
     }
 
-    sheet.detents = [fixed337, .large()] // 시작은 337, 올리면 large
-    sheet.selectedDetentIdentifier = .init("fixed337") // 처음 나타날 때 337pt 높이
-    sheet.prefersGrabberVisible = true // 위 아래로 잡아당기는 grabber(작은 막대) 표시
+    sheet.detents = [fit, .large()]
+    sheet.selectedDetentIdentifier = .init("fit")
+    sheet.prefersGrabberVisible = true
     sheet.preferredCornerRadius = 16
+    sheet.prefersScrollingExpandsWhenScrolledToEdge = false
   }
 }
 
@@ -103,6 +127,7 @@ extension ThemeSheetViewController: UITableViewDataSource {
 
     cell.contentConfiguration = config
     cell.accessoryType = (theme == selectedTheme) ? .checkmark : .none
+    cell.tintColor = .primary500
     return cell
   }
 }
