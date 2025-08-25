@@ -12,6 +12,7 @@ final class SettingViewCell: UITableViewCell {
   static let id = "SettingViewCell"
   
   private let itemLabel = UILabel()
+  private let toggleSwitch = UISwitch()
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -44,7 +45,6 @@ final class SettingViewCell: UITableViewCell {
     
     switch item.accessory {
     case .toggle(let isOn):
-      let toggleSwitch = UISwitch()
       toggleSwitch.isOn = isOn
       toggleSwitch.onTintColor = .primary600
       accessoryView = toggleSwitch
