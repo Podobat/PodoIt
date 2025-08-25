@@ -24,6 +24,7 @@ final class SettingViewController: UIViewController {
 
   private let headerView = SettingHeaderView()
   private let footerView = SettingFooterView()
+  private var didSetHeaderFooter = false
 
   // MARK: - Lifecycle
 
@@ -36,8 +37,10 @@ final class SettingViewController: UIViewController {
   // 오토레이아웃 제약 조건 반영 후, frame 계산이 끝난 후에 호출
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
+    guard !didSetHeaderFooter else { return }
     updateTableHeaderFooterHeight(headerView, assign: { tableView.tableHeaderView = $0 })
     updateTableHeaderFooterHeight(footerView, assign: { tableView.tableFooterView = $0 })
+    didSetHeaderFooter = true
   }
 
   // MARK: - Private Methods
