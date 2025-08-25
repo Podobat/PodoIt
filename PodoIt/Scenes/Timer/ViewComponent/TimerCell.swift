@@ -25,13 +25,14 @@ final class TimerCell: UICollectionViewCell {
     static let titleMetaSpacing: CGFloat = 8
     static let metaAfterFocusVal: CGFloat = 18
     static let metaAfterToday: CGFloat = 10
+    static let buttonTrailingSpacing: CGFloat = 8
   }
 
   // MARK: - UI
 
   private let emojiFrameView = UIView().then {
     $0.backgroundColor = .gray100
-    $0.layer.cornerRadius = 14
+    $0.layer.cornerRadius = Metrics.emojiFrame / 2
     $0.clipsToBounds = true
   }
 
@@ -75,21 +76,22 @@ final class TimerCell: UICollectionViewCell {
     $0.adjustsFontForContentSizeCategory = true // Dynamic Type 대응
   }
 
-  private lazy var metaStack = UIStackView(arrangedSubviews: [
-    focusPrefixLabel, focusValueLabel, todayLabel, todayValueLabel
-  ]).then {
+  private lazy var metaStack = UIStackView().then {
+    $0.addArrangedSubviews([focusPrefixLabel, focusValueLabel, todayLabel, todayValueLabel])
     $0.axis = .horizontal
     $0.alignment = .lastBaseline
     $0.spacing = 8
+    $0.setCustomSpacing(Metrics.metaAfterFocusVal, after: focusValueLabel)
+    $0.setCustomSpacing(Metrics.metaAfterToday, after: todayLabel)
   }
 
-  private let playButton = UIButton(type: .system).then {
+  private lazy var playButton = UIButton(type: .system).then {
     let image = UIImage(named: "play_fill")?.withRenderingMode(.alwaysOriginal)
     $0.setImage(image, for: .normal)
     $0.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
-    // 버튼이 줄어들지 않도록 명시
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     $0.setContentHuggingPriority(.required, for: .horizontal)
+    $0.addTarget(self, action: #selector(handlePlayTapped), for: .touchUpInside)
   }
 
   var onPlayTapped: (() -> Void)?
@@ -97,7 +99,6 @@ final class TimerCell: UICollectionViewCell {
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupUI()
-    playButton.addTarget(self, action: #selector(handlePlayTapped), for: .touchUpInside) // [CHANGED]
   }
 
   @available(*, unavailable)
@@ -105,72 +106,102 @@ final class TimerCell: UICollectionViewCell {
 
   override func prepareForReuse() {
     super.prepareForReuse()
-    iconLabel.text = nil
-    titleLabel.text = nil
-    focusValueLabel.text = nil
-    todayValueLabel.text = nil
+    resetLabels()
   }
 
   private func setupUI() {
+    setupContentView()
+    addSubviews()
+    setupConstraints()
+  }
+
+  private func setupContentView() {
     contentView.backgroundColor = .appWhite
     contentView.layer.cornerRadius = Metrics.cornerRadius
     contentView.layer.cornerCurve = .continuous
     contentView.clipsToBounds = true
 
-    let selectedBG = UIView()
-    selectedBG.backgroundColor = UIColor.gray100.withAlphaComponent(0.5)
-    selectedBackgroundView = selectedBG
+    selectedBackgroundView = UIView().then {
+      $0.backgroundColor = UIColor.gray100.withAlphaComponent(0.5)
+    }
+  }
 
-    contentView.addSubview(emojiFrameView)
-    contentView.addSubview(titleLabel)
-    contentView.addSubview(metaStack)
-    contentView.addSubview(playButton)
+  private func addSubviews() {
+    contentView.addSubviews([emojiFrameView, titleLabel, metaStack, playButton])
+    emojiFrameView.addSubview(iconLabel)
+  }
 
+  private func setupConstraints() {
     emojiFrameView.snp.makeConstraints {
-      $0.leading.equalToSuperview().inset(Metrics.stackHPadding) // 16
-      $0.top.equalToSuperview().inset(Metrics.stackVPadding) // 20
-      $0.width.height.equalTo(Metrics.emojiFrame) // 28
+      $0.leading.equalToSuperview().inset(Metrics.stackHPadding)
+      $0.top.equalToSuperview().inset(Metrics.stackVPadding)
+      $0.size.equalTo(Metrics.emojiFrame)
     }
 
-    emojiFrameView.addSubview(iconLabel)
-    iconLabel.snp.makeConstraints { $0.center.equalToSuperview() }
+    iconLabel.snp.makeConstraints {
+      $0.center.equalToSuperview()
+    }
 
     titleLabel.snp.makeConstraints {
-      $0.leading.equalTo(emojiFrameView.snp.trailing).offset(Metrics.interItemSpacing) // 10
-      $0.centerY.equalTo(emojiFrameView.snp.centerY) //  이모지 ↔ 제목 높이
-      $0.trailing.lessThanOrEqualTo(playButton.snp.leading).offset(-8)
+      $0.leading.equalTo(emojiFrameView.snp.trailing).offset(Metrics.interItemSpacing)
+      $0.centerY.equalTo(emojiFrameView)
+      $0.trailing.lessThanOrEqualTo(playButton.snp.leading).offset(-Metrics.buttonTrailingSpacing)
     }
 
     metaStack.snp.makeConstraints {
-      $0.leading.equalTo(emojiFrameView.snp.leading)
-      $0.top.equalTo(emojiFrameView.snp.bottom).offset(Metrics.titleMetaSpacing) // 8
-      $0.trailing.lessThanOrEqualTo(playButton.snp.leading).offset(-8)
-      $0.bottom.lessThanOrEqualTo(contentView.snp.bottom).inset(Metrics.stackVPadding) // 20
+      $0.leading.equalTo(emojiFrameView)
+      $0.top.equalTo(emojiFrameView.snp.bottom).offset(Metrics.titleMetaSpacing)
+      $0.trailing.lessThanOrEqualTo(playButton.snp.leading).offset(-Metrics.buttonTrailingSpacing)
+      $0.bottom.lessThanOrEqualTo(contentView).inset(Metrics.stackVPadding)
     }
 
     playButton.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(16)
       $0.centerY.equalToSuperview()
-      $0.width.height.equalTo(Metrics.playSize) // 32
+      $0.size.equalTo(Metrics.playSize)
     }
-
-    // 구간별 커스텀 간격
-    metaStack.setCustomSpacing(Metrics.metaAfterFocusVal, after: focusValueLabel) // 50분 ↔ 오늘
-    metaStack.setCustomSpacing(Metrics.metaAfterToday, after: todayLabel)
   }
 
-  @objc private func handlePlayTapped() { onPlayTapped?() }
+  private func resetLabels() {
+    [iconLabel, titleLabel, focusValueLabel, todayValueLabel].forEach { $0.text = nil }
+  }
 
-  // MARK: - Configure
+  @objc private func handlePlayTapped() {
+    onPlayTapped?()
+  }
+
+  // MARK: - Public Methods
 
   func configure(with timer: TimerModel, today: String = "00:00:00") {
-    // 접근성 라벨
+    setupAccessibility(timer: timer, today: today)
+    updateContent(timer: timer, today: today)
+  }
+
+  private func setupAccessibility(timer: TimerModel, today: String) {
     isAccessibilityElement = true
     accessibilityLabel = "\(timer.title), 집중 목표 \(timer.goalTime)분, 오늘 \(today)"
+  }
 
+  private func updateContent(timer: TimerModel, today: String) {
     iconLabel.text = timer.iconName
     titleLabel.text = timer.title
     focusValueLabel.text = "\(timer.goalTime)분"
     todayValueLabel.text = today
+  }
+}
+
+// MARK: - UIView Extension
+
+extension UIView {
+  func addSubviews(_ views: [UIView]) {
+    views.forEach(addSubview)
+  }
+}
+
+// MARK: - UIStackView Extension
+
+extension UIStackView {
+  func addArrangedSubviews(_ views: [UIView]) {
+    views.forEach(addArrangedSubview)
   }
 }
