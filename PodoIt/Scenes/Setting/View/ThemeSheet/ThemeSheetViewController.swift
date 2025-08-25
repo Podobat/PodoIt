@@ -23,7 +23,7 @@ final class ThemeSheetViewController: UIViewController {
     $0.dataSource = self
     $0.delegate = self
     $0.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-    $0.isScrollEnabled = false
+    $0.isScrollEnabled = false // 스크롤 방지
     $0.separatorStyle = .none
     $0.rowHeight = UITableView.automaticDimension
     $0.estimatedRowHeight = 56
@@ -35,7 +35,7 @@ final class ThemeSheetViewController: UIViewController {
     $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
     $0.backgroundColor = .primary600
     $0.layer.cornerRadius = 12
-    $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
+    $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16) // 버튼 내부와 경계 사이 여백
   }
 
   init(onSelect: @escaping (Theme) -> Void, selectedTheme: Theme) {
@@ -57,7 +57,7 @@ final class ThemeSheetViewController: UIViewController {
   
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    configureSheet()
+    configureSheet() // 레이아웃 계산이 끝난 후, 실제 뷰 크기에 맞춰서 높이 설정
   }
 
   private func configureUI() {
@@ -89,23 +89,25 @@ final class ThemeSheetViewController: UIViewController {
 
   private func configureSheet() {
     guard let sheet = sheetPresentationController else { return }
-    let fit = UISheetPresentationController.Detent.custom(identifier: .init("fit")) { [weak self] ctx in
+    let fit = UISheetPresentationController.Detent.custom(identifier: .init("fit")) { [weak self] ctx in // Detent가 멈추는 높이
       guard let self = self else { return 300 }
       // 최소 높이 계산 전 최신의 레이아웃을 반영
       self.view.layoutIfNeeded()
       // 현재 레이아웃이 필요로 하는 최소 높이 계산
       let needed = self.view.systemLayoutSizeFitting(
-        CGSize(width: self.view.bounds.width, height: .greatestFiniteMagnitude),
+        CGSize(width: self.view.bounds.width, height: .greatestFiniteMagnitude), // 세로 입력 상한 없애고, "내용에 맞게" 최소 높이를 구함
         withHorizontalFittingPriority: .required,  // 가로는 반드시 이 폭을 지킴.
-        verticalFittingPriority: .fittingSizeLevel // 세로는 제약을 만족하는 '최소'높이를 맞춤
+        verticalFittingPriority: .fittingSizeLevel // 세로는 제약을 만족하는 '최소'높이를 찾음
       ).height // '세로 길이'만 사용
 
-      let bottom = self.view.safeAreaInsets.bottom // VC 하단 세이프 에어리어 값
-      return min(max(needed - bottom, 240), ctx.maximumDetentValue) // 최대 높이랑 비교하여, 화면의 최대 높이를 넘어가지 않도록 조절
+      // 홈 인디게이터 때문에 추가로 나오는 하단 safe area만큼을 구함.
+      // needed가 겹쳐서 계산될 수 있기에, 그만큼을 빼줌
+      let bottom = self.view.safeAreaInsets.bottom
+      return min(max(needed - bottom, 240), ctx.maximumDetentValue) // 시스템이 허용하는 최대 높이와 비교, 화면의 최대 높이를 넘어가지 않도록 조절
     }
 
-    sheet.detents = [fit]
-    sheet.prefersGrabberVisible = true // gabber 모습 보임
+    sheet.detents = [fit] // fit 하나의 detents 단계만 가짐. (.large 등이 있지만, 하나만 지원)
+    sheet.prefersGrabberVisible = true // gabber(표시 막대) 모습 보임
     sheet.preferredCornerRadius = 16
   }
 }
@@ -120,7 +122,7 @@ extension ThemeSheetViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
     let theme = Theme.allCases[indexPath.row]
-    var config = UIListContentConfiguration.valueCell()
+    var config = cell.defaultContentConfiguration()
     config.attributedText = Typography.attributed(theme.displayName, style: .bodyLg(weight: .medium), color: .gray900)
     config.directionalLayoutMargins = NSDirectionalEdgeInsets(
       top: 16,
