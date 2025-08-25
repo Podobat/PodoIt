@@ -5,7 +5,7 @@
 //  Created by 서광용 on 8/24/25.
 //
 
-enum Theme {
+enum Theme: CaseIterable {
   case system
   case light
   case dark

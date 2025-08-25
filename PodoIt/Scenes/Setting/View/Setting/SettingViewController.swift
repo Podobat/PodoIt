@@ -70,7 +70,18 @@ final class SettingViewController: UIViewController {
   }
 }
 
-extension SettingViewController: UITableViewDelegate {}
+extension SettingViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let item = viewModel.items[indexPath.row]
+    switch item {
+    case .theme(let current):
+      let sheetVC = ThemeSheetViewController(onSelect: { _ in /* 나중에 */ }, selectedTheme: current)
+      sheetVC.modalPresentationStyle = .pageSheet
+      present(sheetVC, animated: true)
+    default: break
+    }
+  }
+}
 
 extension SettingViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
