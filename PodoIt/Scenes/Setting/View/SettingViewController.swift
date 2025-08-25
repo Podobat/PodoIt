@@ -16,9 +16,10 @@ final class SettingViewController: UIViewController {
     $0.delegate = self
     $0.register(SettingViewCell.self, forCellReuseIdentifier: SettingViewCell.id)
     $0.separatorInset = .zero // 구분선의 시스템 마진을 zero로
-    $0.alwaysBounceHorizontal = false
     $0.showsHorizontalScrollIndicator = false
     $0.isDirectionalLockEnabled = true
+    $0.rowHeight = UITableView.automaticDimension
+    $0.estimatedRowHeight = 56 // 예상 높이값
   }
 
   private let headerView = SettingHeaderView()
