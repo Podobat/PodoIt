@@ -283,6 +283,19 @@ final class TimerEditViewController: UIViewController {
 
   // MARK: - Collapsed/Expanded
 
+  // 펼침/접힘에 따라 ValueArea의 배경/모서리를 토글
+  private func updateValueAreaStyle(isCollapsed: Bool) {
+    if isCollapsed {
+      goalValueArea.backgroundColor = .gray100
+      goalValueArea.layer.cornerRadius = Metrics.cornerRadius
+      goalValueArea.clipsToBounds = true
+    } else {
+      goalValueArea.backgroundColor = .clear
+      goalValueArea.layer.cornerRadius = 0
+      goalValueArea.clipsToBounds = false
+    }
+  }
+
   private func updateCollapsedLabelText() {
     // 숫자(마지막 글자에만 kerning 8)
     let number = NSMutableAttributedString(
@@ -308,8 +321,9 @@ final class TimerEditViewController: UIViewController {
     collapsedValueLabel.isHidden = false
 
     minutePickerMinHeightConstraint?.deactivate()
-
     goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightCollapsed)
+    updateValueAreaStyle(isCollapsed: true)
+
     let changes = { self.view.layoutIfNeeded() }
     animated ? UIView.animate(withDuration: 0.25, animations: changes) : changes()
   }
@@ -321,8 +335,9 @@ final class TimerEditViewController: UIViewController {
     collapsedValueLabel.isHidden = true
 
     minutePickerMinHeightConstraint?.activate()
-
     goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightExpanded)
+    updateValueAreaStyle(isCollapsed: false)
+
     let changes = { self.view.layoutIfNeeded() }
     animated ? UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.6, options: .curveEaseInOut, animations: changes) : changes()
   }
