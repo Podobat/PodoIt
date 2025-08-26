@@ -11,6 +11,7 @@ final class StatsViewController: UIViewController {
   // MARK: - Properties
 
   private let headerView = StatsHeaderView()
+  private let summaryView = StatsSummaryView()
 
   // MARK: - Lifecycle
 
@@ -29,12 +30,16 @@ final class StatsViewController: UIViewController {
   }
 
   private func setupViews() {
-    [headerView].forEach { view.addSubview($0) }
+    [headerView, summaryView].forEach { view.addSubview($0) }
   }
 
   private func setupConstraints() {
     headerView.snp.makeConstraints {
       $0.top.equalTo(view.safeAreaLayoutGuide)
+      $0.leading.trailing.equalToSuperview()
+    }
+    summaryView.snp.makeConstraints {
+      $0.top.equalTo(headerView.snp.bottom)
       $0.leading.trailing.equalToSuperview()
     }
   }
