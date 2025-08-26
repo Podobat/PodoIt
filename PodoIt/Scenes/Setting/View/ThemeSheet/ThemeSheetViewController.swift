@@ -34,7 +34,8 @@ final class ThemeSheetViewController: UIViewController {
   
   private let onSelect: (Theme) -> Void // 선택 결과 전달
   private var selectedTheme: Theme // 현재 선택된 테마
-
+  private let checkImage = UIImage(named: "check")?.withRenderingMode(.alwaysTemplate) // tintColor 적용을 위해 Template로 렌더링
+  
   private let titleLabel = UILabel.makeAttributed(
     text: "테마 변경",
     style: .headingLg,
@@ -159,11 +160,13 @@ extension ThemeSheetViewController: UITableViewDataSource {
       bottom: Layout.cellVInset,
       trailing: Layout.cellHInset
     )
+    
+    let imageView = UIImageView(image: checkImage)
+    imageView.tintColor = .primary500
 
     cell.backgroundColor = .appWhite
     cell.contentConfiguration = config
-    cell.accessoryType = (theme == selectedTheme) ? .checkmark : .none
-    cell.tintColor = .primary500
+    cell.accessoryView = (theme == selectedTheme) ? imageView : .none
     cell.selectionStyle = .none
     return cell
   }
