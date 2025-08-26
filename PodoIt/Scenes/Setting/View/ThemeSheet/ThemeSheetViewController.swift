@@ -54,7 +54,7 @@ final class ThemeSheetViewController: UIViewController {
     $0.estimatedRowHeight = Layout.rowHeight
   }
 
-  private let saveButton = UIButton(type: .system).then {
+  private lazy var saveButton = UIButton(type: .system).then {
     $0.setTitle("저장하기", for: .normal)
     $0.setTitleColor(.appWhite, for: .normal)
     $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
@@ -66,6 +66,7 @@ final class ThemeSheetViewController: UIViewController {
       bottom: Layout.buttonContentV,
       right: Layout.buttonContentH
     ) // 버튼 내부와 경계 사이 여백
+    $0.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
   }
 
   init(onSelect: @escaping (Theme) -> Void, selectedTheme: Theme) {
@@ -140,9 +141,27 @@ final class ThemeSheetViewController: UIViewController {
     sheet.prefersGrabberVisible = true // gabber(표시 막대) 모습 보임
     sheet.preferredCornerRadius = Layout.sheetCornerRadius
   }
+  
+  @objc private func saveButtonTapped() {
+    onSelect(selectedTheme)
+    dismiss(animated: true)
+  }
 }
 
-extension ThemeSheetViewController: UITableViewDelegate {}
+extension ThemeSheetViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    guard let oldIndex = Theme.allCases.firstIndex(of: selectedTheme) else { return } // selectedTheme과 같은 값이 몇 번째 인덱스인지
+    let newIndex = indexPath.row // 내가 현재 누른 인덱스 위치
+    if oldIndex == newIndex { return } // 동일 항목을 누른다면 무시
+    selectedTheme = Theme.allCases[newIndex] // 새로운 Theme 값으로 매칭
+    // 변경된 부분들만 셀 리로드
+    tableView.reloadRows(at: [
+        IndexPath(row: oldIndex, section: 0),
+        IndexPath(row: newIndex, section: 0)
+    ],with: .none
+    )
+  }
+}
 
 extension ThemeSheetViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

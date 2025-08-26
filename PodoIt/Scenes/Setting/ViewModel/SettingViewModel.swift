@@ -18,7 +18,7 @@ final class SettingViewModel {
   
   func applyTheme(_ theme: Theme) {
     currentTheme = theme
-    UserDefaults.standard.set(currentTheme, forKey: "theme")
+    UserDefaults.standard.set(theme.rawValue, forKey: "theme")
   }
   
   var items: [SettingItem] {
