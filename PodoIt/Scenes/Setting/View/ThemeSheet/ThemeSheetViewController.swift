@@ -9,6 +9,29 @@ import SnapKit
 import UIKit
 
 final class ThemeSheetViewController: UIViewController {
+  
+  private enum Layout {
+    static let titleTop: CGFloat = 37 // grabber + padding
+    
+    static let sideInset: CGFloat = 20
+    static let vSpacingSmall: CGFloat = 16
+    static let vSpacing: CGFloat = 20
+    
+    static let rowHeight: CGFloat = 56
+    static let buttonHeight: CGFloat = 48
+    
+    static let buttonCornerRadius: CGFloat = 12
+    static let sheetCornerRadius: CGFloat = 16
+    
+    static let buttonContentV: CGFloat = 12
+    static let buttonContentH: CGFloat = 16
+    
+    static let cellVInset: CGFloat = 16
+    static let cellHInset: CGFloat = 20
+    
+    static let minDetent: CGFloat = 240 // 시트 최소 높이
+  }
+  
   private let onSelect: (Theme) -> Void // 선택 결과 전달
   private var selectedTheme: Theme // 현재 선택된 테마
 
@@ -26,7 +49,7 @@ final class ThemeSheetViewController: UIViewController {
     $0.isScrollEnabled = false // 스크롤 방지
     $0.separatorStyle = .none
     $0.rowHeight = UITableView.automaticDimension
-    $0.estimatedRowHeight = 56
+    $0.estimatedRowHeight = Layout.rowHeight
   }
 
   private let saveButton = UIButton(type: .system).then {
@@ -35,7 +58,12 @@ final class ThemeSheetViewController: UIViewController {
     $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
     $0.backgroundColor = .primary600
     $0.layer.cornerRadius = 12
-    $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16) // 버튼 내부와 경계 사이 여백
+    $0.contentEdgeInsets = UIEdgeInsets(
+      top: Layout.buttonContentV,
+      left: Layout.buttonContentH,
+      bottom: Layout.buttonContentV,
+      right: Layout.buttonContentH
+    ) // 버튼 내부와 경계 사이 여백
   }
 
   init(onSelect: @escaping (Theme) -> Void, selectedTheme: Theme) {
@@ -67,21 +95,21 @@ final class ThemeSheetViewController: UIViewController {
 
   private func configureLayout() {
     titleLabel.snp.makeConstraints {
-      $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(37) // grabber + padding
-      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
+      $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(Layout.titleTop)
+      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(Layout.sideInset)
     }
 
     tableView.snp.makeConstraints {
-      $0.top.equalTo(titleLabel.snp.bottom).offset(16)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(Layout.vSpacingSmall)
       $0.leading.trailing.equalTo(view.safeAreaLayoutGuide)
-      $0.height.equalTo(CGFloat(Theme.allCases.count) * 56) // 셀 3개 → 168
+      $0.height.equalTo(CGFloat(Theme.allCases.count) * Layout.rowHeight) // 셀 3개 → 168
     }
 
     saveButton.snp.makeConstraints {
-      $0.top.equalTo(tableView.snp.bottom).offset(20)
-      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
-      $0.height.equalTo(48)
+      $0.top.equalTo(tableView.snp.bottom).offset(Layout.vSpacing)
+      $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(Layout.sideInset)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Layout.sideInset)
+      $0.height.equalTo(Layout.buttonHeight)
     }
   }
   
@@ -103,12 +131,12 @@ final class ThemeSheetViewController: UIViewController {
       // 홈 인디게이터 때문에 추가로 나오는 하단 safe area만큼을 구함.
       // needed가 겹쳐서 계산될 수 있기에, 그만큼을 빼줌
       let bottom = self.view.safeAreaInsets.bottom
-      return min(max(needed - bottom, 240), ctx.maximumDetentValue) // 시스템이 허용하는 최대 높이와 비교, 화면의 최대 높이를 넘어가지 않도록 조절
+      return min(max(needed - bottom, Layout.minDetent), ctx.maximumDetentValue) // 시스템이 허용하는 최대 높이와 비교, 화면의 최대 높이를 넘어가지 않도록 조절
     }
 
     sheet.detents = [fit] // fit 하나의 detents 단계만 가짐. (.large 등이 있지만, 하나만 지원)
     sheet.prefersGrabberVisible = true // gabber(표시 막대) 모습 보임
-    sheet.preferredCornerRadius = 16
+    sheet.preferredCornerRadius = Layout.sheetCornerRadius
   }
 }
 
@@ -125,10 +153,10 @@ extension ThemeSheetViewController: UITableViewDataSource {
     var config = cell.defaultContentConfiguration()
     config.attributedText = Typography.attributed(theme.displayName, style: .bodyLg(weight: .medium), color: .gray900)
     config.directionalLayoutMargins = NSDirectionalEdgeInsets(
-      top: 16,
-      leading: 20,
-      bottom: 16,
-      trailing: 20
+      top: Layout.cellVInset,
+      leading: Layout.cellHInset,
+      bottom: Layout.cellVInset,
+      trailing: Layout.cellHInset
     )
 
     cell.contentConfiguration = config
