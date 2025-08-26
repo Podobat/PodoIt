@@ -11,13 +11,16 @@ import SwiftData
 // 카테고리별 시간 모델
 @Model
 final class CategoryTimeModel {
+  var icon: String
   var category: String
   var time: Int
 
   init(
+    icon: String,
     category: String,
     time: Int
   ) {
+    self.icon = icon
     self.category = category
     self.time = time
   }
@@ -25,7 +28,8 @@ final class CategoryTimeModel {
 
 // Stats 모델
 @Model
-final class StatsModel {
+final class StatsModel: Hashable {
+  var statsID: UUID
   var date: Date
   var dayTotalTime: Int
   var monthTotalTime: Int
@@ -39,10 +43,12 @@ final class StatsModel {
   var monthCategoryTimes: [CategoryTimeModel] = []
 
   init(
+    statsID: UUID = UUID(),
     date: Date,
     dayTotalTime: Int,
     monthTotalTime: Int
   ) {
+    self.statsID = statsID
     self.date = date
     self.dayTotalTime = dayTotalTime
     self.monthTotalTime = monthTotalTime

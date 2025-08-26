@@ -100,8 +100,6 @@ final class StatsCustomSegmentedControl: UIView {
   private var segments: [SegmentChipView] = []
   private let highlightLayer = SegmentHighlightLayer()
 
-  private var didSetupInitialSelection = false
-
   private(set) var selectedIndex: Int = 0
   let tapIndexRelay = PublishRelay<Int>()
 
@@ -122,12 +120,9 @@ final class StatsCustomSegmentedControl: UIView {
   override func layoutSubviews() {
     super.layoutSubviews()
     layer.cornerRadius = bounds.height / 2
-    // highlight Layer 초기 1회 설정 체크
-    guard !didSetupInitialSelection, !segments.isEmpty else { return }
     // stackView가 layout 계산 완료 후 실행
     stackView.layoutIfNeeded()
     setSelectedIndex(selectedIndex, animated: false)
-    didSetupInitialSelection = true
   }
 
   // StackView 설정
