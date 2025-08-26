@@ -13,6 +13,7 @@ enum Typography {
     case displayMd(weight: AppFontWeight = .semibold) // 32 / 40
     case headingLg // 18 / 28 Bold
     case headingMd // 16 / 24 Semi
+    case headingXl(weight: AppFontWeight = .semibold) // 20 / 32 Bold or Semi
     case bodyLg(weight: AppFontWeight = .regular) // 16 / 24 Regular or Medium
     case bodyMd(weight: AppFontWeight = .regular) // 14 / 20 Regular or Medium
     case labelLg(weight: AppFontWeight = .regular) // 16 / 24 Regular or Medium
@@ -37,6 +38,8 @@ enum Typography {
       return .init(size: 18, lineHeight: 28, weight: .bold)
     case .headingMd:
       return .init(size: 16, lineHeight: 24, weight: .semibold)
+    case .headingXl(let w):
+      return .init(size: 20, lineHeight: 32, weight: w)
     case .bodyLg(let w):
       return .init(size: 16, lineHeight: 24, weight: w)
     case .bodyMd(let w):
