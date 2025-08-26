@@ -12,6 +12,7 @@ final class SettingViewController: UIViewController {
   private let viewModel = SettingViewModel()
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
+    $0.backgroundColor = .appWhite
     $0.dataSource = self
     $0.delegate = self
     $0.register(SettingViewCell.self, forCellReuseIdentifier: SettingViewCell.id)
@@ -47,7 +48,7 @@ final class SettingViewController: UIViewController {
 
   private func configureUI() {
     self.navigationController?.isNavigationBarHidden = true
-    view.backgroundColor = .systemBackground
+    view.backgroundColor = .appWhite
     view.addSubview(tableView)
   }
 

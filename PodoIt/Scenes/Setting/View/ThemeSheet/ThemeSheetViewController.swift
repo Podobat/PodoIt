@@ -43,6 +43,7 @@ final class ThemeSheetViewController: UIViewController {
   )
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
+    $0.backgroundColor = .appWhite
     $0.dataSource = self
     $0.delegate = self
     $0.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -159,6 +160,7 @@ extension ThemeSheetViewController: UITableViewDataSource {
       trailing: Layout.cellHInset
     )
 
+    cell.backgroundColor = .appWhite
     cell.contentConfiguration = config
     cell.accessoryType = (theme == selectedTheme) ? .checkmark : .none
     cell.tintColor = .primary500
