@@ -19,12 +19,16 @@ final class TimerEditViewController: UIViewController {
     static let verticalSpacing: CGFloat = 12
     static let buttonHeight: CGFloat = 48
     static let emojiButtonSize: CGFloat = 56
-    static let goalContainerHeightCollapsed: CGFloat = 112
+    static let goalContainerHeightCollapsed: CGFloat = 240
     static let textFieldHeight: CGFloat = 56
     static let textFieldLeftPadding: CGFloat = 16
     static let topOffset: CGFloat = 32
     static let bottomSafeAreaInset: CGFloat = 20
     static let dashedCircleSize: CGFloat = 40
+
+    // Picker
+    static let inlinePickerMinWidth: CGFloat = 90
+    static let pickerRowHeight: CGFloat = 48
   }
 
   // MARK: - UI Components
@@ -86,30 +90,37 @@ final class TimerEditViewController: UIViewController {
     $0.clipsToBounds = true
   }
 
-  // 접힘 UI일 때 중앙에 보이는 숫자/단위 라벨
-  private let collapsedNumberLabel = UILabel().then {
-    $0.attributedText = Typography.attributed(
-      "50",
-      style: .displayMd(weight: .semibold),
-      color: .appBlack
-    )
-    $0.textAlignment = .center
+  // 분 선택 피커
+  private lazy var minutePicker = UIPickerView().then {
+    $0.dataSource = self
+    $0.delegate = self
+    $0.backgroundColor = .clear
   }
 
-  private let collapsedUnitLabel = UILabel().then {
-    $0.attributedText = Typography.attributed(
-      "분",
-      style: .headingXl(weight: .bold),
-      color: .appBlack
-    )
-    $0.textAlignment = .center
-  }
+//  // 접힘 UI일 때 중앙에 보이는 숫자/단위 라벨
+//  private let collapsedNumberLabel = UILabel().then {
+//    $0.attributedText = Typography.attributed(
+//      "50",
+//      style: .displayMd(weight: .semibold),
+//      color: .appBlack
+//    )
+//    $0.textAlignment = .center
+//  }
 
-  private lazy var collapsedValueStack = UIStackView(arrangedSubviews: [collapsedNumberLabel, collapsedUnitLabel]).then {
-    $0.axis = .horizontal
-    $0.alignment = .center
-    $0.spacing = 8
-  }
+//  private let collapsedUnitLabel = UILabel().then {
+//    $0.attributedText = Typography.attributed(
+//      "분",
+//      style: .headingXl(weight: .bold),
+//      color: .appBlack
+//    )
+//    $0.textAlignment = .center
+//  }
+
+//  private lazy var collapsedValueStack = UIStackView(arrangedSubviews: [collapsedNumberLabel, collapsedUnitLabel]).then {
+//    $0.axis = .horizontal
+//    $0.alignment = .center
+//    $0.spacing = 8
+//  }
 
   // 저장하기 버튼
   private let saveButton = UIButton(type: .system).then {
@@ -127,12 +138,20 @@ final class TimerEditViewController: UIViewController {
 
   private var goalContainerHeightConstraint: Constraint?
 
+  // 데이터
+  private let minuteOptions: [Int] = Array(stride(from: 5, through: 180, by: 5))
+  private var selectedMinutes: Int = 50
+
   // MARK: - Lifecycle
 
   override func viewDidLoad() {
     super.viewDidLoad()
     setupViewController()
     navigationController?.setNavigationBarHidden(true, animated: false)
+
+    if let idx = minuteOptions.firstIndex(of: selectedMinutes) {
+      minutePicker.selectRow(idx, inComponent: 0, animated: false)
+    }
   }
 
   // MARK: - Setup
@@ -148,7 +167,7 @@ final class TimerEditViewController: UIViewController {
     view.addSubviews(mainViews)
 
     goalContainerView.addSubviews([goalTitleLabel, goalValueArea])
-    goalValueArea.addSubview(collapsedValueStack)
+    goalValueArea.addSubview(minutePicker)
   }
 
   private func setupConstraints() {
@@ -187,7 +206,7 @@ final class TimerEditViewController: UIViewController {
     goalContainerView.snp.makeConstraints {
       $0.top.equalTo(emojiButton.snp.bottom).offset(Metrics.verticalSpacing)
       $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
-      goalContainerHeightConstraint = $0.height.equalTo(Metrics.goalContainerHeightCollapsed).constraint
+      goalContainerHeightConstraint = $0.height.greaterThanOrEqualTo(Metrics.goalContainerHeightCollapsed).constraint
     }
 
     goalTitleLabel.snp.makeConstraints {
@@ -200,8 +219,16 @@ final class TimerEditViewController: UIViewController {
       $0.bottom.equalToSuperview().inset(16)
     }
 
-    collapsedValueStack.snp.makeConstraints {
-      $0.center.equalToSuperview()
+    minutePicker.snp.makeConstraints {
+      $0.edges.equalToSuperview().inset(8)
+      $0.width.greaterThanOrEqualTo(Metrics.inlinePickerMinWidth)
+      $0.height.greaterThanOrEqualTo(Metrics.pickerRowHeight * 3)
+    }
+
+    saveButton.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
+      $0.height.equalTo(Metrics.buttonHeight)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Metrics.bottomSafeAreaInset)
     }
   }
 
@@ -217,5 +244,23 @@ final class TimerEditViewController: UIViewController {
 
   @objc private func backButtonTapped() {
     navigationController?.popViewController(animated: true)
+  }
+}
+
+// MARK: - UIPickerView DataSource & Delegate
+
+extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate {
+  func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
+  func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { minuteOptions.count }
+  func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+    "\(minuteOptions[row])"
+  }
+
+  func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+    selectedMinutes = minuteOptions[row]
+  }
+
+  func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
+    Metrics.pickerRowHeight
   }
 }
