@@ -17,13 +17,14 @@ final class StatsSummaryView: UIView {
   private enum Layout {
     static let horizontalPadding: CGFloat = 20
     static let verticalPadding: CGFloat = 16
+    static let summaryPadding: CGFloat = 16
   }
 
   private let container = PaddedContainerView(horizontal: Layout.horizontalPadding, vertical: Layout.verticalPadding).then {
     $0.backgroundColor = .gray100
   }
 
-  private let summaryContainer = PaddedContainerView(horizontal: Layout.verticalPadding, vertical: Layout.verticalPadding).then {
+  private let summaryContainer = PaddedContainerView(horizontal: Layout.summaryPadding, vertical: Layout.summaryPadding).then {
     $0.backgroundColor = .appWhite
     $0.layer.cornerRadius = 16
     $0.clipsToBounds = true
