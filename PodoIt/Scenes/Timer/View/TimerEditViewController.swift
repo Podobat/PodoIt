@@ -343,12 +343,27 @@ final class TimerEditViewController: UIViewController {
 extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate {
   func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
   func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { minuteOptions.count }
-  func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-    "\(minuteOptions[row])"
+  func pickerView(_ pickerView: UIPickerView,
+                  viewForRow row: Int,
+                  forComponent component: Int,
+                  reusing view: UIView?) -> UIView
+  {
+    let label = (view as? UILabel) ?? UILabel()
+    label.text = "\(minuteOptions[row])"
+    label.font = Typography.font(for: .displayMd(weight: .semibold))
+    label.textColor = .appBlack
+    label.textAlignment = .center
+    label.adjustsFontForContentSizeCategory = true
+
+    label.isAccessibilityElement = true
+    label.accessibilityLabel = "\(minuteOptions[row])분"
+
+    return label
   }
 
   func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
     selectedMinutes = minuteOptions[row]
+    if !isPickerExpanded { updateCollapsedLabelText() }
   }
 
   func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
