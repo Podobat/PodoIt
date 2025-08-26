@@ -9,7 +9,8 @@ import SnapKit
 import Then
 import UIKit
 
-final class TimerViewController: UIViewController {
+final class TimerViewController: UIViewController, UICollectionViewDelegateFlowLayout { // 사이즈 계산을 위해서 채택
+
   // MARK: - Constants
 
   private enum Layout {
@@ -19,7 +20,22 @@ final class TimerViewController: UIViewController {
     static let emptyTopOffset: CGFloat = 240
     static let addButtonBottomOffset: CGFloat = -20
     static let addButtonHeight: CGFloat = 48
+    static let minimumLineSpacing: CGFloat = 12
+    static let sectionInset = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
+    static let cellHeight: CGFloat = 96
   }
+
+  // MARK: - Dummy Data
+
+  private var timers: [TimerModel] = [
+    .init(title: "MVP 발표 준비", iconName: "🔥", goalTime: 50),
+    .init(title: "iOS 프로젝트", iconName: "💻", goalTime: 120),
+    .init(title: "마이페이지 구현", iconName: "🐶", goalTime: 170),
+    .init(title: "통계 페이지 구현", iconName: "🦊", goalTime: 200),
+    .init(title: "타이머 페이지 구현", iconName: "🐤", goalTime: 380),
+    .init(title: "면접 스터디", iconName: "🎉", goalTime: 120),
+    .init(title: "알고리즘 준비", iconName: "🔗", goalTime: 520)
+  ]
 
   // MARK: - UI Components
 
@@ -44,11 +60,36 @@ final class TimerViewController: UIViewController {
     $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: -4, bottom: 0, right: 4)
   }
 
+  private lazy var collectionView: UICollectionView = {
+    let layout = UICollectionViewFlowLayout()
+    layout.scrollDirection = .vertical
+    layout.minimumLineSpacing = Layout.minimumLineSpacing
+    layout.sectionInset = Layout.sectionInset
+    layout.estimatedItemSize = .zero // 고정 사이즈
+
+    let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+    cv.backgroundColor = .clear
+    cv.register(TimerCell.self, forCellWithReuseIdentifier: TimerCell.reuseIdentifier)
+    cv.dataSource = self
+    cv.delegate = self
+    return cv
+  }()
+
+  private func updateUI() {
+    if timers.isEmpty {
+      emptyStateView.isHidden = false
+      collectionView.isHidden = true
+    } else {
+      emptyStateView.isHidden = true
+      collectionView.isHidden = false
+    }
+  }
+
   // MARK: - Lifecycle
 
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    navigationController?.setNavigationBarHidden(true, animated: false)
+    updateUI()
   }
 
   override func viewDidLoad() {
@@ -72,7 +113,7 @@ final class TimerViewController: UIViewController {
   }
 
   private func setupViews() {
-    for item in [headerView, backgroundContainerView, emptyStateView, addButton] {
+    for item in [headerView, backgroundContainerView, collectionView, emptyStateView, addButton] {
       view.addSubview(item)
     }
   }
@@ -84,8 +125,14 @@ final class TimerViewController: UIViewController {
     }
 
     backgroundContainerView.snp.makeConstraints {
-      $0.top.equalTo(headerView.snp.bottom).offset(Layout.sectionSpacing)
+      $0.top.equalTo(headerView.snp.bottom).offset(20)
       $0.leading.trailing.bottom.equalToSuperview()
+    }
+
+    collectionView.snp.makeConstraints {
+      $0.top.equalTo(backgroundContainerView.snp.top)
+      $0.leading.trailing.equalToSuperview()
+      $0.bottom.equalTo(backgroundContainerView.snp.bottom)
     }
 
     emptyStateView.snp.makeConstraints {
@@ -98,5 +145,52 @@ final class TimerViewController: UIViewController {
       $0.centerX.equalToSuperview()
       $0.height.equalTo(Layout.addButtonHeight)
     }
+  }
+
+  // MARK: - UICollectionViewDelegateFlowLayout
+
+  func collectionView(_ collectionView: UICollectionView,
+                      layout collectionViewLayout: UICollectionViewLayout,
+                      sizeForItemAt indexPath: IndexPath) -> CGSize
+  {
+    guard let flow = collectionViewLayout as? UICollectionViewFlowLayout else {
+      return CGSize(width: collectionView.bounds.width, height: Layout.cellHeight)
+    }
+    let width = collectionView.bounds.width - flow.sectionInset.left - flow.sectionInset.right
+    return CGSize(width: width, height: Layout.cellHeight)
+  }
+
+  // 셀 탭 시 수정 화면 진입 같은 기본 동작(원하면 사용)
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    let editVC = TimerEditViewController()
+    editVC.hidesBottomBarWhenPushed = true
+    navigationController?.pushViewController(editVC, animated: true)
+  }
+}
+
+// MARK: - UICollectionViewDataSource
+
+extension TimerViewController: UICollectionViewDataSource {
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    timers.count
+  }
+
+  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: TimerCell.reuseIdentifier,
+      for: indexPath
+    ) as? TimerCell else {
+      return UICollectionViewCell()
+    }
+
+    let model = timers[indexPath.item]
+    cell.configure(with: model)
+
+    // 셀 → VC로 버튼 탭 이벤트 전달
+    cell.onPlayTapped = { [weak self] in
+      guard let self else { return }
+    }
+
+    return cell
   }
 }
