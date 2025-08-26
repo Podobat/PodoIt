@@ -12,6 +12,7 @@ final class SettingViewController: UIViewController {
   private let viewModel = SettingViewModel()
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
+    $0.backgroundColor = .appWhite
     $0.dataSource = self
     $0.delegate = self
     $0.register(SettingViewCell.self, forCellReuseIdentifier: SettingViewCell.id)
@@ -47,7 +48,7 @@ final class SettingViewController: UIViewController {
 
   private func configureUI() {
     self.navigationController?.isNavigationBarHidden = true
-    view.backgroundColor = .systemBackground
+    view.backgroundColor = .appWhite
     view.addSubview(tableView)
   }
 
@@ -70,7 +71,29 @@ final class SettingViewController: UIViewController {
   }
 }
 
-extension SettingViewController: UITableViewDelegate {}
+extension SettingViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let item = viewModel.items[indexPath.row]
+    switch item {
+    case .theme(let current):
+      let sheetVC = ThemeSheetViewController(onSelect: { [weak self] newTheme in
+        guard let self else { return }
+        // ViewModel에서 상태 업데이트 및 UserDefaults에 값 저장
+        self.viewModel.applyTheme(newTheme)
+        if let row = self.viewModel.items.firstIndex(where: { // 조건에 만족하는 첫 번째 인덱스를 찾음
+          if case .theme = $0 { return true } else { return false } // items 배열원소가 .theme 케이스면 true
+        }) { // UI 갱신. Theme 셀만 리로드 (혹여나 백업으로 reloadData)
+          self.tableView.reloadRows(at: [IndexPath(row: row, section: 0)], with: .none)
+        } else {
+          self.tableView.reloadData()
+        }
+      }, selectedTheme: current)
+      sheetVC.modalPresentationStyle = .pageSheet
+      present(sheetVC, animated: true)
+    default: break
+    }
+  }
+}
 
 extension SettingViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

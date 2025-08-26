@@ -26,6 +26,7 @@ final class SettingViewCell: UITableViewCell {
   }
   
   private func configureUI() {
+    backgroundColor = .appWhite
     contentView.addSubview(itemLabel)
   }
   

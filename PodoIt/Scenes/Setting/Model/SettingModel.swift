@@ -5,16 +5,16 @@
 //  Created by 서광용 on 8/24/25.
 //
 
-enum Theme {
+enum Theme: String, CaseIterable {
   case system
-  case light
   case dark
+  case light
   
   var displayName: String {
     switch self {
-    case .system: return "시스템 설정"
-    case .light: return "라이트 모드"
+    case .system: return "시스템 모드"
     case .dark: return "다크 모드"
+    case .light: return "라이트 모드"
     }
   }
 }
