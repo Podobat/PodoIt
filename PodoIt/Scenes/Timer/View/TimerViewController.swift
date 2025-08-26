@@ -90,7 +90,6 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     updateUI()
-    navigationController?.setNavigationBarHidden(true, animated: false)
   }
 
   override func viewDidLoad() {

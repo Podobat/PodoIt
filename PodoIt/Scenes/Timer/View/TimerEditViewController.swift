@@ -38,13 +38,13 @@ final class TimerEditViewController: UIViewController {
   }
 
   // 화면 상단 제목
-  private lazy var titleLabel = UILabel().then {
+  private let titleLabel = UILabel().then {
     $0.attributedText = Typography.attributed("타이머 추가", style: .headingMd, color: .appBlack)
     $0.textAlignment = .center
   }
 
   // 이모지 선택 버튼 (default : plus 버튼)
-  private lazy var emojiButton = UIButton(type: .system).then {
+  private let emojiButton = UIButton(type: .system).then {
     let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate)
     $0.setImage(image, for: .normal)
     $0.tintColor = Palette.Primary.p600
@@ -61,17 +61,18 @@ final class TimerEditViewController: UIViewController {
     $0.backgroundColor = .appWhite
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.setLeftPadding(Metrics.textFieldLeftPadding)
+    $0.setContentCompressionResistancePriority(.required, for: .horizontal)
   }
 
   // 목표시간 영역 컨테이너
-  private lazy var goalContainerView = UIView().then {
+  private let goalContainerView = UIView().then {
     $0.backgroundColor = .appWhite
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.clipsToBounds = true
   }
 
   // 목표 집중 시간 label
-  private lazy var goalTitleLabel = UILabel().then {
+  private let goalTitleLabel = UILabel().then {
     $0.attributedText = Typography.attributed(
       "목표 집중 시간",
       style: .labelLg(weight: .semibold),
@@ -114,7 +115,7 @@ final class TimerEditViewController: UIViewController {
   }
 
   // 저장하기 버튼
-  private lazy var saveButton = UIButton(type: .system).then {
+  private let saveButton = UIButton(type: .system).then {
     $0.backgroundColor = Palette.Primary.p600
     $0.layer.cornerRadius = Metrics.buttonCornerRadius
     $0.clipsToBounds = true
@@ -127,19 +128,21 @@ final class TimerEditViewController: UIViewController {
     // $0.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
   }
 
+  // MARK: - Dashed circle layer reference
+
+  private var dashedCircleLayer: CAShapeLayer? // 점선 원 레이어를 프로퍼티로 보관
+
   // MARK: - Lifecycle
 
   override func viewDidLoad() {
     super.viewDidLoad()
     setupViewController()
+    navigationController?.setNavigationBarHidden(true, animated: false)
   }
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    // 레이아웃이 완료된 후 점선 원 추가
-    if emojiButton.layer.sublayers?.contains(where: { $0 is CAShapeLayer }) == false {
-      addDashedCircleToEmojiButton()
-    }
+    updateDashedCircle() // 레이아웃 시 프레임 갱신/생성
   }
 
   // MARK: - Private Methods
@@ -226,13 +229,9 @@ final class TimerEditViewController: UIViewController {
     }
   }
 
-  private func addDashedCircleToEmojiButton() {
-    let dashedLayer = CAShapeLayer()
-    dashedLayer.strokeColor = Palette.Gray.g300.cgColor
-    dashedLayer.fillColor = UIColor.clear.cgColor
-    dashedLayer.lineDashPattern = Metrics.dashPattern
-    dashedLayer.lineWidth = 1
+  // MARK: - Dashed Circle (이모지 버튼 안쪽 점선 원)
 
+  private func updateDashedCircle() {
     // 중앙에 배치할 원의 frame 계산
     let centerX = emojiButton.bounds.midX
     let centerY = emojiButton.bounds.midY
@@ -244,54 +243,24 @@ final class TimerEditViewController: UIViewController {
       height: Metrics.dashedCircleSize
     )
 
-    dashedLayer.path = UIBezierPath(ovalIn: circleFrame).cgPath
-    emojiButton.layer.addSublayer(dashedLayer)
+    if let layer = dashedCircleLayer {
+      // 이미 존재하면 path만 갱신
+      layer.path = UIBezierPath(ovalIn: circleFrame).cgPath
+      return
+    }
+
+    let layer = CAShapeLayer()
+    layer.strokeColor = Palette.Gray.g300.cgColor
+    layer.fillColor = UIColor.clear.cgColor
+    layer.lineDashPattern = Metrics.dashPattern
+    layer.lineWidth = 1
+    layer.path = UIBezierPath(ovalIn: circleFrame).cgPath
+
+    emojiButton.layer.addSublayer(layer)
+    dashedCircleLayer = layer
   }
 
   @objc private func backButtonTapped() {
     navigationController?.popViewController(animated: true)
-  }
-
-  // MARK: - Setup
-
-  private func setupView() {
-    // 메인 뷰에 추가
-    for item in [backButton, titleLabel, emojiButton, nameTextField, goalContainerView, saveButton] {
-      view.addSubview(item)
-    }
-    // 목표시간 컨테이너에 하위 뷰 추가
-    goalContainerView.addSubview(goalTitleLabel)
-    goalContainerView.addSubview(goalValueArea)
-
-    // 목표시간 값 표시 스택
-    goalValueArea.addSubview(goalValueStack)
-    goalValueStack.addArrangedSubview(goalValueNumberLabel)
-    goalValueStack.addArrangedSubview(goalValueUnitLabel)
-  }
-
-  // MARK: - Dashed Circle (이모지 버튼 안쪽 점선 원)
-
-  private func setupDashedCircle() {
-    let dashedCircle = UIView()
-    dashedCircle.backgroundColor = .clear
-    dashedCircle.isUserInteractionEnabled = false
-
-    emojiButton.addSubview(dashedCircle)
-    dashedCircle.snp.makeConstraints {
-      $0.center.equalToSuperview()
-      $0.width.height.equalTo(40)
-    }
-
-    dashedCircle.layoutIfNeeded()
-
-    // 점선 원 레이어
-    let dashedLayer = CAShapeLayer()
-    dashedLayer.strokeColor = Palette.Gray.g300.cgColor
-    dashedLayer.fillColor = UIColor.clear.cgColor
-    dashedLayer.lineDashPattern = [4, 2]
-    dashedLayer.lineWidth = 1
-    dashedLayer.path = UIBezierPath(ovalIn: dashedCircle.bounds).cgPath
-
-    dashedCircle.layer.addSublayer(dashedLayer)
   }
 }
