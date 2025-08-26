@@ -19,13 +19,12 @@ final class TimerEditViewController: UIViewController {
     static let verticalSpacing: CGFloat = 12
     static let buttonHeight: CGFloat = 48
     static let emojiButtonSize: CGFloat = 56
-    static let goalContainerHeight: CGFloat = 113
+    static let goalContainerHeightCollapsed: CGFloat = 112
     static let textFieldHeight: CGFloat = 56
     static let textFieldLeftPadding: CGFloat = 16
     static let topOffset: CGFloat = 32
     static let bottomSafeAreaInset: CGFloat = 20
     static let dashedCircleSize: CGFloat = 40
-    static let dashPattern: [NSNumber] = [4, 2]
   }
 
   // MARK: - UI Components
@@ -82,36 +81,34 @@ final class TimerEditViewController: UIViewController {
 
   // 숫자/분 들어가는 회색 영역
   private let goalValueArea = UIView().then {
-    $0.backgroundColor = .gray50
+    $0.backgroundColor = .gray100
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.clipsToBounds = true
   }
 
-  // 목표시간 표시 스택 (숫자 + 단위)
-  private lazy var goalValueStack = UIStackView().then {
-    $0.addArrangedSubviews([goalValueNumberLabel, goalValueUnitLabel])
-    $0.axis = .horizontal
-    $0.alignment = .center
-    $0.distribution = .fill
-    $0.spacing = 6
-  }
-
-  // 목표시간 숫자 (default: 50)
-  private let goalValueNumberLabel = UILabel().then {
+  // 접힘 UI일 때 중앙에 보이는 숫자/단위 라벨
+  private let collapsedNumberLabel = UILabel().then {
     $0.attributedText = Typography.attributed(
       "50",
-      style: .displayMd(weight: .bold),
+      style: .displayMd(weight: .semibold),
       color: .appBlack
     )
+    $0.textAlignment = .center
   }
 
-  // 목표시간 단위 (분으로 고정)
-  private let goalValueUnitLabel = UILabel().then {
+  private let collapsedUnitLabel = UILabel().then {
     $0.attributedText = Typography.attributed(
       "분",
-      style: .headingLg,
-      color: Palette.Gray.g500
+      style: .headingXl(weight: .bold),
+      color: .appBlack
     )
+    $0.textAlignment = .center
+  }
+
+  private lazy var collapsedValueStack = UIStackView(arrangedSubviews: [collapsedNumberLabel, collapsedUnitLabel]).then {
+    $0.axis = .horizontal
+    $0.alignment = .center
+    $0.spacing = 8
   }
 
   // 저장하기 버튼
@@ -124,13 +121,11 @@ final class TimerEditViewController: UIViewController {
       for: .normal
     )
     $0.isEnabled = true
-    // 저장 액션 추가 예정
-    // $0.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
   }
 
-  // MARK: - Dashed circle layer reference
+  // MARK: - Constraints
 
-  private var dashedCircleLayer: CAShapeLayer? // 점선 원 레이어를 프로퍼티로 보관
+  private var goalContainerHeightConstraint: Constraint?
 
   // MARK: - Lifecycle
 
@@ -140,12 +135,7 @@ final class TimerEditViewController: UIViewController {
     navigationController?.setNavigationBarHidden(true, animated: false)
   }
 
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    updateDashedCircle() // 레이아웃 시 프레임 갱신/생성
-  }
-
-  // MARK: - Private Methods
+  // MARK: - Setup
 
   private func setupViewController() {
     view.backgroundColor = .gray100
@@ -157,10 +147,8 @@ final class TimerEditViewController: UIViewController {
     let mainViews = [backButton, titleLabel, emojiButton, nameTextField, goalContainerView, saveButton]
     view.addSubviews(mainViews)
 
-    let goalContainerSubviews = [goalTitleLabel, goalValueArea]
-    goalContainerView.addSubviews(goalContainerSubviews)
-
-    goalValueArea.addSubview(goalValueStack)
+    goalContainerView.addSubviews([goalTitleLabel, goalValueArea])
+    goalValueArea.addSubview(collapsedValueStack)
   }
 
   private func setupConstraints() {
@@ -199,13 +187,9 @@ final class TimerEditViewController: UIViewController {
     goalContainerView.snp.makeConstraints {
       $0.top.equalTo(emojiButton.snp.bottom).offset(Metrics.verticalSpacing)
       $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
-      $0.height.equalTo(Metrics.goalContainerHeight)
+      goalContainerHeightConstraint = $0.height.equalTo(Metrics.goalContainerHeightCollapsed).constraint
     }
 
-    setupGoalContainerConstraints()
-  }
-
-  private func setupGoalContainerConstraints() {
     goalTitleLabel.snp.makeConstraints {
       $0.leading.top.equalToSuperview().offset(16)
     }
@@ -216,7 +200,7 @@ final class TimerEditViewController: UIViewController {
       $0.bottom.equalToSuperview().inset(16)
     }
 
-    goalValueStack.snp.makeConstraints {
+    collapsedValueStack.snp.makeConstraints {
       $0.center.equalToSuperview()
     }
   }
@@ -229,36 +213,7 @@ final class TimerEditViewController: UIViewController {
     }
   }
 
-  // MARK: - Dashed Circle (이모지 버튼 안쪽 점선 원)
-
-  private func updateDashedCircle() {
-    // 중앙에 배치할 원의 frame 계산
-    let centerX = emojiButton.bounds.midX
-    let centerY = emojiButton.bounds.midY
-    let radius = Metrics.dashedCircleSize / 2
-    let circleFrame = CGRect(
-      x: centerX - radius,
-      y: centerY - radius,
-      width: Metrics.dashedCircleSize,
-      height: Metrics.dashedCircleSize
-    )
-
-    if let layer = dashedCircleLayer {
-      // 이미 존재하면 path만 갱신
-      layer.path = UIBezierPath(ovalIn: circleFrame).cgPath
-      return
-    }
-
-    let layer = CAShapeLayer()
-    layer.strokeColor = Palette.Gray.g300.cgColor
-    layer.fillColor = UIColor.clear.cgColor
-    layer.lineDashPattern = Metrics.dashPattern
-    layer.lineWidth = 1
-    layer.path = UIBezierPath(ovalIn: circleFrame).cgPath
-
-    emojiButton.layer.addSublayer(layer)
-    dashedCircleLayer = layer
-  }
+  // MARK: - Actions
 
   @objc private func backButtonTapped() {
     navigationController?.popViewController(animated: true)
