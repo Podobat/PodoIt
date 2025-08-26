@@ -19,7 +19,8 @@ final class TimerEditViewController: UIViewController {
     static let verticalSpacing: CGFloat = 12
     static let buttonHeight: CGFloat = 48
     static let emojiButtonSize: CGFloat = 56
-    static let goalContainerHeightCollapsed: CGFloat = 240
+    static let goalContainerHeightCollapsed: CGFloat = 112
+    static let goalContainerHeightExpanded: CGFloat = 312
     static let textFieldHeight: CGFloat = 56
     static let textFieldLeftPadding: CGFloat = 16
     static let topOffset: CGFloat = 32
@@ -29,6 +30,8 @@ final class TimerEditViewController: UIViewController {
     // Picker
     static let inlinePickerMinWidth: CGFloat = 90
     static let pickerRowHeight: CGFloat = 48
+    static let unitRightInset: CGFloat = 16
+    static let unitLeftSpacing: CGFloat = 8
   }
 
   // MARK: - UI Components
@@ -78,7 +81,7 @@ final class TimerEditViewController: UIViewController {
   private let goalTitleLabel = UILabel().then {
     $0.attributedText = Typography.attributed(
       "목표 집중 시간",
-      style: .labelLg(weight: .semibold),
+      style: .labelMd(weight: .semibold),
       color: Palette.Gray.g500
     )
   }
@@ -88,6 +91,7 @@ final class TimerEditViewController: UIViewController {
     $0.backgroundColor = .gray100
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.clipsToBounds = true
+    $0.isUserInteractionEnabled = true // 탭 제스처
   }
 
   // 분 선택 피커
@@ -95,32 +99,20 @@ final class TimerEditViewController: UIViewController {
     $0.dataSource = self
     $0.delegate = self
     $0.backgroundColor = .clear
+    $0.showsSelectionIndicator = false
   }
 
-//  // 접힘 UI일 때 중앙에 보이는 숫자/단위 라벨
-//  private let collapsedNumberLabel = UILabel().then {
-//    $0.attributedText = Typography.attributed(
-//      "50",
-//      style: .displayMd(weight: .semibold),
-//      color: .appBlack
-//    )
-//    $0.textAlignment = .center
-//  }
+  // 분 고정 유닛
+  private let unitLabel = UILabel().then {
+    $0.attributedText = Typography.attributed("분", style: .headingXl(weight: .semibold), color: .gray600)
+    $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    $0.setContentHuggingPriority(.required, for: .horizontal)
+  }
 
-//  private let collapsedUnitLabel = UILabel().then {
-//    $0.attributedText = Typography.attributed(
-//      "분",
-//      style: .headingXl(weight: .bold),
-//      color: .appBlack
-//    )
-//    $0.textAlignment = .center
-//  }
-
-//  private lazy var collapsedValueStack = UIStackView(arrangedSubviews: [collapsedNumberLabel, collapsedUnitLabel]).then {
-//    $0.axis = .horizontal
-//    $0.alignment = .center
-//    $0.spacing = 8
-//  }
+  // 접힘 상태에서 중앙값 표시
+  private let collapsedValueLabel = UILabel().then {
+    $0.textAlignment = .center
+  }
 
   // 저장하기 버튼
   private let saveButton = UIButton(type: .system).then {
@@ -137,8 +129,11 @@ final class TimerEditViewController: UIViewController {
   // MARK: - Constraints
 
   private var goalContainerHeightConstraint: Constraint?
+  private var minutePickerMinHeightConstraint: Constraint?
+  private var isPickerExpanded = false
 
-  // 데이터
+  // MARK: - Data
+
   private let minuteOptions: [Int] = Array(stride(from: 5, through: 180, by: 5))
   private var selectedMinutes: Int = 50
 
@@ -146,20 +141,29 @@ final class TimerEditViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    setupViewController()
+    view.backgroundColor = .gray100
     navigationController?.setNavigationBarHidden(true, animated: false)
+    addSubviews()
+    setupConstraints()
+
+    goalTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+    goalTitleLabel.setContentHuggingPriority(.required, for: .vertical)
+    goalValueArea.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+    minutePicker.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+    unitLabel.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
 
     if let idx = minuteOptions.firstIndex(of: selectedMinutes) {
       minutePicker.selectRow(idx, inComponent: 0, animated: false)
     }
+
+    goalValueArea.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePicker)))
+    applyCollapsedUI(animated: false)
+    updateCollapsedLabelText()
   }
 
-  // MARK: - Setup
-
-  private func setupViewController() {
-    view.backgroundColor = .gray100
-    addSubviews()
-    setupConstraints()
+  // 점선 원 뷰
+  private let dashedCircleView = UIView().then {
+    $0.backgroundColor = .clear
   }
 
   private func addSubviews() {
@@ -167,18 +171,43 @@ final class TimerEditViewController: UIViewController {
     view.addSubviews(mainViews)
 
     goalContainerView.addSubviews([goalTitleLabel, goalValueArea])
-    goalValueArea.addSubview(minutePicker)
+    goalValueArea.addSubviews([minutePicker, unitLabel, collapsedValueLabel])
+
+    emojiButton.addSubview(dashedCircleView)
+    dashedCircleView.snp.makeConstraints {
+      $0.center.equalToSuperview()
+      $0.size.equalTo(Metrics.dashedCircleSize)
+    }
+  }
+
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+
+    // CAShapeLayer 점선 원 그리기
+    dashedCircleView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+
+    let shapeLayer = CAShapeLayer()
+    let path = UIBezierPath(
+      ovalIn: CGRect(origin: .zero,
+                     size: CGSize(width: Metrics.dashedCircleSize,
+                                  height: Metrics.dashedCircleSize))
+    )
+    shapeLayer.path = path.cgPath
+    shapeLayer.strokeColor = Palette.Gray.g200.cgColor
+    shapeLayer.fillColor = UIColor.clear.cgColor
+    shapeLayer.lineWidth = 1
+    shapeLayer.lineDashPattern = [4, 2] // 4pt 그려지고 2pt 띄움
+    dashedCircleView.layer.addSublayer(shapeLayer)
   }
 
   private func setupConstraints() {
     setupHeaderConstraints()
     setupFormConstraints()
-    setupSaveButtonConstraints()
   }
 
   private func setupHeaderConstraints() {
     backButton.snp.makeConstraints {
-      $0.top.equalTo(view.safeAreaLayoutGuide).offset(2)
+      $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
       $0.leading.equalToSuperview().offset(16)
       $0.size.equalTo(28)
     }
@@ -206,7 +235,7 @@ final class TimerEditViewController: UIViewController {
     goalContainerView.snp.makeConstraints {
       $0.top.equalTo(emojiButton.snp.bottom).offset(Metrics.verticalSpacing)
       $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
-      goalContainerHeightConstraint = $0.height.greaterThanOrEqualTo(Metrics.goalContainerHeightCollapsed).constraint
+      goalContainerHeightConstraint = $0.height.equalTo(Metrics.goalContainerHeightCollapsed).constraint
     }
 
     goalTitleLabel.snp.makeConstraints {
@@ -219,10 +248,30 @@ final class TimerEditViewController: UIViewController {
       $0.bottom.equalToSuperview().inset(16)
     }
 
+    unitLabel.snp.makeConstraints {
+      $0.centerY.equalToSuperview()
+      $0.trailing.equalToSuperview().inset(Metrics.unitRightInset)
+    }
+
     minutePicker.snp.makeConstraints {
-      $0.edges.equalToSuperview().inset(8)
+      $0.centerY.equalToSuperview()
+      $0.leading.equalToSuperview()
+      $0.trailing.equalTo(unitLabel.snp.leading).offset(-Metrics.unitLeftSpacing)
+      $0.top.greaterThanOrEqualToSuperview()
+      $0.bottom.lessThanOrEqualToSuperview()
       $0.width.greaterThanOrEqualTo(Metrics.inlinePickerMinWidth)
-      $0.height.greaterThanOrEqualTo(Metrics.pickerRowHeight * 3)
+
+      minutePickerMinHeightConstraint = $0.height
+        .greaterThanOrEqualTo(Metrics.pickerRowHeight * 3)
+        .constraint
+    }
+
+    minutePickerMinHeightConstraint?.deactivate()
+
+    collapsedValueLabel.snp.makeConstraints {
+      $0.center.equalToSuperview()
+      $0.leading.greaterThanOrEqualToSuperview().offset(16)
+      $0.trailing.lessThanOrEqualToSuperview().inset(16)
     }
 
     saveButton.snp.makeConstraints {
@@ -232,18 +281,60 @@ final class TimerEditViewController: UIViewController {
     }
   }
 
-  private func setupSaveButtonConstraints() {
-    saveButton.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
-      $0.height.equalTo(Metrics.buttonHeight)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Metrics.bottomSafeAreaInset)
+  // MARK: - Collapsed/Expanded
+
+  private func updateCollapsedLabelText() {
+    // 숫자(마지막 글자에만 kerning 8)
+    let number = NSMutableAttributedString(
+      attributedString: Typography.attributed(
+        "\(selectedMinutes)", style: .displayMd(weight: .semibold), color: .appBlack
+      )
+    )
+    if number.length > 0 {
+      number.addAttribute(.kern, value: 8, range: NSRange(location: number.length - 1, length: 1))
     }
+
+    // 단위
+    let unit = Typography.attributed("분", style: .headingXl(weight: .semibold), color: .gray600)
+
+    number.append(unit)
+    collapsedValueLabel.attributedText = number
+  }
+
+  private func applyCollapsedUI(animated: Bool) {
+    isPickerExpanded = false
+    unitLabel.isHidden = true
+    minutePicker.isHidden = true
+    collapsedValueLabel.isHidden = false
+
+    minutePickerMinHeightConstraint?.deactivate()
+
+    goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightCollapsed)
+    let changes = { self.view.layoutIfNeeded() }
+    animated ? UIView.animate(withDuration: 0.25, animations: changes) : changes()
+  }
+
+  private func applyExpandedUI(animated: Bool) {
+    isPickerExpanded = true
+    unitLabel.isHidden = false
+    minutePicker.isHidden = false
+    collapsedValueLabel.isHidden = true
+
+    minutePickerMinHeightConstraint?.activate()
+
+    goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightExpanded)
+    let changes = { self.view.layoutIfNeeded() }
+    animated ? UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.6, options: .curveEaseInOut, animations: changes) : changes()
   }
 
   // MARK: - Actions
 
   @objc private func backButtonTapped() {
     navigationController?.popViewController(animated: true)
+  }
+
+  @objc private func togglePicker() {
+    isPickerExpanded ? applyCollapsedUI(animated: true) : applyExpandedUI(animated: true)
   }
 }
 
