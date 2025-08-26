@@ -24,7 +24,9 @@ final class SettingViewModel {
   var items: [SettingItem] {
     return [
       .notification(isOn: false),
-      .theme(current: currentTheme),
+      // TODO: 테마 셀은 기능 완성 시 다시 노출
+      // UserDefaults 저장과 UI는 완성. 어떤 상태를 했냐에 따라서 테마 변경만 지원하면 끝.
+      // .theme(current: currentTheme),
       .inquiry,
       .review
     ]
