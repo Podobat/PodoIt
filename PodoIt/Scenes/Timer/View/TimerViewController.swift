@@ -6,10 +6,30 @@
 //
 
 import SnapKit
+import SwiftData
 import Then
 import UIKit
 
 final class TimerViewController: UIViewController, UICollectionViewDelegateFlowLayout { // 사이즈 계산을 위해서 채택
+
+  // MARK: - Dependencies
+
+  private let repository: TimerRepository
+
+  // MARK: - State
+
+  private var timers: [TimerModel] = []
+
+  // init 추가
+  init(repository: TimerRepository) {
+    self.repository = repository
+    super.init(nibName: nil, bundle: nil)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
 
   // MARK: - Constants
 
@@ -24,18 +44,6 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     static let sectionInset = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
     static let cellHeight: CGFloat = 96
   }
-
-  // MARK: - Dummy Data
-
-  private var timers: [TimerModel] = [
-    .init(title: "MVP 발표 준비", iconName: "🔥", goalTime: 50),
-    .init(title: "iOS 프로젝트", iconName: "💻", goalTime: 120),
-    .init(title: "마이페이지 구현", iconName: "🐶", goalTime: 170),
-    .init(title: "통계 페이지 구현", iconName: "🦊", goalTime: 200),
-    .init(title: "타이머 페이지 구현", iconName: "🐤", goalTime: 380),
-    .init(title: "면접 스터디", iconName: "🎉", goalTime: 120),
-    .init(title: "알고리즘 준비", iconName: "🔗", goalTime: 520)
-  ]
 
   // MARK: - UI Components
 
@@ -85,11 +93,25 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     }
   }
 
+  private func reloadData() {
+    do {
+      timers = try repository.fetchAll()
+      collectionView.reloadData()
+      updateUI()
+    } catch {
+      print("❌ fetch 실패: \(error)")
+      // 사용자에게 에러 알림 표시
+      timers = []
+      collectionView.reloadData()
+      updateUI()
+    }
+  }
+
   // MARK: - Lifecycle
 
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    updateUI()
+    reloadData()
   }
 
   override func viewDidLoad() {
@@ -100,8 +122,12 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
   }
 
+  // MARK: - Actions
+
   @objc private func addButtonTapped() {
-    let editVC = TimerEditViewController()
+    // ViewModel 주입
+    let vm = TimerEditViewModel()
+    let editVC = TimerEditViewController(viewModel: vm)
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
   }
@@ -162,9 +188,12 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     return CGSize(width: width, height: Layout.cellHeight)
   }
 
-  // 셀 탭 시 수정 화면 진입 같은 기본 동작(원하면 사용)
+  // 셀 탭 시 수정 화면 진입 같은 기본 동작
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    let editVC = TimerEditViewController()
+    // TimerEditViewController에 수정 모드 생성자가 구현되면 수정
+    let editing = timers[indexPath.item]
+    let vm = TimerEditViewModel(editing: editing)
+    let editVC = TimerEditViewController(viewModel: vm)
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
   }
@@ -188,9 +217,19 @@ extension TimerViewController: UICollectionViewDataSource {
     let model = timers[indexPath.item]
     cell.configure(with: model)
 
-    // 셀 → VC로 버튼 탭 이벤트 전달
+//    // 셀 → VC로 버튼 탭 이벤트 전달
+//    cell.onPlayTapped = { [weak self] in
+//      guard let self = self else { return }
+//      let timer = self.timers[indexPath.item]
+//      // 타이머 실행 화면으로 이동
+//      let runningVC = TimerRunningViewController(timer: timer, repository: self.repository)
+//      self.navigationController?.pushViewController(runningVC, animated: true)
+//    }
+
     cell.onPlayTapped = { [weak self] in
-      guard let self else { return }
+      guard let self = self else { return }
+      let timer = self.timers[indexPath.item]
+      print("타이머 실행: \(timer.title)")
     }
 
     return cell

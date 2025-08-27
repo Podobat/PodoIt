@@ -10,6 +10,9 @@ import Then
 import UIKit
 
 final class TimerEditViewController: UIViewController {
+  // ViewModel 주입
+  private let viewModel: TimerEditViewModel
+
   // MARK: - Metrics
 
   private enum Metrics {
@@ -137,6 +140,23 @@ final class TimerEditViewController: UIViewController {
   private let minuteOptions: [Int] = Array(stride(from: 5, through: 180, by: 5))
   private var selectedMinutes: Int = 50
 
+  // 점선 원 뷰
+  private let dashedCircleView = UIView().then {
+    $0.backgroundColor = .clear
+  }
+
+  // MARK: - Init
+
+  init(viewModel: TimerEditViewModel) {
+    self.viewModel = viewModel
+    super.init(nibName: nil, bundle: nil)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
   // MARK: - Lifecycle
 
   override func viewDidLoad() {
@@ -159,11 +179,21 @@ final class TimerEditViewController: UIViewController {
     goalValueArea.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePicker)))
     applyCollapsedUI(animated: false)
     updateCollapsedLabelText()
-  }
 
-  // 점선 원 뷰
-  private let dashedCircleView = UIView().then {
-    $0.backgroundColor = .clear
+    // 저장 버튼 액션 연결
+    saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
+
+    // 편집 모드 프리필
+    if let editing = viewModel.editing {
+      titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingMd, color: .appBlack)
+      nameTextField.text = editing.title
+      selectedMinutes = editing.goalTime
+      if let idx = minuteOptions.firstIndex(of: selectedMinutes) {
+        minutePicker.selectRow(idx, inComponent: 0, animated: false)
+      }
+      updateCollapsedLabelText()
+      // emojiButton.setTitle(editing.iconName, for: .normal)
+    }
   }
 
   private func addSubviews() {
@@ -351,6 +381,24 @@ final class TimerEditViewController: UIViewController {
   @objc private func togglePicker() {
     isPickerExpanded ? applyCollapsedUI(animated: true) : applyExpandedUI(animated: true)
   }
+
+  @objc private func saveTapped() {
+    let title = (nameTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    let icon = "🔥"
+    let minutes = selectedMinutes
+
+    guard !title.isEmpty else {
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      return
+    }
+
+    do {
+      try viewModel.save(title: title, iconName: icon, goalMinutes: minutes)
+      navigationController?.popViewController(animated: true)
+    } catch {
+      print("save error:", error)
+    }
+  }
 }
 
 // MARK: - UIPickerView DataSource & Delegate
@@ -358,6 +406,7 @@ final class TimerEditViewController: UIViewController {
 extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate {
   func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
   func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { minuteOptions.count }
+
   func pickerView(_ pickerView: UIPickerView,
                   viewForRow row: Int,
                   forComponent component: Int,

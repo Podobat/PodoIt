@@ -15,10 +15,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
              options connectionOptions: UIScene.ConnectionOptions)
   {
     guard let windowScene = scene as? UIWindowScene else { return }
-    
+
     let window = UIWindow(windowScene: windowScene)
 
-    let rootVC = MainTabBarController()
+    // Repository 인스턴스를 생성해서 전달
+    let repository = SwiftDataManager.shared
+    let rootVC = MainTabBarController(repository: repository)
     window.rootViewController = rootVC
     window.makeKeyAndVisible()
 
