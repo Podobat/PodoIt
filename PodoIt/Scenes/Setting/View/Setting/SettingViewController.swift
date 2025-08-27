@@ -5,11 +5,13 @@
 //  Created by 노가현 on 8/20/25.
 //
 
+import SafariServices
 import SnapKit
 import UIKit
 
 final class SettingViewController: UIViewController {
   private let viewModel = SettingViewModel()
+  private let myAppID = 544007664 // 임시 AppID: Youtube
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.backgroundColor = .appWhite
@@ -90,6 +92,22 @@ extension SettingViewController: UITableViewDelegate {
       }, selectedTheme: current)
       sheetVC.modalPresentationStyle = .pageSheet
       present(sheetVC, animated: true)
+    case .inquiry:
+      guard let url = URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSc7ek143AR7jBzxrNdbQsHJso4Nv4n_41v0ExHlXwsOHi6gfQ/viewform?usp=header") else { return }
+      let safariViewController = SFSafariViewController(url: url)
+      present(safariViewController, animated: true, completion: nil)
+    case .review:
+      guard
+        let appStoreURL = URL(string: "itms-apps://itunes.apple.com/app/id\(myAppID)"), // App Store 앱 직행
+        let webURL = URL(string: "https://apps.apple.com/app/id\(self.myAppID)") // 웹으로 이동(Safari 백업용)
+      else { return }
+
+      // 먼저 App Store 시도 → 실패하면 Safari로 연결
+      UIApplication.shared.open(appStoreURL, options: [:]) { success in
+        if !success {
+          UIApplication.shared.open(webURL)
+        }
+      }
     default: break
     }
   }
