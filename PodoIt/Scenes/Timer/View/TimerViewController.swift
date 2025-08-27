@@ -94,6 +94,8 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    navigationController?.setNavigationBarHidden(true, animated: false)
+    navigationItem.largeTitleDisplayMode = .never
     configureUI()
     addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
   }
