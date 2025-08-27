@@ -125,8 +125,9 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   // MARK: - Actions
 
   @objc private func addButtonTapped() {
-    // TimerEditViewController에 repository 주입 생성자가 구현되면 수정
-    let editVC = TimerEditViewController()
+    // ViewModel 주입
+    let vm = TimerEditViewModel(repo: repository)
+    let editVC = TimerEditViewController(viewModel: vm)
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
   }
@@ -190,7 +191,9 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   // 셀 탭 시 수정 화면 진입 같은 기본 동작
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     // TimerEditViewController에 수정 모드 생성자가 구현되면 수정
-    let editVC = TimerEditViewController()
+    let editing = timers[indexPath.item]
+    let vm = TimerEditViewModel(repo: repository, editing: editing) // 편집 모드
+    let editVC = TimerEditViewController(viewModel: vm)
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
   }
