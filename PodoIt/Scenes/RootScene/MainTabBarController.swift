@@ -8,6 +8,20 @@
 import UIKit
 
 final class MainTabBarController: UITabBarController {
+  // Repository 보관
+  private let repository: TimerRepository
+
+  // 지정 이니셜라이저 추가
+  init(repository: TimerRepository) {
+    self.repository = repository
+    super.init(nibName: nil, bundle: nil)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
     setupAppearance() // 탭바 (컬러/폰트) 설정
@@ -46,10 +60,10 @@ final class MainTabBarController: UITabBarController {
     }
   }
 
-  // 탭에 표시할 뷰컨트롤러들 세팅
+  // 컨테이너 생성 삭제, 주입받은 repository 사용
   private func setupViewControllers() {
     viewControllers = [
-      makeNav(TimerViewController(), "타이머", "timer"),
+      makeNav(TimerViewController(repository: repository), "타이머", "timer"),
       makeNav(StatsViewController(), "통계", "stats"),
       makeNav(SettingViewController(), "설정", "setting")
     ]
