@@ -6,12 +6,19 @@
 //
 
 import SnapKit
+import SwiftData
 import Then
 import UIKit
 
 final class TimerViewController: UIViewController, UICollectionViewDelegateFlowLayout { // 사이즈 계산을 위해서 채택
 
+  // MARK: - Dependencies
+
   private let repository: TimerRepository
+
+  // MARK: - State
+
+  private var timers: [TimerModel] = []
 
   // init 추가
   init(repository: TimerRepository) {
@@ -37,11 +44,6 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     static let sectionInset = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
     static let cellHeight: CGFloat = 96
   }
-
-  // MARK: - Data
-
-  // 데이터 배열
-  private var timers: [TimerModel] = []
 
   // MARK: - UI Components
 
@@ -187,7 +189,6 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
   // 셀 탭 시 수정 화면 진입 같은 기본 동작
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    let timer = timers[indexPath.item]
     // TimerEditViewController에 수정 모드 생성자가 구현되면 수정
     let editVC = TimerEditViewController()
     editVC.hidesBottomBarWhenPushed = true
