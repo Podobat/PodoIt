@@ -63,11 +63,6 @@ final class MainTabBarController: UITabBarController {
 
   // 컨테이너 생성 삭제, 주입받은 repository 사용
   private func setupViewControllers() {
-    // SwiftData 컨테이너/컨텍스트/레포 생성
-    let container = try! ModelContainer(for: TimerModel.self)
-    let context = ModelContext(container)
-    let repo = SwiftDataTimerRepository(context: context)
-
     viewControllers = [
       makeNav(TimerViewController(repository: repository), "타이머", "timer"),
       makeNav(StatsViewController(), "통계", "stats"),

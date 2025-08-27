@@ -5,14 +5,14 @@
 //  Created by 노가현 on 8/27/25.
 //
 
+import Dependencies
 import Foundation
 
 final class TimerEditViewModel {
-  private let repo: TimerRepository
+  @Dependency(\.timerRepository) private var repo
   private(set) var editing: TimerModel?
 
-  init(repo: TimerRepository, editing: TimerModel? = nil) {
-    self.repo = repo
+  init(editing: TimerModel? = nil) {
     self.editing = editing
   }
 

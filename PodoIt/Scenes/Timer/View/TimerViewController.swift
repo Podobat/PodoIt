@@ -126,7 +126,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
   @objc private func addButtonTapped() {
     // ViewModel 주입
-    let vm = TimerEditViewModel(repo: repository)
+    let vm = TimerEditViewModel()
     let editVC = TimerEditViewController(viewModel: vm)
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
@@ -192,7 +192,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     // TimerEditViewController에 수정 모드 생성자가 구현되면 수정
     let editing = timers[indexPath.item]
-    let vm = TimerEditViewModel(repo: repository, editing: editing) // 편집 모드
+    let vm = TimerEditViewModel(editing: editing)
     let editVC = TimerEditViewController(viewModel: vm)
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)

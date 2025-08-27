@@ -5,15 +5,10 @@
 //  Created by 노가현 on 8/16/25.
 //
 
-import SwiftData
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   var window: UIWindow?
-
-  private var modelContainer: ModelContainer!
-  private var modelContext: ModelContext!
-  private var timerRepository: TimerRepository!
 
   func scene(_ scene: UIScene,
              willConnectTo session: UISceneSession,
@@ -21,18 +16,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   {
     guard let windowScene = scene as? UIWindowScene else { return }
 
-    do {
-      modelContainer = try ModelContainer(for: TimerModel.self)
-      modelContext = ModelContext(modelContainer)
-      timerRepository = SwiftDataTimerRepository(context: modelContext)
-    } catch {
-      assertionFailure("SwiftData ModelContainer 생성 실패: \(error)")
-      return
-    }
-
     let window = UIWindow(windowScene: windowScene)
 
-    let rootVC = MainTabBarController(repository: timerRepository)
+    // Repository 인스턴스를 생성해서 전달
+    let repository = SwiftDataManager.shared
+    let rootVC = MainTabBarController(repository: repository)
     window.rootViewController = rootVC
     window.makeKeyAndVisible()
 

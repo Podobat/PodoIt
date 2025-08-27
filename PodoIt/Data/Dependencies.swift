@@ -23,3 +23,18 @@ private enum ModelContextKey: DependencyKey {
 }
 
 extension ModelContext: @unchecked @retroactive Sendable {}
+
+// MARK: - TimerRepository 주입 (SwiftDataManager 사용)
+
+private enum TimerRepositoryKey: DependencyKey {
+  static var liveValue: TimerRepository = SwiftDataManager.shared
+  static var testValue: TimerRepository = SwiftDataManager.shared
+  static var previewValue: TimerRepository = SwiftDataManager.shared
+}
+
+extension DependencyValues {
+  var timerRepository: TimerRepository {
+    get { self[TimerRepositoryKey.self] }
+    set { self[TimerRepositoryKey.self] = newValue }
+  }
+}
