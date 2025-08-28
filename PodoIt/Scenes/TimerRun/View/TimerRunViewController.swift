@@ -28,9 +28,9 @@ final class TimerRunViewController: UIViewController {
   
   private let headerView = HeaderSectionView()
   private let animationView = AnimationSectionView()
-  private let timerView = TimerHeaderView()
+  private let timerView = TimerSectionView()
   private let middleView = MiddleSectionView()
-  private let buttonBarView = ButtonBarView()
+  private let buttonBarView = ButtonSectionView()
   
   private lazy var rootStack = UIStackView(arrangedSubviews: [
       headerView, animationView, timerView, middleView, buttonBarView
@@ -55,6 +55,10 @@ final class TimerRunViewController: UIViewController {
   private func configureLayout() {
     rootStack.snp.makeConstraints {
       $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
+    }
+    
+    animationView.snp.makeConstraints {
+      $0.height.equalTo(400) // 임시 높이 지정. 추후 Lottie로 교체 예정
     }
   }
 }
