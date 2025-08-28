@@ -11,6 +11,7 @@ import Foundation
 // 타이머 데이터를 다루는 추상화 인터페이스
 protocol TimerRepository {
   func fetchAll() throws -> [TimerModel] // 모든 타이머 조회
+  func fetch(by id: UUID) throws -> TimerModel? // 단일 타이머 조회
   @discardableResult
   func insert(title: String, iconName: String, goalMinutes: Int) throws -> TimerModel // 생성
   func update(id: UUID, title: String, iconName: String, goalMinutes: Int) throws // 수정
