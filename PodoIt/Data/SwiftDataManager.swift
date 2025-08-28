@@ -82,7 +82,7 @@ final class SwiftDataManager: TimerRepository {
 
   // MARK: - Helper
 
-  private func fetch(by id: UUID) throws -> TimerModel? {
+  func fetch(by id: UUID) throws -> TimerModel? {
     let predicate = #Predicate<TimerModel> { $0.timerID == id }
     var descriptor = FetchDescriptor<TimerModel>(predicate: predicate)
     descriptor.fetchLimit = 1

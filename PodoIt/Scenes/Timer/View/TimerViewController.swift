@@ -217,19 +217,14 @@ extension TimerViewController: UICollectionViewDataSource {
     let model = timers[indexPath.item]
     cell.configure(with: model)
 
-//    // 셀 → VC로 버튼 탭 이벤트 전달
-//    cell.onPlayTapped = { [weak self] in
-//      guard let self = self else { return }
-//      let timer = self.timers[indexPath.item]
-//      // 타이머 실행 화면으로 이동
-//      let runningVC = TimerRunningViewController(timer: timer, repository: self.repository)
-//      self.navigationController?.pushViewController(runningVC, animated: true)
-//    }
-
+    // 셀 → VC로 버튼 탭 이벤트 전달
     cell.onPlayTapped = { [weak self] in
       guard let self = self else { return }
       let timer = self.timers[indexPath.item]
-      print("타이머 실행: \(timer.title)")
+      // 타이머 실행 화면으로 이동
+      let runVC = TimerRunViewController(timerID: timer.timerID, repo: self.repository) // UUID 전달
+      runVC.hidesBottomBarWhenPushed = true // 탭바 숨기기
+      self.navigationController?.pushViewController(runVC, animated: true)
     }
 
     return cell
