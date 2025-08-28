@@ -6,6 +6,10 @@
 //
 
 import UIKit
+import SnapKit
+import Then
+import RxSwift
+import RxCocoa
 
 final class TimerRunViewController: UIViewController {
   private let viewModel: TimerRunViewModel
@@ -19,20 +23,38 @@ final class TimerRunViewController: UIViewController {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  // MARK: - Components
+  
+  private let headerView = HeaderSectionView()
+  private let animationView = AnimationSectionView()
+  private let timerView = TimerHeaderView()
+  private let middleView = MiddleSectionView()
+  private let buttonBarView = ButtonBarView()
+  
+  private lazy var rootStack = UIStackView(arrangedSubviews: [
+      headerView, animationView, timerView, middleView, buttonBarView
+  ]).then {
+    $0.axis = .vertical
+    $0.alignment = .fill
+    $0.isLayoutMarginsRelativeArrangement = true
+    $0.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
+  }
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .purple
-    do {
-      try viewModel.load()
-      if let timer = viewModel.timer {
-        print(timer.timerID)
-        print(timer.title)
-        print(timer.iconName)
-        print(timer.goalTime)
-      }
-    } catch {
-      print("실패: \(error.localizedDescription)")
+    view.backgroundColor = .appBlack
+    configureUI()
+    configureLayout()
+  }
+  
+  private func configureUI() {
+    view.addSubview(rootStack)
+  }
+  
+  private func configureLayout() {
+    rootStack.snp.makeConstraints {
+      $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
     }
   }
 }
