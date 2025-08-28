@@ -13,6 +13,9 @@ final class TimerEditViewController: UIViewController {
   // ViewModel 주입
   private let viewModel: TimerEditViewModel
 
+  // 편집 모드 여부
+  private var isEditMode: Bool { viewModel.editing != nil }
+
   // MARK: - Metrics
 
   private enum Metrics {
@@ -50,6 +53,15 @@ final class TimerEditViewController: UIViewController {
   private let titleLabel = UILabel().then {
     $0.attributedText = Typography.attributed("타이머 추가", style: .headingMd, color: .appBlack)
     $0.textAlignment = .center
+  }
+
+  // 상단 우측 삭제 버튼
+  private lazy var deleteButton = UIButton(type: .system).then {
+    let image = UIImage(named: "trash")
+    $0.setImage(image, for: .normal)
+    $0.tintColor = Palette.Gray.g900
+    $0.isHidden = true // 편집 모드에서만 노출
+    $0.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
   }
 
   // 이모지 선택 버튼 (default : plus 버튼)
@@ -176,6 +188,17 @@ final class TimerEditViewController: UIViewController {
       minutePicker.selectRow(idx, inComponent: 0, animated: false)
     }
 
+    // 편집 모드 처리 (타이틀/프리필/휴지통 표시)
+    deleteButton.isHidden = !isEditMode
+    if let editing = viewModel.editing {
+      titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingMd, color: .appBlack)
+      nameTextField.text = editing.title
+      selectedMinutes = editing.goalTime
+      if let editIdx = minuteOptions.firstIndex(of: selectedMinutes) {
+        minutePicker.selectRow(editIdx, inComponent: 0, animated: false)
+      }
+    } // 생성 모드면 기존 타이머 추가 타이틀 유지
+
     goalValueArea.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePicker)))
     applyCollapsedUI(animated: false)
     updateCollapsedLabelText()
@@ -197,7 +220,7 @@ final class TimerEditViewController: UIViewController {
   }
 
   private func addSubviews() {
-    let mainViews = [backButton, titleLabel, emojiButton, nameTextField, goalContainerView, saveButton]
+    let mainViews = [backButton, titleLabel, emojiButton, nameTextField, goalContainerView, saveButton, deleteButton]
     view.addSubviews(mainViews)
 
     goalContainerView.addSubviews([goalTitleLabel, goalValueArea])
@@ -245,6 +268,12 @@ final class TimerEditViewController: UIViewController {
     titleLabel.snp.makeConstraints {
       $0.centerY.equalTo(backButton)
       $0.centerX.equalToSuperview()
+    }
+
+    deleteButton.snp.makeConstraints {
+      $0.centerY.equalTo(backButton)
+      $0.trailing.equalToSuperview().inset(20)
+      $0.size.equalTo(24)
     }
   }
 
@@ -398,6 +427,35 @@ final class TimerEditViewController: UIViewController {
     } catch {
       print("save error:", error)
     }
+  }
+
+  @objc private func deleteButtonTapped() {
+    guard isEditMode else { return }
+
+    let alert = UIAlertController(
+      title: "삭제하시겠어요?",
+      message: "타이머와 관련된 데이터가 제거됩니다.",
+      preferredStyle: .actionSheet
+    )
+    let delete = UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
+      guard let self else { return }
+      do {
+        try self.viewModel.delete()
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        self.navigationController?.popViewController(animated: true)
+      } catch {
+        print("delete error:", error)
+      }
+    }
+    let cancel = UIAlertAction(title: "취소", style: .cancel)
+    alert.addAction(delete)
+    alert.addAction(cancel)
+
+    if let pop = alert.popoverPresentationController {
+      pop.sourceView = deleteButton
+      pop.sourceRect = deleteButton.bounds
+    }
+    present(alert, animated: true)
   }
 }
 
