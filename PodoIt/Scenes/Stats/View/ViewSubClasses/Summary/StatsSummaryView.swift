@@ -107,6 +107,7 @@ final class StatsSummaryView: UIView {
       forCellWithReuseIdentifier: StatsCollectionViewCell.reuseIdentifier
     )
     collectionView.isScrollEnabled = false
+    collectionView.backgroundColor = .clear
     return collectionView
   }()
 
