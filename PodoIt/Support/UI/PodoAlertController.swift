@@ -130,9 +130,9 @@ final class PodoAlertController: UIViewController {
     contentStack.addArrangedSubview(messageLabel)
     contentStack.setCustomSpacing(16, after: messageLabel)
 
-    buttonStack.addArrangedSubviews([cancelButton, confirmButton])
-    contentStack.setCustomSpacing(16, after: messageLabel)
-    contentStack.addArrangedSubview(buttonStack)
+    buttonStack.addArrangedSubviews([cancelButton])
+    contentStack.addArrangedSubview(confirmButton)
+    containerView.addSubview(buttonStack)
 
     containerView.addSubview(contentStack)
 
