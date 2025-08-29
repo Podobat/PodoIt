@@ -26,6 +26,8 @@ final class CalendarView: UIView {
 
   private let disposeBag = DisposeBag()
 
+  private var selectedIndexPath: IndexPath?
+
   private lazy var titleLabel = UILabel().then {
     $0.text = "2003년 01월"
     $0.font = Typography.font(for: .labelLg(weight: .semibold))
@@ -56,6 +58,7 @@ final class CalendarView: UIView {
     $0.dataSource = self
     $0.delegate = self
     $0.register(CalendarCell.self, forCellWithReuseIdentifier: CalendarCell.identifier)
+    $0.clipsToBounds = false
   }
 
   private let calendar = Calendar.current
@@ -179,6 +182,12 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
   {
     return 0
   }
+
+  func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    guard !days[indexPath.item].isEmpty else { return }
+    let selectedDay = days[indexPath.item]
+    print("선택된 날짜: \(titleLabel.text ?? "") \(selectedDay)일")
+  }
 }
 
 extension CalendarView {
@@ -207,19 +216,39 @@ extension CalendarView {
 
   private func updateDays() {
     days.removeAll()
+    selectedIndexPath = nil // 달이 바뀔 때마다 초기화
+
     let startDayOfTheWeek = self.startDayOfTheWeek()
     let totalDays = startDayOfTheWeek + endDate()
 
-    for day in Int() ..< totalDays {
+    let todayComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+    let currentComponents = calendar.dateComponents([.year, .month], from: calendarDate)
+
+    for day in 0 ..< totalDays {
       if day < startDayOfTheWeek {
-        days.append(String())
+        days.append("")
         continue
       }
-      days.append("\(day - startDayOfTheWeek + 1)")
+      let dayNumber = day - startDayOfTheWeek + 1
+      days.append("\(dayNumber)")
+
+      // 오늘 날짜일 때만 선택 IndexPath 저장
+      if todayComponents.year == currentComponents.year,
+         todayComponents.month == currentComponents.month,
+         todayComponents.day == dayNumber
+      {
+        selectedIndexPath = IndexPath(item: day, section: 0)
+      }
     }
 
     collectionView.reloadData()
     collectionView.layoutIfNeeded()
+
+    // 오늘 날짜가 있는 달일 때만 선택 적용
+    if let indexPath = selectedIndexPath {
+      collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+    }
+
     updateCollectionViewHeight()
   }
 
