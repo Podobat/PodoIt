@@ -70,8 +70,9 @@ final class SegmentHighlightLayer: CALayer {
   private func setupLayer() {
     backgroundColor = UIColor.appWhite.cgColor // Chip 색상
     shadowColor = UIColor.appBlack.cgColor // Shadow 색상
-    shadowOffset = CGSize(width: 0, height: 2) // Shadow Offset X: 0, Y: 2
-    shadowOpacity = 0.08 // Shadow opacity 8%
+    shadowOffset = CGSize(width: 0, height: 2) // Shadow 위치 X: 0, Y: 2
+    shadowOpacity = 0.08 // Shadow 불투명도 8%
+    shadowRadius = 16 // Shadow 블러
   }
 
   func updateFrame(_ frame: CGRect, animated: Bool) {
