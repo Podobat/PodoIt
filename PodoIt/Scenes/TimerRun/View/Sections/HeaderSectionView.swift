@@ -35,6 +35,12 @@ final class HeaderSectionView: UIView {
 
   private let muteButton = UIButton().then {
     $0.setImage(UIImage(named: "alarm-clock"), for: .normal)
+    $0.backgroundColor = .red
+    $0.addTarget(self, action: #selector(tapp), for: .touchUpInside)
+  }
+  
+  @objc func tapp() {
+    print("눌림")
   }
 
   override init(frame: CGRect) {
@@ -50,13 +56,15 @@ final class HeaderSectionView: UIView {
 
   private func configureUI() {
     addSubview(hStackView)
-    [iconImageView, titleLabel, muteButton].forEach { hStackView.addArrangedSubview($0) }
+    [iconImageView, titleLabel].forEach { hStackView.addArrangedSubview($0) }
+    addSubview(muteButton) // 터치영역 확장을 위해서 stackView에서 빼서 배치
   }
 
   private func configureLayout() {
     hStackView.snp.makeConstraints {
-      $0.top.bottom.equalToSuperview().inset(6)
-      $0.leading.trailing.equalToSuperview()
+      $0.top.bottom.equalToSuperview().inset(16)
+      $0.leading.equalToSuperview()
+      $0.trailing.equalTo(muteButton.snp.leading).inset(8)
     }
 
     iconImageView.snp.makeConstraints {
@@ -64,11 +72,9 @@ final class HeaderSectionView: UIView {
     }
 
     muteButton.snp.makeConstraints {
-      $0.size.equalTo(44) // 실제 터치 영역 크기
-    }
-
-    muteButton.imageView?.snp.makeConstraints {
-      $0.size.equalTo(24) // 보이는 크기
+      $0.centerY.equalToSuperview()
+      $0.trailing.equalToSuperview().offset(10)
+      $0.size.equalTo(44)
     }
   }
 
