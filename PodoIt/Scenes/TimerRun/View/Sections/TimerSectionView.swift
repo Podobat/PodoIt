@@ -60,7 +60,7 @@ final class TimerSectionView: UIView {
   private func configureLayout() {
     vStackView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(8)
-      $0.leading.trailing.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(20)
     }
 
     goalIconImageView.snp.makeConstraints {

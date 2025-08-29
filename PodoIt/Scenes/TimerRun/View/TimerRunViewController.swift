@@ -37,8 +37,6 @@ final class TimerRunViewController: UIViewController {
   ]).then {
     $0.axis = .vertical
     $0.alignment = .fill
-    $0.isLayoutMarginsRelativeArrangement = true
-    $0.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
   }
 
   override func viewDidLoad() {

@@ -48,7 +48,7 @@ final class MiddleSectionView: UIView {
   private func configureLayout() {
     switchContainerView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(16)
-      $0.leading.trailing.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(20)
     }
     
     progressContainer.snp.makeConstraints {

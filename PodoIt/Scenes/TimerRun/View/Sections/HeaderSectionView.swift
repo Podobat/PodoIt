@@ -63,7 +63,7 @@ final class HeaderSectionView: UIView {
   private func configureLayout() {
     hStackView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(16)
-      $0.leading.equalToSuperview()
+      $0.leading.equalToSuperview().inset(20)
       $0.trailing.equalTo(muteButton.snp.leading).inset(8)
     }
 
@@ -73,7 +73,7 @@ final class HeaderSectionView: UIView {
 
     muteButton.snp.makeConstraints {
       $0.centerY.equalToSuperview()
-      $0.trailing.equalToSuperview().offset(10)
+      $0.trailing.equalToSuperview().offset(-10)
       $0.size.equalTo(44)
     }
   }
