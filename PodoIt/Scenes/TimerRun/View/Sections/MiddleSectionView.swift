@@ -14,12 +14,12 @@ final class MiddleSectionView: UIView {
   // progressBar은 top.bottom = 16, restTimerButton은 top.bottom = 12
   // 토글 될 때마다 위 아래 여백을 미리 만들어두고 토글되서 바꾸는 식으로 해야할 듯 싶음
   private let switchContainerView = UIView()
-  
+
   private let progressContainer = UIView().then { // 진행률 바 배경 View
     $0.backgroundColor = .primary50
     $0.layer.cornerRadius = 16
   }
-  
+
   private let progressBar = UIProgressView(progressViewStyle: .default).then { // 진행률 바
     $0.progressTintColor = .primary400 // 채워진 부분 색상
     $0.trackTintColor = .clear // 아직 진행 안된 구간 색상
@@ -50,12 +50,12 @@ final class MiddleSectionView: UIView {
       $0.top.bottom.equalToSuperview().inset(16)
       $0.leading.trailing.equalToSuperview().inset(20)
     }
-    
+
     progressContainer.snp.makeConstraints {
       $0.directionalEdges.equalToSuperview()
       $0.height.equalTo(32)
     }
-    
+
     progressBar.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.leading.trailing.equalToSuperview().inset(4)
