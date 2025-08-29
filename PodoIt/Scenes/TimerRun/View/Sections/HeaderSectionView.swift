@@ -12,13 +12,29 @@ import UIKit
 final class HeaderSectionView: UIView {
   private let hStackView = UIStackView().then {
     $0.axis = .horizontal
-    $0.isLayoutMarginsRelativeArrangement = true
-    $0.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
+    $0.alignment = .center
+    $0.spacing = 8
   }
 
-  private let title = UILabel().then {
-    $0.text = "제목 라벨"
-    $0.textAlignment = .center
+  private let iconImageView = UIImageView().then {
+    $0.contentMode = .center
+    $0.image = UIImage(systemName: "flame.fill") // 임시 이미지. 나중에 string 받아서 세팅 예정
+    $0.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 16) // 내부 심볼 크기를 16으로 줄임
+    $0.backgroundColor = .gray50
+    $0.clipsToBounds = true
+  }
+
+  private let titleLabel = UILabel
+    .makeAttributed(
+      text: "자격증공부할수있고길어지면잘림 자격증공부할수있고길어지면잘림 자격증공부할수있고길어지면잘림",
+      style: .bodyLg(weight: .semibold), // headingSm이 bodyLg랑 같은 사이즈에 .semibold라 이걸로 채택
+      color: .gray900
+    ).then {
+      $0.lineBreakMode = .byTruncatingTail // 길면 ...처리
+    }
+
+  private let muteButton = UIButton().then {
+    $0.setImage(UIImage(named: "alarm-clock"), for: .normal)
   }
 
   override init(frame: CGRect) {
@@ -33,14 +49,32 @@ final class HeaderSectionView: UIView {
   }
 
   private func configureUI() {
-    backgroundColor = .purple
     addSubview(hStackView)
-    hStackView.addArrangedSubview(title)
+    [iconImageView, titleLabel, muteButton].forEach { hStackView.addArrangedSubview($0) }
   }
 
   private func configureLayout() {
     hStackView.snp.makeConstraints {
-      $0.directionalEdges.equalToSuperview()
+      $0.top.bottom.equalToSuperview().inset(6)
+      $0.leading.trailing.equalToSuperview()
     }
+
+    iconImageView.snp.makeConstraints {
+      $0.size.equalTo(24)
+    }
+
+    muteButton.snp.makeConstraints {
+      $0.size.equalTo(44) // 실제 터치 영역 크기
+    }
+
+    muteButton.imageView?.snp.makeConstraints {
+      $0.size.equalTo(24) // 보이는 크기
+    }
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    iconImageView.layoutIfNeeded()
+    iconImageView.layer.cornerRadius = iconImageView.frame.width / 2
   }
 }
