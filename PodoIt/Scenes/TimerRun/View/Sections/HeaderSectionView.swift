@@ -35,12 +35,6 @@ final class HeaderSectionView: UIView {
 
   private let muteButton = UIButton().then {
     $0.setImage(UIImage(named: "alarm-clock"), for: .normal)
-    $0.backgroundColor = .red
-    $0.addTarget(self, action: #selector(tapp), for: .touchUpInside)
-  }
-  
-  @objc func tapp() {
-    print("눌림")
   }
 
   override init(frame: CGRect) {
