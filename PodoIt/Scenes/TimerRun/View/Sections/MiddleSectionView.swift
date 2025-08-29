@@ -10,15 +10,22 @@ import Then
 import UIKit
 
 final class MiddleSectionView: UIView {
-  private let vStackView = UIStackView().then {
-    $0.axis = .vertical
-    $0.alignment = .center
-    $0.isLayoutMarginsRelativeArrangement = true
-    $0.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
+  // progressBar / restTimerButton을 번갈아가며 isHidden처리 예정
+  // progressBar은 top.bottom = 16, restTimerButton은 top.bottom = 12
+  // 토글 될 때마다 위 아래 여백을 미리 만들어두고 토글되서 바꾸는 식으로 해야할 듯 싶음
+  private let switchContainerView = UIView()
+  
+  private let progressContainer = UIView().then { // 진행률 바 배경 View
+    $0.backgroundColor = .primary50
+    $0.layer.cornerRadius = 16
   }
-
-  private let title = UILabel().then {
-    $0.text = "아마도 UIView + UIProgressView로 구현 예정"
+  
+  private let progressBar = UIProgressView(progressViewStyle: .default).then { // 진행률 바
+    $0.progressTintColor = .primary400 // 채워진 부분 색상
+    $0.trackTintColor = .clear // 아직 진행 안된 구간 색상
+    $0.layer.cornerRadius = 12
+    $0.clipsToBounds = true
+    $0.setProgress(0.2, animated: false) // 임시 값 (정적 UI)
   }
 
   override init(frame: CGRect) {
@@ -33,14 +40,26 @@ final class MiddleSectionView: UIView {
   }
 
   private func configureUI() {
-    backgroundColor = .blue
-    addSubview(vStackView)
-    vStackView.addArrangedSubview(title)
+    addSubview(switchContainerView)
+    switchContainerView.addSubview(progressContainer)
+    progressContainer.addSubview(progressBar)
   }
 
   private func configureLayout() {
-    vStackView.snp.makeConstraints {
+    switchContainerView.snp.makeConstraints {
+      $0.top.bottom.equalToSuperview().inset(16)
+      $0.leading.trailing.equalToSuperview()
+    }
+    
+    progressContainer.snp.makeConstraints {
       $0.directionalEdges.equalToSuperview()
+      $0.height.equalTo(32)
+    }
+    
+    progressBar.snp.makeConstraints {
+      $0.centerY.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(4)
+      $0.height.equalTo(24)
     }
   }
 }

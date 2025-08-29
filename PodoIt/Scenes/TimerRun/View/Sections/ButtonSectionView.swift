@@ -17,6 +17,7 @@ final class ButtonSectionView: UIView {
     $0.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 24, leading: 0, bottom: 24, trailing: 0)
   }
   
+  // TODO: 버튼들 가운데만 이미지로 가져와서 배경 만들어서 넣고, 눌릴때 0.95정도로 작아지는 느낌 & 알파값 줄여서 눌림효과도 추가
   let stopButton = UIButton().then {
     $0.setImage(UIImage(named: "stop_circle"), for: .normal)
   }
@@ -37,7 +38,7 @@ final class ButtonSectionView: UIView {
   }
   
   private func configureUI() {
-    backgroundColor = .brown
+    backgroundColor = .appWhite
     addSubview(hStackView)
     [stopButton, startPauseButton].forEach { hStackView.addArrangedSubview($0) }
   }
