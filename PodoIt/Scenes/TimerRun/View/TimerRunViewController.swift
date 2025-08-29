@@ -58,7 +58,7 @@ final class TimerRunViewController: UIViewController {
     }
 
     animationView.snp.makeConstraints {
-      $0.height.equalTo(500) // 임시 높이 지정. 추후 Lottie로 교체 예정
+      $0.height.equalTo(400) // 임시 높이 지정. 추후 Lottie로 교체 예정
     }
   }
 }
