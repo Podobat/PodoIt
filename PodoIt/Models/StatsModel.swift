@@ -8,48 +8,40 @@
 import Foundation
 import SwiftData
 
-// 카테고리별 시간 모델
+// Stats 모델
 @Model
-final class CategoryTimeModel {
+final class StatsModel: Hashable {
+  var statsID: UUID
+  var date: Date
   var icon: String
   var category: String
   var time: Int
 
   init(
+    statsID: UUID = UUID(),
+    date: Date,
     icon: String,
     category: String,
     time: Int
   ) {
+    self.statsID = statsID
+    self.date = date
     self.icon = icon
     self.category = category
     self.time = time
   }
 }
 
-// Stats 모델
+// Stats 총 시간 모델
 @Model
-final class StatsModel: Hashable {
-  var statsID: UUID
-  var date: Date
+final class StatsTimeModel {
   var dayTotalTime: Int
   var monthTotalTime: Int
 
-  // 하루 카테고리별 시간들
-  @Relationship(deleteRule: .cascade)
-  var dayCategoryTimes: [CategoryTimeModel] = []
-
-  // 월간 카테고리별 시간들
-  @Relationship(deleteRule: .cascade)
-  var monthCategoryTimes: [CategoryTimeModel] = []
-
   init(
-    statsID: UUID = UUID(),
-    date: Date,
     dayTotalTime: Int,
     monthTotalTime: Int
   ) {
-    self.statsID = statsID
-    self.date = date
     self.dayTotalTime = dayTotalTime
     self.monthTotalTime = monthTotalTime
   }
