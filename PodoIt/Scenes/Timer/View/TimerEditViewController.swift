@@ -413,7 +413,7 @@ final class TimerEditViewController: UIViewController {
 
   @objc private func saveTapped() {
     let title = (nameTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-    let icon = "🔥"
+    let icon = "🟣"
     let minutes = selectedMinutes
 
     guard !title.isEmpty else {
@@ -432,30 +432,15 @@ final class TimerEditViewController: UIViewController {
   @objc private func deleteButtonTapped() {
     guard isEditMode else { return }
 
-    let alert = UIAlertController(
-      title: "삭제하시겠어요?",
-      message: "타이머와 관련된 데이터가 제거됩니다.",
-      preferredStyle: .actionSheet
-    )
-    let delete = UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
+    PodoAlertController.presentDeleteTimerAlert(from: self) { [weak self] in
       guard let self else { return }
       do {
         try self.viewModel.delete()
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         self.navigationController?.popViewController(animated: true)
       } catch {
         print("delete error:", error)
       }
     }
-    let cancel = UIAlertAction(title: "취소", style: .cancel)
-    alert.addAction(delete)
-    alert.addAction(cancel)
-
-    if let pop = alert.popoverPresentationController {
-      pop.sourceView = deleteButton
-      pop.sourceRect = deleteButton.bounds
-    }
-    present(alert, animated: true)
   }
 }
 
