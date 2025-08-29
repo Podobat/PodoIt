@@ -10,6 +10,17 @@ import Then
 import UIKit
 
 final class PodoAlertController: UIViewController {
+  private enum Metrics {
+    static let containerCornerRadius: CGFloat = 16
+    static let buttonCornerRadius: CGFloat = 12
+    static let horizontalInset: CGFloat = 32
+    static let contentInset: CGFloat = 16
+    static let interTitleMessage: CGFloat = 8
+    static let interMessageButtons: CGFloat = 16
+    static let buttonSpacing: CGFloat = 8
+    static let buttonHeight: CGFloat = 48
+  }
+
   // MARK: - API
 
   static func presentDeleteTimerAlert(
@@ -70,7 +81,7 @@ final class PodoAlertController: UIViewController {
 
   private let containerView = UIView().then {
     $0.backgroundColor = .appWhite
-    $0.layer.cornerRadius = 16
+    $0.layer.cornerRadius = Metrics.containerCornerRadius
     $0.layer.cornerCurve = .continuous
     $0.clipsToBounds = true
   }
@@ -83,30 +94,32 @@ final class PodoAlertController: UIViewController {
 
   private let cancelButton = UIButton(type: .system).then {
     $0.backgroundColor = .gray100
-    $0.layer.cornerRadius = 12
-    $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+    $0.layer.cornerRadius = Metrics.buttonCornerRadius
     $0.accessibilityIdentifier = "podoAlert.cancel"
   }
 
   private let confirmButton = UIButton(type: .system).then {
     $0.backgroundColor = .error
-    $0.layer.cornerRadius = 12
-    $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+    $0.layer.cornerRadius = Metrics.buttonCornerRadius
+    // $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
     $0.accessibilityIdentifier = "podoAlert.confirm"
   }
 
   private let buttonStack = UIStackView().then {
     $0.axis = .horizontal
-    $0.spacing = 8
+    $0.spacing = Metrics.buttonSpacing
     $0.distribution = .fillEqually
   }
 
   private let contentStack = UIStackView().then {
     $0.axis = .vertical
     $0.alignment = .center
-    $0.spacing = 12
+    $0.spacing = Metrics.interTitleMessage
     $0.isLayoutMarginsRelativeArrangement = true
-    $0.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+    $0.layoutMargins = UIEdgeInsets(
+      top: Metrics.contentInset, left: Metrics.contentInset,
+      bottom: Metrics.contentInset, right: Metrics.contentInset
+    )
   }
 
   // MARK: - Lifecycle
@@ -137,7 +150,7 @@ final class PodoAlertController: UIViewController {
     // 중앙 배치 전용
     containerView.snp.makeConstraints {
       $0.center.equalToSuperview()
-      $0.leading.trailing.equalToSuperview().inset(32)
+      $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalInset)
     }
 
     contentStack.snp.makeConstraints {
@@ -145,7 +158,11 @@ final class PodoAlertController: UIViewController {
     }
 
     buttonStack.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview().inset(16)
+      $0.leading.trailing.equalToSuperview().inset(Metrics.contentInset)
+    }
+
+    for btn in [cancelButton, confirmButton] {
+      btn.snp.makeConstraints { $0.height.equalTo(Metrics.buttonHeight) }
     }
   }
 
