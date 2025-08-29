@@ -16,16 +16,21 @@ final class TimerSectionView: UIView {
     $0.spacing = 8
   }
 
-  private let goalTimeContainerView = UIView() // 아이콘 + 목표 시간/달성 Label
-  private let goalIconImageView = UIImageView().then {
+  private let goalTimeContainerView = UIView().then { // 아이콘 + 목표 시간/달성 Label
+    $0.layer.cornerRadius = 14
+    $0.backgroundColor = .gray100
+  }
+
+  private let goalIconImageView = UIImageView().then { // 아이콘
     $0.image = UIImage(named: "flag")
     $0.contentMode = .scaleAspectFit
-  } // 아이콘
-  private let goalTimeLabel = UILabel.makeAttributed(
+  }
+
+  private let goalTimeLabel = UILabel.makeAttributed( // 목표 시간/달성 Label
     text: "49:59",
     style: .labelMd(weight: .medium),
     color: .gray900
-  ) // 목표 시간/달성 Label
+  )
 
   private let runningTimeLabel = UILabel.makeAttributed(
     text: "0:00:00",
@@ -46,7 +51,7 @@ final class TimerSectionView: UIView {
   }
 
   private func configureUI() {
-    backgroundColor = .red
+    backgroundColor = .appWhite
     addSubview(vStackView)
     [goalTimeContainerView, runningTimeLabel].forEach { vStackView.addArrangedSubview($0) }
     [goalIconImageView, goalTimeLabel].forEach { goalTimeContainerView.addSubview($0) }
