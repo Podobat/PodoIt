@@ -72,6 +72,10 @@ final class TimerEditViewController: UIViewController {
     $0.backgroundColor = .appWhite
     $0.layer.cornerRadius = Metrics.buttonCornerRadius
     $0.clipsToBounds = true
+    $0.contentEdgeInsets = .zero
+    $0.isUserInteractionEnabled = true
+    $0.addTarget(self, action: #selector(emojiButtonTapped), for: .touchUpInside)
+    $0.addTarget(self, action: #selector(emojiButtonTouchDown), for: .touchDown)
   }
 
   // 타이머 이름 입력 필드
@@ -139,6 +143,26 @@ final class TimerEditViewController: UIViewController {
       for: .normal
     )
     $0.isEnabled = true
+    $0.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
+  }
+
+  // 점선 원 뷰
+  private let dashedCircleView = UIView().then {
+    $0.backgroundColor = .clear
+  }
+
+  // 이모지 입력용 숨겨진 텍스트필드
+  private lazy var emojiInputField = EmojiTextField().then {
+    $0.autocorrectionType = .no
+    $0.spellCheckingType = .no
+    $0.autocapitalizationType = .none
+    $0.returnKeyType = .done
+    $0.tintColor = .clear // 커서 숨김
+    $0.textColor = .clear // 텍스트 숨김
+    $0.backgroundColor = .clear
+    $0.isHidden = true
+    $0.delegate = self
+    $0.addTarget(self, action: #selector(emojiTextChanged), for: .editingChanged)
   }
 
   // MARK: - Constraints
@@ -152,10 +176,8 @@ final class TimerEditViewController: UIViewController {
   private let minuteOptions: [Int] = Array(stride(from: 5, through: 180, by: 5))
   private var selectedMinutes: Int = 50
 
-  // 점선 원 뷰
-  private let dashedCircleView = UIView().then {
-    $0.backgroundColor = .clear
-  }
+  // 이모지 상태
+  private var selectedEmoji: String?
 
   // MARK: - Init
 
@@ -177,6 +199,7 @@ final class TimerEditViewController: UIViewController {
     navigationController?.setNavigationBarHidden(true, animated: false)
     addSubviews()
     setupConstraints()
+    setupGestures()
 
     goalTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     goalTitleLabel.setContentHuggingPriority(.required, for: .vertical)
@@ -189,7 +212,15 @@ final class TimerEditViewController: UIViewController {
     }
 
     // 편집 모드 처리 (타이틀/프리필/휴지통 표시)
+    setupEditMode()
+
+    applyCollapsedUI(animated: false)
+    updateCollapsedLabelText()
+  }
+
+  private func setupEditMode() {
     deleteButton.isHidden = !isEditMode
+
     if let editing = viewModel.editing {
       titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingMd, color: .appBlack)
       nameTextField.text = editing.title
@@ -197,36 +228,61 @@ final class TimerEditViewController: UIViewController {
       if let editIdx = minuteOptions.firstIndex(of: selectedMinutes) {
         minutePicker.selectRow(editIdx, inComponent: 0, animated: false)
       }
-    } // 생성 모드면 기존 타이머 추가 타이틀 유지
-
-    goalValueArea.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePicker)))
-    applyCollapsedUI(animated: false)
-    updateCollapsedLabelText()
-
-    // 저장 버튼 액션 연결
-    saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-
-    // 편집 모드 프리필
-    if let editing = viewModel.editing {
-      titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingMd, color: .appBlack)
-      nameTextField.text = editing.title
-      selectedMinutes = editing.goalTime
-      if let idx = minuteOptions.firstIndex(of: selectedMinutes) {
-        minutePicker.selectRow(idx, inComponent: 0, animated: false)
+      // 이모지 프리필
+      if !editing.iconName.isEmpty {
+        setEmojiOnButton(editing.iconName)
       }
-      updateCollapsedLabelText()
-      // emojiButton.setTitle(editing.iconName, for: .normal)
     }
   }
+
+  private func setupGestures() {
+    goalValueArea.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePicker)))
+
+    // 이모지 버튼 롱프레스 리셋
+    let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(resetEmoji))
+    emojiButton.addGestureRecognizer(longPressGesture)
+
+    // 화면 탭으로 이모지 키보드 닫기
+    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissEmojiKeyboard))
+    tapGesture.cancelsTouchesInView = false
+    view.addGestureRecognizer(tapGesture)
+  }
+
+//    goalValueArea.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePicker)))
+//    applyCollapsedUI(animated: false)
+//    updateCollapsedLabelText()
+//
+//    // 저장 버튼 액션 연결
+//    saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
+//
+//    // 이모지 버튼 액션 + 롱프레스 리셋
+//    emojiButton.addTarget(self, action: #selector(emojiButtonTapped), for: .touchUpInside)
+//    let long = UILongPressGestureRecognizer(target: self, action: #selector(resetEmoji))
+//    emojiButton.addGestureRecognizer(long)
+
+//    // 편집 모드 프리필
+//    if let editing = viewModel.editing {
+//      titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingMd, color: .appBlack)
+//      nameTextField.text = editing.title
+//      selectedMinutes = editing.goalTime
+//      if let idx = minuteOptions.firstIndex(of: selectedMinutes) {
+//        minutePicker.selectRow(idx, inComponent: 0, animated: false)
+//      }
+//      updateCollapsedLabelText()
+//      // emojiButton.setTitle(editing.iconName, for: .normal)
+//    }
 
   private func addSubviews() {
     let mainViews = [backButton, titleLabel, emojiButton, nameTextField, goalContainerView, saveButton, deleteButton]
     view.addSubviews(mainViews)
 
+    view.addSubview(emojiInputField)
+
     goalContainerView.addSubviews([goalTitleLabel, goalValueArea])
     goalValueArea.addSubviews([minutePicker, unitLabel, collapsedValueLabel])
 
     emojiButton.addSubview(dashedCircleView)
+    dashedCircleView.isUserInteractionEnabled = false
     dashedCircleView.snp.makeConstraints {
       $0.center.equalToSuperview()
       $0.size.equalTo(Metrics.dashedCircleSize)
@@ -338,6 +394,11 @@ final class TimerEditViewController: UIViewController {
       $0.height.equalTo(Metrics.buttonHeight)
       $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Metrics.bottomSafeAreaInset)
     }
+
+    emojiInputField.snp.makeConstraints {
+      $0.size.equalTo(0)
+      $0.top.equalTo(view.snp.bottom)
+    }
   }
 
   // MARK: - Collapsed/Expanded
@@ -413,7 +474,9 @@ final class TimerEditViewController: UIViewController {
 
   @objc private func saveTapped() {
     let title = (nameTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-    let icon = "🟣"
+    // 아이콘 결정 우선순위: selectedEmoji → attributedTitle.string → 기본값
+    let attributed = emojiButton.attributedTitle(for: .normal)?.string
+    let icon = selectedEmoji ?? (attributed?.isEmpty == false ? attributed! : "🟣")
     let minutes = selectedMinutes
 
     guard !title.isEmpty else {
@@ -441,6 +504,65 @@ final class TimerEditViewController: UIViewController {
         print("delete error:", error)
       }
     }
+  }
+
+  // MARK: - Emoji input
+
+  @objc private func emojiButtonTouchDown() {
+    print("emojiButton touchDown detected")
+  }
+
+  @objc private func emojiButtonTapped() {
+    emojiInputField.becomeFirstResponder()
+  }
+
+  @objc private func dismissEmojiKeyboard() {
+    emojiInputField.resignFirstResponder()
+  }
+
+  @objc private func emojiTextChanged(_ sender: UITextField) {
+    let text = sender.text ?? ""
+    guard let firstGrapheme = text.first else { return }
+    let emoji = String(firstGrapheme)
+
+    setEmojiOnButton(emoji)
+
+    // 햅틱 & 정리
+    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+    sender.text = ""
+    sender.resignFirstResponder()
+  }
+
+  private func setEmojiOnButton(_ emoji: String) {
+    selectedEmoji = emoji
+
+    // 이미지 제거 후 타이틀로 이모지 표시
+    emojiButton.setImage(nil, for: .normal)
+    emojiButton.setAttributedTitle(
+      Typography.attributed(emoji, style: .headingXl(weight: .semibold), color: .appBlack),
+      for: .normal
+    )
+    emojiButton.tintColor = Palette.Primary.p600
+    dashedCircleView.isHidden = true
+
+    // 살짝 튀는 애니메이션
+    UIView.animate(withDuration: 0.08, animations: {
+      self.emojiButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+    }) { _ in
+      UIView.animate(withDuration: 0.18) {
+        self.emojiButton.transform = .identity
+      }
+    }
+  }
+
+  @objc private func resetEmoji(_ gr: UILongPressGestureRecognizer) {
+    guard gr.state == .began else { return }
+    let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate)
+    emojiButton.setAttributedTitle(nil, for: .normal)
+    emojiButton.setImage(image, for: .normal)
+    emojiButton.tintColor = Palette.Primary.p600
+    dashedCircleView.isHidden = false
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
   }
 }
 
@@ -475,5 +597,30 @@ extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate 
 
   func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
     Metrics.pickerRowHeight
+  }
+}
+
+// MARK: - UITextFieldDelegate
+
+extension TimerEditViewController: UITextFieldDelegate {
+  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    textField.resignFirstResponder()
+    return true
+  }
+}
+
+// MARK: - Emoji 전용 텍스트필드
+
+/// 이모지 입력을 우선으로 띄우는 전용 텍스트필드
+final class EmojiTextField: UITextField {
+  // 일부 케이스에서 키보드 전환 보장을 위해 빈 문자열 반환이 안전
+  override var textInputContextIdentifier: String? { "" }
+
+  // 가능한 경우 이모지 입력 모드를 우선 반환
+  override var textInputMode: UITextInputMode? {
+    if let emojiMode = UITextInputMode.activeInputModes.first(where: { $0.primaryLanguage == "emoji" }) {
+      return emojiMode
+    }
+    return super.textInputMode
   }
 }
