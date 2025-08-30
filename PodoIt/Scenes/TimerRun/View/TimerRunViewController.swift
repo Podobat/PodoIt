@@ -5,12 +5,14 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import RxSwift
 import SnapKit
 import Then
 import UIKit
 
 final class TimerRunViewController: UIViewController {
   private let viewModel: TimerRunViewModel
+  private let disposeBag = DisposeBag()
 
   init(timerID: UUID, repo: TimerRepository) {
     self.viewModel = TimerRunViewModel(timerID: timerID, repo: repo)
@@ -42,6 +44,7 @@ final class TimerRunViewController: UIViewController {
     view.backgroundColor = .appWhite
     configureUI()
     configureLayout()
+    bind()
   }
 
   private func configureUI() {
@@ -52,5 +55,19 @@ final class TimerRunViewController: UIViewController {
     rootStack.snp.makeConstraints {
       $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
     }
+  }
+
+  private func bind() {
+    // 버튼 Tap을 스트림으로 받아서 viewModel의 start실행
+    buttonBarView.startPauseTap
+      .withUnretained(self)
+      .bind(onNext: { vc, _ in
+        vc.viewModel.start()
+      })
+      .disposed(by: disposeBag)
+
+    // 여기서 ViewModel의 text 구독
+    // .drive로 받아서, 타이머 섹션의 텍스트에다가 바인딩.
+    // 디스포즈백!
   }
 }
