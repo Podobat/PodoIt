@@ -86,7 +86,7 @@ final class TimerCell: UICollectionViewCell {
   }
 
   private lazy var playButton = UIButton(type: .system).then {
-    let image = UIImage(named: "play_fill")?.withRenderingMode(.alwaysOriginal)
+    let image = UIImage(named: "play-fill")?.withRenderingMode(.alwaysOriginal)
     $0.setImage(image, for: .normal)
     $0.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
