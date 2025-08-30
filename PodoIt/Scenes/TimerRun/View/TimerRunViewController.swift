@@ -5,6 +5,8 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import SnapKit
+import Then
 import UIKit
 
 final class TimerRunViewController: UIViewController {
@@ -20,19 +22,35 @@ final class TimerRunViewController: UIViewController {
     fatalError("init(coder:) has not been implemented")
   }
 
+  // MARK: - Components
+
+  private let headerView = HeaderSectionView()
+  private let animationView = AnimationSectionView()
+  private let timerView = TimerSectionView()
+  private let middleView = MiddleSectionView()
+  private let buttonBarView = ButtonSectionView()
+
+  private lazy var rootStack = UIStackView(arrangedSubviews: [
+    headerView, animationView, timerView, middleView, buttonBarView
+  ]).then {
+    $0.axis = .vertical
+    $0.alignment = .fill
+  }
+
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .purple
-    do {
-      try viewModel.load()
-      if let timer = viewModel.timer {
-        print(timer.timerID)
-        print(timer.title)
-        print(timer.iconName)
-        print(timer.goalTime)
-      }
-    } catch {
-      print("실패: \(error.localizedDescription)")
+    view.backgroundColor = .appWhite
+    configureUI()
+    configureLayout()
+  }
+
+  private func configureUI() {
+    view.addSubview(rootStack)
+  }
+
+  private func configureLayout() {
+    rootStack.snp.makeConstraints {
+      $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
     }
   }
 }
