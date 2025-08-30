@@ -99,7 +99,7 @@ final class CircleLabelView: UIView {
     static let stackSpacing: CGFloat = 4
     static let borderWidth: CGFloat = 1
   }
-  
+
   // MARK: - Properties
 
   private let circleView = UIView()
