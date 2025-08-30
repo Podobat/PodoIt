@@ -148,7 +148,6 @@ final class CircleLabelView: UIView {
       $0.edges.equalToSuperview()
     }
 
-    circleView.snp.makeConstraints { $0.size.equalTo(Layout.circleViewSize)
-    }
+    circleView.snp.makeConstraints { $0.size.equalTo(Layout.circleViewSize) }
   }
 }
