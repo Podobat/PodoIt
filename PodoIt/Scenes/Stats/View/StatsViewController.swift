@@ -5,8 +5,8 @@
 //  Created by 노가현 on 8/20/25.
 //
 
-import Then
 import SnapKit
+import Then
 import UIKit
 
 final class StatsViewController: UIViewController {
@@ -14,6 +14,7 @@ final class StatsViewController: UIViewController {
 
   private let headerView = StatsHeaderView()
   private let calendarView = CalendarView()
+  private let calendarColorView = CalendarColorView()
   private let summaryView = StatsSummaryView()
 
   private let scrollView = UIScrollView().then {
@@ -45,7 +46,8 @@ final class StatsViewController: UIViewController {
   private func setupViews() {
     [headerView, scrollView].forEach { view.addSubview($0) }
     scrollView.addSubview(contentStackView)
-    [calendarView, summaryView].forEach { contentStackView.addArrangedSubview($0) }
+    [calendarView, calendarColorView, summaryView].forEach { contentStackView.addArrangedSubview($0) }
+    calendarView.layer.zPosition = 1
   }
 
   private func setupConstraints() {
