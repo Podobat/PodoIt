@@ -134,22 +134,22 @@ final class StatsSummaryView: UIView {
   required init?(coder _: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   // MARK: - Override
+
   override func layoutSubviews() {
     super.layoutSubviews()
     summaryContainer.layoutIfNeeded()
-    
+
     let path = UIBezierPath(
-        roundedRect: CGRect(origin: .zero, size: summaryContainer.bounds.size),
-        cornerRadius: summaryContainer.layer.cornerRadius
+      roundedRect: CGRect(origin: .zero, size: summaryContainer.bounds.size),
+      cornerRadius: summaryContainer.layer.cornerRadius
     ).cgPath
     summaryContainer.layer.shadowPath = path
     summaryContainer.layer.shadowColor = UIColor.appBlack.cgColor // Shadow 색상
     summaryContainer.layer.shadowOpacity = 0.08 // Shadow 불투명도 8%
     summaryContainer.layer.shadowRadius = 16 // Shadow 블러
   }
-  
 
   // MARK: - ConfigureUI
 
