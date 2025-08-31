@@ -34,6 +34,8 @@ final class StatsSummaryView: UIView {
     static let horizontalPadding: CGFloat = 20
     static let verticalPadding: CGFloat = 16
     static let summaryPadding: CGFloat = 16
+    static let totalTimeContainerPadding: CGFloat = 16
+    static let totalTimeStackViewSpacing: CGFloat = 8
   }
 
   // MARK: - Properties
@@ -47,31 +49,27 @@ final class StatsSummaryView: UIView {
   private let summaryContainer = PaddedContainerView(horizontal: Layout.summaryPadding, vertical: Layout.summaryPadding).then {
     $0.backgroundColor = .appWhite
     $0.layer.cornerRadius = 16
-    $0.clipsToBounds = true
   }
 
   private let segmentedControl = StatsCustomSegmentedControl(items: ["일간", "월간"])
 
-  private let totalTimeLabel = UILabel().then {
-    let fullText = "총 2시간 50분 집중했어요!"
-    let attributedString = NSMutableAttributedString(
-      string: fullText,
-      attributes: [
-        .font: Typography.font(for: .headingMd),
-        .foregroundColor: UIColor.gray500,
-      ]
-    )
+  private let totalTimeTotalLabel = UILabel.makeAttributed(
+    text: "총", style: .headingMd, color: .gray500, alignment: .left
+  )
 
-    // "2시간 50분" 부분의 범위 찾기
-    let timeRange = (fullText as NSString).range(of: "2시간 50분")
+  // 총 집중 시간 텍스트
+  private let totalTimeLabel = UILabel.makeAttributed(
+    text: "2시간 50분", style: .headingLg, color: .primary600, alignment: .left
+  )
 
-    // 해당 범위에만 폰트 크기 변경 적용
-    attributedString.addAttributes([
-      .font: Typography.font(for: .headingLg),
-      .foregroundColor: UIColor.appBlack,
-    ], range: timeRange)
+  private let totalTimeFocusLabel = UILabel.makeAttributed(
+    text: "집중했어요!", style: .headingMd, color: .gray500, alignment: .left
+  )
 
-    $0.attributedText = attributedString
+  private lazy var totalTimeStackView = UIStackView(arrangedSubviews: [totalTimeTotalLabel, totalTimeLabel, totalTimeFocusLabel]).then {
+    $0.axis = .horizontal
+    $0.spacing = Layout.totalTimeStackViewSpacing
+    $0.alignment = .center
   }
 
   // 컬렉션 뷰
@@ -117,9 +115,8 @@ final class StatsSummaryView: UIView {
   // 높이를 제약할 변수
   private var collectionViewHeightConstraint: Constraint?
 
-  private lazy var vStack = UIStackView(arrangedSubviews: [segmentedControl, totalTimeLabel, collectionView]).then {
+  private lazy var vStack = UIStackView(arrangedSubviews: [segmentedControl, totalTimeStackView, collectionView]).then {
     $0.axis = .vertical
-    $0.distribution = .equalSpacing
     $0.alignment = .center
     $0.spacing = 16
   }
@@ -137,6 +134,22 @@ final class StatsSummaryView: UIView {
   required init?(coder _: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  // MARK: - Override
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    summaryContainer.layoutIfNeeded()
+    
+    let path = UIBezierPath(
+        roundedRect: CGRect(origin: .zero, size: summaryContainer.bounds.size),
+        cornerRadius: summaryContainer.layer.cornerRadius
+    ).cgPath
+    summaryContainer.layer.shadowPath = path
+    summaryContainer.layer.shadowColor = UIColor.appBlack.cgColor // Shadow 색상
+    summaryContainer.layer.shadowOpacity = 0.08 // Shadow 불투명도 8%
+    summaryContainer.layer.shadowRadius = 16 // Shadow 블러
+  }
+  
 
   // MARK: - ConfigureUI
 
