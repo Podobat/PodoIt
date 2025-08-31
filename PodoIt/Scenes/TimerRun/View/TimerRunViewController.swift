@@ -66,8 +66,8 @@ final class TimerRunViewController: UIViewController {
       })
       .disposed(by: disposeBag)
 
-    // 여기서 ViewModel의 text 구독
-    // .drive로 받아서, 타이머 섹션의 텍스트에다가 바인딩.
-    // 디스포즈백!
+    viewModel.runningTimeText
+      .drive(timerView.runningTimeLabel.rx.text)
+      .disposed(by: disposeBag)
   }
 }
