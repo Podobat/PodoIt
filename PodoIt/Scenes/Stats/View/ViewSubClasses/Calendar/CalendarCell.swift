@@ -19,9 +19,8 @@ final class CalendarCell: UICollectionViewCell {
 
   private let selectionView = UIView().then {
     $0.backgroundColor = .appWhite
-    $0.layer.borderWidth = 1
-    $0.layer.borderColor = UIColor.primary500.cgColor
-    $0.layer.cornerRadius = 18
+    $0.layer.borderWidth = 1.5
+    $0.layer.borderColor = UIColor.primary700.cgColor
     $0.isHidden = true
   }
 
@@ -52,8 +51,8 @@ final class CalendarCell: UICollectionViewCell {
 
     let path = UIBezierPath(ovalIn: selectionView.bounds).cgPath
     selectionView.layer.shadowPath = path
-    selectionView.layer.shadowColor = UIColor.primary600.cgColor
-    selectionView.layer.shadowOpacity = 0.20
+    selectionView.layer.shadowColor = UIColor.primary700.withAlphaComponent(0.2).cgColor
+    selectionView.layer.shadowOpacity = 1
     selectionView.layer.shadowRadius = 12
   }
 
