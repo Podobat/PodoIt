@@ -60,6 +60,7 @@ final class TimerRunViewModel {
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
   }
 
+  // MARK: init
   init(timerID: UUID, repo: TimerRepository) {
     self.timerID = timerID
     self.repo = repo
@@ -75,6 +76,7 @@ final class TimerRunViewModel {
     self.timer = entity
   }
 
+  // MARK: 시작/일시정지 버튼 tap
   func startAndPause() {
     // 여기에서 타이머 작동 로직
     // isRunning: Bool의 상태값을 기준으로, start/pause 상태로 관리
