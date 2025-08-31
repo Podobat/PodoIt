@@ -36,8 +36,13 @@ final class CalendarColorView: UIView {
     $0.backgroundColor = .gray100
   }
 
-  private let times = ["0분", "~1시간", "1~2시간", "2~3시간", "3시간+"]
-  private let colors: [UIColor] = [.appWhite, .primary100, .primary300, .primary500, .primary700]
+  private let items: [CalendarColorModel] = [
+    CalendarColorModel(time: "0분", color: UIColor.appWhite),
+    CalendarColorModel(time: "~1시간", color: UIColor.primary100),
+    CalendarColorModel(time: "1~2시간", color: UIColor.primary300),
+    CalendarColorModel(time: "2~3시간", color: UIColor.primary500),
+    CalendarColorModel(time: "3시간+", color: UIColor.primary700),
+  ]
   private let stroke = 0
 
   // MARK: - Init
@@ -60,10 +65,10 @@ final class CalendarColorView: UIView {
   }
 
   private func makeCalendarColorViews() {
-    for (index, time) in times.enumerated() {
+    for (index, item) in items.enumerated() {
       let view = CircleLabelView(
-        text: time,
-        color: colors[index],
+        text: item.time,
+        color: item.color,
         isSelected: index == stroke // 첫 번째만 Stoke
       )
 
