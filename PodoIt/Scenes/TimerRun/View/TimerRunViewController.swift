@@ -58,11 +58,11 @@ final class TimerRunViewController: UIViewController {
   }
 
   private func bind() {
-    // 버튼 Tap을 스트림으로 받아서 viewModel의 start실행
+    // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonBarView.startPauseTap
       .withUnretained(self)
       .bind(onNext: { vc, _ in
-        vc.viewModel.start()
+        vc.viewModel.startAndPause()
       })
       .disposed(by: disposeBag)
 
