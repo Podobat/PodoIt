@@ -128,10 +128,11 @@ final class TimerRunViewModel {
 
     print("""
       
-      UUID: \(timer?.timerID ?? self.timerID), 
-      저장 기준 날짜(stop 버튼 tap한 UTC 기준): \(now), 
-      앱 아이콘: \(timer?.iconName ?? "아이콘 이름 없네요"), 
-      제목/카테고리 이름: \(timer?.title ?? "카테고리명이 왜 없지"), 
+      UUID: \(timer?.timerID ?? self.timerID)
+      저장 기준 날짜(stop 버튼 tap한 UTC 기준): \(now)
+      앱 아이콘: \(timer?.iconName ?? "아이콘 이름 없네요")
+      제목/카테고리 이름: \(timer?.title ?? "카테고리명이 왜 없지")
+      목표 공부 시간: \(timer?.goalTime ?? 0)분
       총 공부한 시간: \(studySeconds)초
       총 공부 시간 format 적용: \(TimerRunViewModel.format(seconds: studySeconds))
       
