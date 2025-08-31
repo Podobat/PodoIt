@@ -12,11 +12,11 @@ import RxSwift
 final class TimerRunViewModel {
   private let timerID: UUID
   private let repo: TimerRepository
-
+  
   private(set) var timer: TimerModel?
   private let disposeBag = DisposeBag()
   
-  private let sessionStart = Date() // 공부 시작한 시간 기록
+  private var sessionStart = Date() // 공부 시작한 시간 기록
   private var stateStart = Date() // 현재 구간(공부/휴식)이 시작된 시간 기록
   private var isRunning = true // 공부 중(true)/휴식 중(false)
   
@@ -26,7 +26,7 @@ final class TimerRunViewModel {
   lazy var runningTimeText: Driver<String> = makeRunningTimeText() // UI바인딩용. 공부시간을 방출
   
   // MARK: 시간 포맷터 ("h:mm:ss")
-
+  
   private static func format(seconds: Int) -> String {
     let h = seconds / 3600
     let m = (seconds % 3600) / 60
@@ -35,7 +35,7 @@ final class TimerRunViewModel {
   }
   
   // MARK: 공부시간 스트림
-
+  
   // UI의 라벨에 바인딩할 공부시간 문자열 Driver 생성
   private func makeRunningTimeText() -> Driver<String> {
     // 1초마다 아래의 map 블록 실행되며 runningTime부터 다시 계산.
@@ -59,15 +59,16 @@ final class TimerRunViewModel {
       .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
   }
-
+  
   // MARK: init
+
   init(timerID: UUID, repo: TimerRepository) {
     self.timerID = timerID
     self.repo = repo
   }
-
+  
   // MARK: 데이터 로딩
-
+  
   // 받아온 UUID를 기준으로 SwiftData에서 데이터를 바인딩
   func load() throws {
     guard let entity = try repo.fetch(by: timerID) else {
@@ -75,8 +76,9 @@ final class TimerRunViewModel {
     }
     self.timer = entity
   }
-
+  
   // MARK: 시작/일시정지 버튼 tap
+
   func startAndPause() {
     // 여기에서 타이머 작동 로직
     // isRunning: Bool의 상태값을 기준으로, start/pause 상태로 관리
@@ -96,5 +98,47 @@ final class TimerRunViewModel {
     
     isRunning.toggle()
     stateStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
+  }
+  
+  // MARK: 정지 버튼 tap
+
+  func stop() {
+    let now = Date()
+    let lastTime = Int(now.timeIntervalSince(stateStart))
+    
+    if isRunning {
+      studySeconds += lastTime
+    } else {
+      // 혹시 필요할까 싶어서 총 휴식 시간도 누적계산
+      restSeconds += lastTime
+    }
+    
+    /*
+     
+     Models/StateModel의 StatsModel에 저장해야 하는 테이터들
+     var statsID: UUID
+     var date: Date
+     var icon: String
+     var category: String
+     var time: Int
+     
+     */
+    
+    // MARK: 저장 (여기서는 임시로 print로 대체)
+
+    print("""
+      
+      UUID: \(timer?.timerID ?? self.timerID), 
+      저장 기준 날짜(stop 버튼 tap한 UTC 기준): \(now), 
+      앱 아이콘: \(timer?.iconName ?? "아이콘 이름 없네요"), 
+      제목/카테고리 이름: \(timer?.title ?? "카테고리명이 왜 없지"), 
+      총 공부한 시간: \(studySeconds)초
+      총 공부 시간 format 적용: \(TimerRunViewModel.format(seconds: studySeconds))
+      
+      (혹시 몰라서 넣은)
+      총 휴식 시간: \(restSeconds)초
+      총 휴식 시간 format 적용: \(TimerRunViewModel.format(seconds: restSeconds))
+      """
+    )
   }
 }

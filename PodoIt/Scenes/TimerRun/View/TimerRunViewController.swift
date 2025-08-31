@@ -15,6 +15,7 @@ final class TimerRunViewController: UIViewController {
   private let disposeBag = DisposeBag()
 
   init(timerID: UUID, repo: TimerRepository) {
+    // UUID를 받아올 때마다 새로운 VM을 생성
     self.viewModel = TimerRunViewModel(timerID: timerID, repo: repo)
     super.init(nibName: nil, bundle: nil)
   }
@@ -44,7 +45,16 @@ final class TimerRunViewController: UIViewController {
     view.backgroundColor = .appWhite
     configureUI()
     configureLayout()
+    loadData()
     bind()
+  }
+
+  private func loadData() {
+    do {
+      try viewModel.load()
+    } catch {
+      print("타이머 데이터 로딩 실패: \(error)")
+    }
   }
 
   private func configureUI() {
@@ -63,6 +73,13 @@ final class TimerRunViewController: UIViewController {
       .withUnretained(self)
       .bind(onNext: { vc, _ in
         vc.viewModel.startAndPause()
+      })
+      .disposed(by: disposeBag)
+
+    buttonBarView.stopButtonTap
+      .withUnretained(self)
+      .bind(onNext: { vc, _ in
+        vc.viewModel.stop()
       })
       .disposed(by: disposeBag)
 
