@@ -96,7 +96,7 @@ final class ThemeSheetViewController: UIViewController {
     // 하단 safeAreaInsets 값(홈 인디게이터 있으면 34, 없으면 0)
      let bottomInset = view.safeAreaInsets.bottom
     // iPhone SE랑 비슷하게, 홈 인디게이터가 있다면 inset을 0으로줌.
-     let extraBottom: CGFloat = bottomInset > 0 ? 0 : Layout.sideInset
+     let extraBottom: CGFloat = bottomInset > 0 ? 0 : Layout.vSpacing
     
      saveButton.snp.remakeConstraints {
        $0.top.equalTo(tableView.snp.bottom).offset(Layout.vSpacing)
