@@ -27,7 +27,7 @@ enum SettingItem {
   
   var title: String {
     switch self {
-    case .notification: return "알림 설정"
+    case .notification: return "타이머 알림 소리"
     case .theme: return "테마 설정"
     case .inquiry: return "문의·건의하기"
     case .review: return "리뷰 남기기"

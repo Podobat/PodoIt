@@ -28,7 +28,8 @@ final class SettingViewModel {
       // UserDefaults 저장과 UI는 완성. 어떤 상태를 했냐에 따라서 테마 변경만 지원하면 끝.
       // .theme(current: currentTheme),
       .inquiry,
-      .review
+      // TODO: 앱 배포 승인 후, appid 나오면 appid 수정 후 다시 노출
+      // .review
     ]
   }
 }
