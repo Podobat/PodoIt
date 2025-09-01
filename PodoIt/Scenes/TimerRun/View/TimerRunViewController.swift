@@ -96,15 +96,23 @@ final class TimerRunViewController: UIViewController {
       .asDriver(onErrorJustReturn: "0:00:00")
       .drive(timerView.runningTimeLabel.rx.text)
       .disposed(by: disposeBag)
-    
+
     viewModel.progress
       .asObservable()
       .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
       .asDriver(onErrorJustReturn: 0.0)
-      .drive(middleView.progressBar.rx.progress)
+      .drive(onNext: { [middleView] progress in
+        middleView.progressBar.layoutIfNeeded() // 애니메이션 꼬임 방지용. 미리 레이아웃 최신상태로
+        let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) // 선형으로 1초마다 애니메이션 객체 생성
+        animator.addAnimations {
+          middleView.progressBar.progress = progress // 매 틱 들어오는 진행률(progress) 값 바인딩
+          middleView.progressBar.layoutIfNeeded() // 안하면 툭툭 끊김
+        }
+        animator.startAnimation()
+      })
       .disposed(by: disposeBag)
   }
-  
+
   private func configureAll(timer: TimerModel, goalTime: String) {
     headerView.configure(model: timer)
     timerView.configure(model: timer, goalTime: goalTime)
