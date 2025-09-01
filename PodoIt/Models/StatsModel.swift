@@ -31,18 +31,3 @@ final class StatsModel: Hashable {
     self.time = time
   }
 }
-
-// Stats 총 시간 모델
-@Model
-final class StatsTimeModel {
-  var dayTotalTime: Int
-  var monthTotalTime: Int
-
-  init(
-    dayTotalTime: Int,
-    monthTotalTime: Int
-  ) {
-    self.dayTotalTime = dayTotalTime
-    self.monthTotalTime = monthTotalTime
-  }
-}
