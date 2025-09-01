@@ -26,11 +26,7 @@ final class TimerSectionView: UIView {
     $0.contentMode = .scaleAspectFit
   }
 
-  private let goalTimeLabel = UILabel.makeAttributed( // 목표 시간/달성 Label
-    text: "49:59",
-    style: .labelMd(weight: .medium),
-    color: .gray900
-  )
+  private let goalTimeLabel = UILabel() // 목표 시간/달성 Label
 
   private(set) var runningTimeLabel = UILabel.makeAttributed(
     text: "0:00:00",
@@ -74,5 +70,9 @@ final class TimerSectionView: UIView {
       $0.leading.equalTo(goalIconImageView.snp.trailing).offset(4)
       $0.trailing.equalToSuperview().inset(8)
     }
+  }
+
+  func configure(model: TimerModel, goalTime: String) {
+    goalTimeLabel.attributedText = Typography.attributed(goalTime, style: .labelMd(weight: .medium), color: .gray900)
   }
 }

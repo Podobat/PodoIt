@@ -53,7 +53,7 @@ final class TimerRunViewController: UIViewController {
     do {
       try viewModel.load()
       if let timer = viewModel.timer {
-        configureAll(timer: timer)
+        configureAll(timer: timer, goalTime: viewModel.goalTimeText)
       }
     } catch {
       print("타이머 데이터 로딩 실패: \(error)")
@@ -62,7 +62,6 @@ final class TimerRunViewController: UIViewController {
 
   private func configureUI() {
     view.addSubview(rootStack)
-    
   }
 
   private func configureLayout() {
@@ -98,11 +97,12 @@ final class TimerRunViewController: UIViewController {
       .drive(timerView.runningTimeLabel.rx.text)
       .disposed(by: disposeBag)
   }
-  
-  private func configureAll(timer: TimerModel) {
+
+  private func configureAll(timer: TimerModel, goalTime: String) {
     headerView.configure(model: timer)
+    timerView.configure(model: timer, goalTime: goalTime)
   }
-  
+
   deinit {
     print(" ---> [Deinit 확인!] 구독해제!")
   }

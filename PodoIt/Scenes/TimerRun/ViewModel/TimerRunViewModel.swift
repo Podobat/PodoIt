@@ -24,6 +24,11 @@ final class TimerRunViewModel {
     restSeconds: 0
   )
   
+  private(set) var goalTime: Int = 0
+  var goalTimeText: String {
+    return TimerRunViewModel.formatGoalTime(seconds: goalTime)
+  }
+  
   lazy var runningTimeText: Driver<String> = makeRunningTimeText() // UI바인딩용. 공부시간을 방출
   
   // MARK: 시간 포맷터 ("h:mm:ss")
@@ -33,6 +38,15 @@ final class TimerRunViewModel {
     let m = (seconds % 3600) / 60
     let s = seconds % 60
     return String(format: "%d:%02d:%02d", h, m, s) // 0:12:53, 1:50:49, 12:49:39등으로 포맷
+  }
+  
+  // MARK: 목표 시간 포맷터 ("mm:00")
+
+  private static func formatGoalTime(seconds: Int) -> String {
+    // 값이 3600이 들어옴
+    // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
+    let m = seconds / 60
+    return String(format: "%02d:00", m)
   }
   
   // MARK: 공부시간 스트림
@@ -76,6 +90,7 @@ final class TimerRunViewModel {
       throw RepositoryError.entityNotFound
     }
     self.timer = entity
+    self.goalTime = entity.goalTime * 60 // Int값을 초 단위로 변경
   }
   
   // MARK: 시작/일시정지 버튼 tap
