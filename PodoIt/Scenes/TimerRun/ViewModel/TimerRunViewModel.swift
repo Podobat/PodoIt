@@ -24,13 +24,19 @@ final class TimerRunViewModel {
     restSeconds: 0
   )
   
+  // isRunningRelay가 값이 바뀔 때마다 이벤트 방출
+  private let isRunningRelay = BehaviorRelay<Bool>(value: true) // accept로 변경 가능하니 노출 x
+  var isRunningDriver: Driver<Bool> { // UI 바인딩용. 호출때마다 Relay를 Driver로 감싼 스트림 반환
+    isRunningRelay.asDriver()
+  }
+  
   private(set) var goalTime: Int = 0
   var goalTimeText: String {
     return TimerRunViewModel.formatGoalTime(seconds: goalTime)
   }
   
   // tick을 여러군데에서 쓰일 것 같기에 빼둠.
-  private lazy var tick: Observable = {
+  private lazy var tick: Observable<Int> = {
     Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
       .startWith(0) // startWith(0)을 안붙여주면, 첫 이벤트가 1초 뒤에 옴.
       .share(replay: 1, scope: .whileConnected) // share로 한 번에 여러곳에 공유. 가장 최근 이벤트 1개 방출 및 구독자가 존재할때만 스트림 유지
@@ -132,6 +138,7 @@ final class TimerRunViewModel {
     }
     
     state.isRunning.toggle()
+    isRunningRelay.accept(state.isRunning) // 변경된 상태 저장
     state.stateStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
   }
   

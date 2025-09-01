@@ -111,6 +111,13 @@ final class TimerRunViewController: UIViewController {
         animator.startAnimation()
       })
       .disposed(by: disposeBag)
+    
+    viewModel.isRunningDriver
+      .drive(with: self) { vc, isRunning in
+        // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
+        vc.buttonBarView.updateStateStartPauseButtonImage(isRunning: isRunning)
+      }
+      .disposed(by: disposeBag)
   }
 
   private func configureAll(timer: TimerModel, goalTime: String) {
