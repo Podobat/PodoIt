@@ -16,12 +16,13 @@ final class TimerRunViewModel {
   private(set) var timer: TimerModel?
   private let disposeBag = DisposeBag()
   
-  private var sessionStart = Date() // 공부 시작한 시간 기록
-  private var stateStart = Date() // 현재 구간(공부/휴식)이 시작된 시간 기록
-  private var isRunning = true // 공부 중(true)/휴식 중(false)
-  
-  private var studySeconds = 0 // 지금까지 누적된 총 공부 시간(초)
-  private var restSeconds = 0 // 지금까지 누적된 총 휴식 시간(초)
+  private(set) var state = TimerSessionState(
+    sessionStart: Date(),
+    stateStart: Date(),
+    isRunning: true,
+    studySeconds: 0,
+    restSeconds: 0
+  )
   
   lazy var runningTimeText: Driver<String> = makeRunningTimeText() // UI바인딩용. 공부시간을 방출
   
@@ -48,10 +49,10 @@ final class TimerRunViewModel {
         let now = Date()
         // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산
         // 휴식중이면 실시간 경과는 0인 상태
-        let runningTime = vm.isRunning ? Int(now.timeIntervalSince(vm.stateStart)) : 0
+        let runningTime = vm.state.isRunning ? Int(now.timeIntervalSince(vm.state.stateStart)) : 0
         
         // 누적된 총 공부시간 + 진행중 공부 경과시간 계산
-        let totalStudyTime = vm.studySeconds + runningTime
+        let totalStudyTime = vm.state.studySeconds + runningTime
         
         // 총 공부 시간을 "h:mm:ss" 형태 문자열로 반환
         return TimerRunViewModel.format(seconds: totalStudyTime)
@@ -85,32 +86,32 @@ final class TimerRunViewModel {
     
     let now = Date()
     // 이번 구간의 시간(현재 시간 - 현재 구간(공부/휴식))
-    let time = Int(now.timeIntervalSince(stateStart))
+    let time = Int(now.timeIntervalSince(state.stateStart))
     
     // 상태에 따라서 시간 누적
-    if isRunning {
-      studySeconds += time // 공부 시간 누적
-      print("현재까지 총 공부 시간: \(studySeconds)")
+    if state.isRunning {
+      state.studySeconds += time // 공부 시간 누적
+      print("현재까지 총 공부 시간: \(state.studySeconds)")
     } else {
-      restSeconds += time // 휴식 시간 누적
-      print("현재까지 총 휴식 시간: \(restSeconds)")
+      state.restSeconds += time // 휴식 시간 누적
+      print("현재까지 총 휴식 시간: \(state.restSeconds)")
     }
     
-    isRunning.toggle()
-    stateStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
+    state.isRunning.toggle()
+    state.stateStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
   }
   
   // MARK: 정지 버튼 tap
 
   func stop() {
     let now = Date()
-    let lastTime = Int(now.timeIntervalSince(stateStart))
+    let lastTime = Int(now.timeIntervalSince(state.stateStart))
     
-    if isRunning {
-      studySeconds += lastTime
+    if state.isRunning {
+      state.studySeconds += lastTime
     } else {
       // 혹시 필요할까 싶어서 총 휴식 시간도 누적계산
-      restSeconds += lastTime
+      state.restSeconds += lastTime
     }
     
     /*
@@ -125,7 +126,7 @@ final class TimerRunViewModel {
      */
     
     // MARK: 저장 (여기서는 임시로 print로 대체)
-
+ 
     print("""
       
       UUID: \(timer?.timerID ?? self.timerID)
@@ -133,12 +134,12 @@ final class TimerRunViewModel {
       앱 아이콘: \(timer?.iconName ?? "아이콘 이름 없네요")
       제목/카테고리 이름: \(timer?.title ?? "카테고리명이 왜 없지")
       목표 공부 시간: \(timer?.goalTime ?? 0)분
-      총 공부한 시간: \(studySeconds)초
-      총 공부 시간 format 적용: \(TimerRunViewModel.format(seconds: studySeconds))
+      총 공부한 시간: \(state.studySeconds)초
+      총 공부 시간 format 적용: \(TimerRunViewModel.format(seconds: state.studySeconds))
       
       (혹시 몰라서 넣은)
-      총 휴식 시간: \(restSeconds)초
-      총 휴식 시간 format 적용: \(TimerRunViewModel.format(seconds: restSeconds))
+      총 휴식 시간: \(state.restSeconds)초
+      총 휴식 시간 format 적용: \(TimerRunViewModel.format(seconds: state.restSeconds))
       """
     )
   }
