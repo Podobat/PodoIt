@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import RxCocoa
 import SnapKit
 import Then
 import UIKit
@@ -21,7 +22,6 @@ final class ButtonSectionView: UIView {
     $0.tintColor = .appBlack
     $0.layer.cornerRadius = 32 // 버튼이 고정값이라 값 명시
     $0.clipsToBounds = true
-    $0.addTarget(self, action: #selector(didTapStopButton), for: .touchUpInside)
   }
   
   private lazy var startPauseButton = UIButton(type: .system).then {
@@ -30,7 +30,6 @@ final class ButtonSectionView: UIView {
     $0.backgroundColor = .primary600
     $0.layer.cornerRadius = 32
     $0.clipsToBounds = true
-    $0.addTarget(self, action: #selector(didTapStartPauseButton), for: .touchUpInside)
   }
   
   override init(frame: CGRect) {
@@ -60,12 +59,17 @@ final class ButtonSectionView: UIView {
       item.snp.makeConstraints { $0.size.equalTo(64) }
     }
   }
-  
-  @objc private func didTapStopButton() {
-    print("눌림")
+}
+
+extension ButtonSectionView {
+  /// addTarget과 같은 역할을 Rx로 감싼 코드.
+  /// - return의 startPauseButton.rx.tap으로, 그 버튼의 tap 이벤트 스트림을 반환함
+  /// - VC에서 반환값을 구독해서 연결되는 형태
+  var startPauseTap: ControlEvent<Void> {
+    return startPauseButton.rx.tap
   }
   
-  @objc private func didTapStartPauseButton() {
-    print("눌림")
+  var stopButtonTap: ControlEvent<Void> {
+    return stopButton.rx.tap
   }
 }
