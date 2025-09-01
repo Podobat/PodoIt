@@ -66,12 +66,12 @@ final class StatsHeaderView: UIView {
       $0.leading.equalToSuperview()
     }
   }
-  
+
   func updateCategory(_ category: StatsCategoryModel) {
-      if let icon = category.icon {
-          categoryButton.setTitle("\(icon) \(category.name)", for: .normal)
-      } else {
-          categoryButton.setTitle(category.name, for: .normal)
-      }
+    if let icon = category.icon {
+      categoryButton.setTitle("\(icon) " + "\(category.name)".limited(to: 10, addEllipsis: true), for: .normal)
+    } else {
+      categoryButton.setTitle(category.name, for: .normal)
+    }
   }
 }
