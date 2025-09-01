@@ -32,7 +32,7 @@ final class TimerSectionView: UIView {
     color: .gray900
   )
 
-  private let runningTimeLabel = UILabel.makeAttributed(
+  private(set) var runningTimeLabel = UILabel.makeAttributed(
     text: "0:00:00",
     style: .displayLg(weight: .bold),
     color: .appBlack,
