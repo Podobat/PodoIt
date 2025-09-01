@@ -96,8 +96,15 @@ final class TimerRunViewController: UIViewController {
       .asDriver(onErrorJustReturn: "0:00:00")
       .drive(timerView.runningTimeLabel.rx.text)
       .disposed(by: disposeBag)
+    
+    viewModel.progress
+      .asObservable()
+      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
+      .asDriver(onErrorJustReturn: 0.0)
+      .drive(middleView.progressBar.rx.progress)
+      .disposed(by: disposeBag)
   }
-
+  
   private func configureAll(timer: TimerModel, goalTime: String) {
     headerView.configure(model: timer)
     timerView.configure(model: timer, goalTime: goalTime)

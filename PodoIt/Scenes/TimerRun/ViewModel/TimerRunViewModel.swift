@@ -29,7 +29,15 @@ final class TimerRunViewModel {
     return TimerRunViewModel.formatGoalTime(seconds: goalTime)
   }
   
-  lazy var runningTimeText: Driver<String> = makeRunningTimeText() // UI바인딩용. 공부시간을 방출
+  // tick을 여러군데에서 쓰일 것 같기에 빼둠.
+  private lazy var tick: Observable = {
+    Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+      .startWith(0) // startWith(0)을 안붙여주면, 첫 이벤트가 1초 뒤에 옴.
+      .share(replay: 1, scope: .whileConnected) // share로 한 번에 여러곳에 공유. 가장 최근 이벤트 1개 방출 및 구독자가 존재할때만 스트림 유지
+  }()
+  
+  lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // UI바인딩용. 공부시간을 방출
+  lazy var progress: Driver<Float> = makeProgress(tick: tick) // UI바인딩용. progress 진행률 방출
   
   // MARK: 시간 포맷터 ("h:mm:ss")
   
@@ -49,15 +57,11 @@ final class TimerRunViewModel {
     return String(format: "%02d:00", m)
   }
   
+  // TODO: makeRunningTimeText, makeProgress의 중복 코드 리팩토링 예정
   // MARK: 공부시간 스트림
   
   // UI의 라벨에 바인딩할 공부시간 문자열 Driver 생성
-  private func makeRunningTimeText() -> Driver<String> {
-    // 1초마다 아래의 map 블록 실행되며 runningTime부터 다시 계산.
-    // startWith(0)을 안붙여주면, 첫 이벤트가 1초 뒤에 옴.
-    let tick = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
-      .startWith(0)
-    
+  private func makeRunningTimeText(tick: Observable<Int>) -> Driver<String> {
     return tick.withUnretained(self)
       .map { vm, _ in
         let now = Date()
@@ -73,6 +77,21 @@ final class TimerRunViewModel {
       }
       .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
+  }
+  
+  // MARK: progress 스트림
+  // UIProgressView 진행률
+  private func makeProgress(tick: Observable<Int>) -> Driver<Float> {
+    return tick.withUnretained(self)
+      .map { vm, _ in
+        let now = Date()
+        let runningTime = vm.state.isRunning ? Int(now.timeIntervalSince(vm.state.stateStart)) : 0
+        let totalStudyTime = vm.state.studySeconds + runningTime
+        let ratio = Float(totalStudyTime) / Float(vm.goalTime)
+        return min(ratio, 1.0)
+      }
+      .distinctUntilChanged() // 1.0 이후 추가 방출없음. 동일값이라 무시
+      .asDriver(onErrorJustReturn: 0.0)
   }
   
   // MARK: init
