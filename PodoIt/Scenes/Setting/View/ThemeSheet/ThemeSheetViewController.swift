@@ -14,8 +14,7 @@ final class ThemeSheetViewController: UIViewController {
     static let titleTop: CGFloat = 37 // grabber + padding
     
     static let sideInset: CGFloat = 20
-    static let vSpacingSmall: CGFloat = 16
-    static let vSpacing: CGFloat = 20
+    static let vSpacing: CGFloat = 16
     
     static let rowHeight: CGFloat = 56
     static let buttonHeight: CGFloat = 48
@@ -86,6 +85,27 @@ final class ThemeSheetViewController: UIViewController {
     configureLayout()
   }
   
+  // Safe Area Insets가 바뀔 때마다 호출
+  override func viewSafeAreaInsetsDidChange() {
+     super.viewSafeAreaInsetsDidChange()
+     updateSaveButtonConstraints()
+   }
+  
+  // saveButton 오토레이아웃 제약 업데이트
+  func updateSaveButtonConstraints() {
+    // 하단 safeAreaInsets 값(홈 인디게이터 있으면 34, 없으면 0)
+     let bottomInset = view.safeAreaInsets.bottom
+    // iPhone SE랑 비슷하게, 홈 인디게이터가 있다면 inset을 0으로줌.
+     let extraBottom: CGFloat = bottomInset > 0 ? 0 : Layout.sideInset
+    
+     saveButton.snp.remakeConstraints {
+       $0.top.equalTo(tableView.snp.bottom).offset(Layout.vSpacing)
+       $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(Layout.sideInset)
+       $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(extraBottom) // (홈 인디게이터 있으면 0, 없으면 sideInset)
+       $0.height.equalTo(Layout.buttonHeight)
+     }
+   }
+  
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     configureSheet() // 레이아웃 계산이 끝난 후, 실제 뷰 크기에 맞춰서 높이 설정
@@ -103,7 +123,7 @@ final class ThemeSheetViewController: UIViewController {
     }
 
     tableView.snp.makeConstraints {
-      $0.top.equalTo(titleLabel.snp.bottom).offset(Layout.vSpacingSmall)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(Layout.vSpacing)
       $0.leading.trailing.equalTo(view.safeAreaLayoutGuide)
       $0.height.equalTo(CGFloat(Theme.allCases.count) * Layout.rowHeight) // 셀 3개 → 168
     }
@@ -111,7 +131,7 @@ final class ThemeSheetViewController: UIViewController {
     saveButton.snp.makeConstraints {
       $0.top.equalTo(tableView.snp.bottom).offset(Layout.vSpacing)
       $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(Layout.sideInset)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Layout.sideInset)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Layout.vSpacing)
       $0.height.equalTo(Layout.buttonHeight)
     }
   }
