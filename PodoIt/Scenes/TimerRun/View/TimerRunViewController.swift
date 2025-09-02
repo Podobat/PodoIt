@@ -5,14 +5,19 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import UIKit
 import RxSwift
 import SnapKit
 import Then
-import UIKit
+
 
 final class TimerRunViewController: UIViewController {
+  // MARK: - viewModel & disposeBag
+
   private let viewModel: TimerRunViewModel
   private let disposeBag = DisposeBag()
+
+  // MARK: - init
 
   init(timerID: UUID, repo: TimerRepository) {
     // UUID를 받아올 때마다 새로운 VM을 생성
@@ -40,6 +45,8 @@ final class TimerRunViewController: UIViewController {
     $0.alignment = .fill
   }
 
+  // MARK: - viewDidLoad
+
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .appWhite
@@ -49,17 +56,26 @@ final class TimerRunViewController: UIViewController {
     bind()
   }
 
+  // MARK: - Data Loading
+
   private func loadData() {
     do {
       try viewModel.load()
+      if let timer = viewModel.timer {
+        configureAll(timer: timer)
+      }
     } catch {
       print("타이머 데이터 로딩 실패: \(error)")
     }
   }
 
+  // MARK: - configureUI
+
   private func configureUI() {
     view.addSubview(rootStack)
   }
+
+  // MARK: - configureLayout
 
   private func configureLayout() {
     rootStack.snp.makeConstraints {
@@ -67,6 +83,9 @@ final class TimerRunViewController: UIViewController {
     }
   }
 
+  // MARK: - Bindings
+
+  /// Rx 바인딩 설정 (버튼 탭, 진행률 등)
   private func bind() {
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonBarView.startPauseTap
@@ -93,8 +112,43 @@ final class TimerRunViewController: UIViewController {
       .asDriver(onErrorJustReturn: "0:00:00")
       .drive(timerView.runningTimeLabel.rx.text)
       .disposed(by: disposeBag)
+
+    viewModel.progress
+      .asObservable()
+      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
+      .asDriver(onErrorJustReturn: 0.0)
+      .drive(onNext: { [middleView] progress in
+        middleView.progressBar.layoutIfNeeded() // 애니메이션 꼬임 방지용. 미리 레이아웃 최신상태로
+        let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) // 선형으로 1초마다 애니메이션 객체 생성
+        animator.addAnimations {
+          middleView.progressBar.progress = progress // 매 틱 들어오는 진행률(progress) 값 바인딩
+          middleView.progressBar.layoutIfNeeded() // 안하면 툭툭 끊김
+        }
+        animator.startAnimation()
+      })
+      .disposed(by: disposeBag)
+
+    viewModel.isRunningDriver
+      .drive(with: self) { vc, isRunning in
+        // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
+        vc.buttonBarView.updateStateStartPauseButtonImage(isRunning: isRunning)
+      }
+      .disposed(by: disposeBag)
+
+    viewModel.goalTimeText
+      .asObservable()
+      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
+      .asDriver(onErrorJustReturn: "00:00")
+      .drive(timerView.goalTimeLabel.rx.text)
+      .disposed(by: disposeBag)
   }
-  
+
+  // MARK: UI Configuration
+
+  private func configureAll(timer: TimerModel) {
+    headerView.configure(model: timer)
+  }
+
   deinit {
     print(" ---> [Deinit 확인!] 구독해제!")
   }

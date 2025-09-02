@@ -26,18 +26,17 @@ final class TimerSectionView: UIView {
     $0.contentMode = .scaleAspectFit
   }
 
-  private let goalTimeLabel = UILabel.makeAttributed( // 목표 시간/달성 Label
-    text: "49:59",
-    style: .labelMd(weight: .medium),
-    color: .gray900
-  )
+  private(set) var goalTimeLabel = UILabel().then { // 목표 시간/달성 Label
+    $0.font = Typography.font(for: .labelMd(weight: .medium)).monospacedDigits()
+    $0.textColor = .gray900
+  }
 
-  private(set) var runningTimeLabel = UILabel.makeAttributed(
-    text: "0:00:00",
-    style: .displayLg(weight: .bold),
-    color: .appBlack,
-    alignment: .center
-  )
+  private(set) var runningTimeLabel = UILabel().then { // 공부 집중 시간 Label
+    $0.text = "0:00:00"
+    $0.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
+    $0.textColor = .appBlack
+    $0.textAlignment = .center
+  }
 
   override init(frame: CGRect) {
     super.init(frame: frame)
