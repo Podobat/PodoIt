@@ -129,7 +129,6 @@ final class TimerRunViewController: UIViewController {
 
   private func configureAll(timer: TimerModel) {
     headerView.configure(model: timer)
-    timerView.configure(model: timer)
   }
 
   deinit {

@@ -26,14 +26,17 @@ final class TimerSectionView: UIView {
     $0.contentMode = .scaleAspectFit
   }
 
-  private(set) var goalTimeLabel = UILabel() // 목표 시간/달성 Label
+  private(set) var goalTimeLabel = UILabel().then { // 목표 시간/달성 Label
+    $0.font = Typography.font(for: .labelMd(weight: .medium)).monospacedDigits()
+    $0.textColor = .gray900
+  }
 
-  private(set) var runningTimeLabel = UILabel.makeAttributed(
-    text: "0:00:00",
-    style: .displayLg(weight: .bold),
-    color: .appBlack,
-    alignment: .center
-  )
+  private(set) var runningTimeLabel = UILabel().then { // 공부 집중 시간 Label
+    $0.text = "0:00:00"
+    $0.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
+    $0.textColor = .appBlack
+    $0.textAlignment = .center
+  }
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -70,9 +73,5 @@ final class TimerSectionView: UIView {
       $0.leading.equalTo(goalIconImageView.snp.trailing).offset(4)
       $0.trailing.equalToSuperview().inset(8)
     }
-  }
-
-  func configure(model: TimerModel) {
-    goalTimeLabel.attributedText = Typography.attributed("", style: .labelMd(weight: .medium), color: .gray900)
   }
 }

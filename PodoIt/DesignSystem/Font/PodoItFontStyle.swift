@@ -105,3 +105,17 @@ enum Typography {
     .init(string: text, attributes: attributes(for: style, color: color, scalable: scalable))
   }
 }
+
+extension UIFont {
+  // 현재 폰트의 굵기나 크기는 유지. 숫자만 고정폭(monospaced)으로 렌더링
+  func monospacedDigits() -> UIFont {
+    let features: [[UIFontDescriptor.FeatureKey: Any]] = [
+      [
+        .featureIdentifier: kNumberSpacingType, // 숫자 간격 기능 그룹
+        .typeIdentifier: kMonospacedNumbersSelector // 위 간격을 고정폭으로 선택
+      ]
+    ]
+    let desc = fontDescriptor.addingAttributes([.featureSettings: features]) // 기존 폰트 기반에 만들어둔 features 적용
+    return UIFont(descriptor: desc, size: pointSize)
+  }
+}
