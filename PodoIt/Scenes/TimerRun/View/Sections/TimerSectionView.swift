@@ -16,17 +16,22 @@ final class TimerSectionView: UIView {
     $0.spacing = 8
   }
 
-  private let goalTimeContainerView = UIView().then { // 아이콘 + 목표 시간/달성 Label
-    $0.layer.cornerRadius = 14
+  private(set) var goalTimeContainerView = UIView().then { // 아이콘 + 목표 시간/달성 Label
     $0.backgroundColor = .gray100
   }
-
-  private let goalIconImageView = UIImageView().then { // 아이콘
-    $0.image = UIImage(named: "flag")
-    $0.contentMode = .scaleAspectFit
+  
+  private let goalIconContainer = UIView().then { // 아이콘 배경
+    $0.backgroundColor = .clear
+    $0.layer.cornerRadius = 8
   }
 
-  private(set) var goalTimeLabel = UILabel().then { // 목표 시간/달성 Label
+  private var goalIconImageView = UIImageView().then { // 아이콘
+    $0.image = UIImage(named: "flag")
+    $0.contentMode = .scaleAspectFit
+    $0.tintColor = .appBlack
+  }
+
+  private var goalTimeLabel = UILabel().then { // 목표 시간/달성 Label
     $0.font = Typography.font(for: .labelMd(weight: .medium)).monospacedDigits()
     $0.textColor = .gray900
   }
@@ -43,6 +48,12 @@ final class TimerSectionView: UIView {
     configureUI()
     configureLayout()
   }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layoutIfNeeded()
+    goalTimeContainerView.layer.cornerRadius = goalTimeContainerView.bounds.height / 2
+  }
 
   @available(*, unavailable)
   required init?(coder: NSCoder) {
@@ -53,7 +64,8 @@ final class TimerSectionView: UIView {
     backgroundColor = .appWhite
     addSubview(vStackView)
     [goalTimeContainerView, runningTimeLabel].forEach { vStackView.addArrangedSubview($0) }
-    [goalIconImageView, goalTimeLabel].forEach { goalTimeContainerView.addSubview($0) }
+    [goalIconContainer, goalTimeLabel].forEach { goalTimeContainerView.addSubview($0) }
+    goalIconContainer.addSubview(goalIconImageView)
   }
 
   private func configureLayout() {
@@ -62,7 +74,7 @@ final class TimerSectionView: UIView {
       $0.leading.trailing.equalToSuperview().inset(20)
     }
 
-    goalIconImageView.snp.makeConstraints {
+    goalIconContainer.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(8)
       $0.centerY.equalTo(goalTimeLabel.snp.centerY) // 라벨과 같은 세로선
       $0.size.equalTo(16)
@@ -70,8 +82,25 @@ final class TimerSectionView: UIView {
 
     goalTimeLabel.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(4)
-      $0.leading.equalTo(goalIconImageView.snp.trailing).offset(4)
+      $0.leading.equalTo(goalIconContainer.snp.trailing).offset(4)
       $0.trailing.equalToSuperview().inset(8)
+    }
+    
+    goalIconImageView.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview().inset(4)
+    }
+  }
+  
+  // MARK: - update Goal Time
+  func updateGoalTime(goalTime: String) {
+    goalTimeLabel.text = goalTime // 조건 없이 계속해서 줄어드는 타이머 String값 바인딩
+    if goalTime == "00:00" { // 시간이 다 되었을 경우, 화면 업데이트
+      goalTimeContainerView.backgroundColor = .primary50
+      goalIconContainer.backgroundColor = .primary700
+      goalIconImageView.image = UIImage(named: "checkmark")
+      goalIconImageView.tintColor = .appWhite
+      goalTimeLabel.text = "목표 달성 완료!"
+      goalTimeLabel.textColor = .primary700
     }
   }
 }

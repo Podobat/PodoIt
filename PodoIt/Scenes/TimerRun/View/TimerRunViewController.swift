@@ -142,12 +142,14 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // 공부 목표시간을 Label에 바인딩
+    // 공부 목표시간을 Label에 바인딩 및 목표시간 달성 시 UI update
     viewModel.goalTimeText
       .asObservable()
       .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
       .asDriver(onErrorJustReturn: "00:00")
-      .drive(timerView.goalTimeLabel.rx.text)
+      .drive(with: self) { vc, goalTime in
+        vc.timerView.updateGoalTime(goalTime: goalTime)
+      }
       .disposed(by: disposeBag)
   }
 
