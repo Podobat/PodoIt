@@ -20,12 +20,11 @@ final class MiddleSectionView: UIView {
     $0.layer.cornerRadius = 16
   }
 
-  private let progressBar = UIProgressView(progressViewStyle: .default).then { // 진행률 바
+  private(set) var progressBar = UIProgressView(progressViewStyle: .default).then { // 진행률 바
     $0.progressTintColor = .primary400 // 채워진 부분 색상
     $0.trackTintColor = .clear // 아직 진행 안된 구간 색상
     $0.layer.cornerRadius = 12
     $0.clipsToBounds = true
-    $0.setProgress(0.2, animated: false) // 임시 값 (정적 UI)
   }
 
   override init(frame: CGRect) {

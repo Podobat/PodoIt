@@ -17,17 +17,17 @@ final class ButtonSectionView: UIView {
   }
   
   private lazy var stopButton = UIButton(type: .system).then {
-    $0.setImage(UIImage(named: "stop-fill"), for: .normal)
     $0.backgroundColor = .gray100
-    $0.tintColor = .appBlack
+    $0.tintColor = .gray900
+    $0.setImage(UIImage(named: "stop-fill"), for: .normal)
     $0.layer.cornerRadius = 32 // 버튼이 고정값이라 값 명시
     $0.clipsToBounds = true
   }
   
-  private lazy var startPauseButton = UIButton(type: .system).then {
-    $0.setImage(UIImage(named: "play-white"), for: .normal)
-    $0.tintColor = .appWhite
+  private(set) lazy var startPauseButton = UIButton(type: .system).then {
     $0.backgroundColor = .primary600
+    $0.tintColor = .appWhite
+    $0.setImage(UIImage(named: "play-white"), for: .normal)
     $0.layer.cornerRadius = 32
     $0.clipsToBounds = true
   }
@@ -57,6 +57,19 @@ final class ButtonSectionView: UIView {
     
     for item in [stopButton, startPauseButton] {
       item.snp.makeConstraints { $0.size.equalTo(64) }
+    }
+  }
+  
+  // MARK: 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
+  func updateStateStartPauseButtonImage(isRunning: Bool) {
+    if isRunning { // 공부 중
+      startPauseButton.backgroundColor = .gray100
+      startPauseButton.tintColor = .gray900
+      startPauseButton.setImage(UIImage(named: "pause"), for: .normal)
+    } else { // 휴식 중
+      startPauseButton.backgroundColor = .primary600
+      startPauseButton.tintColor = .appWhite
+      startPauseButton.setImage(UIImage(named: "play-white"), for: .normal)
     }
   }
 }
