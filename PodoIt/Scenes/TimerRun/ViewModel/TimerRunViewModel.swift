@@ -30,10 +30,7 @@ final class TimerRunViewModel {
     isRunningRelay.asDriver()
   }
   
-  private(set) var goalTime: Int = 0
-  var goalTimeText: String {
-    return TimerRunViewModel.formatGoalTime(seconds: goalTime)
-  }
+  private(set) var goalTime: Int = 0 // load시에 초 단위로 값 넣어줌
   
   // tick을 여러군데에서 쓰일 것 같기에 빼둠.
   private lazy var tick: Observable<Int> = {
@@ -43,6 +40,7 @@ final class TimerRunViewModel {
   }()
   
   lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // UI바인딩용. 공부시간을 방출
+  lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick)
   lazy var progress: Driver<Float> = makeProgress(tick: tick) // UI바인딩용. progress 진행률 방출
   
   // MARK: 시간 포맷터 ("h:mm:ss")
@@ -63,7 +61,21 @@ final class TimerRunViewModel {
     return String(format: "%02d:00", m)
   }
   
-  // TODO: makeRunningTimeText, makeProgress의 중복 코드 리팩토링 예정
+  // TODO: makeRunningTimeText, makeGoalTimeText, makeProgress의 중복 코드 리팩토링 예정
+  // MARK: 목표시간 스트림
+  private func makeGoalTimeText(tick: Observable<Int>) -> Driver<String> {
+    return tick.withUnretained(self)
+      .map { vm, _ in
+        let now = Date()
+        let runningTime = vm.state.isRunning ? Int(now.timeIntervalSince(vm.state.stateStart)) : 0
+        let totalStudyTime = vm.state.studySeconds + runningTime
+        let remaining = max(vm.goalTime - totalStudyTime, 0)
+        return TimerRunViewModel.formatGoalTime(seconds: remaining)
+      }
+      .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
+      .asDriver(onErrorJustReturn: "00:00")
+  }
+
   // MARK: 공부시간 스트림
   
   // UI의 라벨에 바인딩할 공부시간 문자열 Driver 생성
@@ -81,7 +93,7 @@ final class TimerRunViewModel {
         // 총 공부 시간을 "h:mm:ss" 형태 문자열로 반환
         return TimerRunViewModel.format(seconds: totalStudyTime)
       }
-      .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
+      .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
   }
   
@@ -93,8 +105,8 @@ final class TimerRunViewModel {
         let now = Date()
         let runningTime = vm.state.isRunning ? Int(now.timeIntervalSince(vm.state.stateStart)) : 0
         let totalStudyTime = vm.state.studySeconds + runningTime
-        let ratio = Float(totalStudyTime) / Float(vm.goalTime)
-        return min(ratio, 1.0)
+        let progressValue = Float(totalStudyTime) / Float(vm.goalTime)
+        return min(progressValue, 1.0)
       }
       .distinctUntilChanged() // 1.0 이후 추가 방출없음. 동일값이라 무시
       .asDriver(onErrorJustReturn: 0.0)

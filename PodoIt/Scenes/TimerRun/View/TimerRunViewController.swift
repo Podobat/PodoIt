@@ -53,7 +53,7 @@ final class TimerRunViewController: UIViewController {
     do {
       try viewModel.load()
       if let timer = viewModel.timer {
-        configureAll(timer: timer, goalTime: viewModel.goalTimeText)
+        configureAll(timer: timer)
       }
     } catch {
       print("타이머 데이터 로딩 실패: \(error)")
@@ -118,11 +118,18 @@ final class TimerRunViewController: UIViewController {
         vc.buttonBarView.updateStateStartPauseButtonImage(isRunning: isRunning)
       }
       .disposed(by: disposeBag)
+    
+    viewModel.goalTimeText
+      .asObservable()
+      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
+      .asDriver(onErrorJustReturn: "00:00")
+      .drive(timerView.goalTimeLabel.rx.text)
+      .disposed(by: disposeBag)
   }
 
-  private func configureAll(timer: TimerModel, goalTime: String) {
+  private func configureAll(timer: TimerModel) {
     headerView.configure(model: timer)
-    timerView.configure(model: timer, goalTime: goalTime)
+    timerView.configure(model: timer)
   }
 
   deinit {
