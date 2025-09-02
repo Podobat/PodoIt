@@ -52,13 +52,14 @@ final class TimerRunViewModel {
     return String(format: "%d:%02d:%02d", h, m, s) // 0:12:53, 1:50:49, 12:49:39등으로 포맷
   }
   
-  // MARK: 목표 시간 포맷터 ("mm:00")
+  // MARK: 목표 시간 포맷터 ("mm:ss")
 
   private static func formatGoalTime(seconds: Int) -> String {
     // 값이 3600이 들어옴
     // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
     let m = seconds / 60
-    return String(format: "%02d:00", m)
+    let s = seconds % 60
+    return String(format: "%02d:%02d", m, s)
   }
   
   // TODO: makeRunningTimeText, makeGoalTimeText, makeProgress의 중복 코드 리팩토링 예정
