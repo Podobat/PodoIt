@@ -79,15 +79,8 @@ final class SwiftDataManager: TimerRepository {
       throw RepositoryError.saveFailed
     }
   }
-
-  // MARK: - Helper
-
-  func fetch(by id: UUID) throws -> TimerModel? {
-    let predicate = #Predicate<TimerModel> { $0.timerID == id }
-    var descriptor = FetchDescriptor<TimerModel>(predicate: predicate)
-    descriptor.fetchLimit = 1
-    return try modelContext.fetch(descriptor).first
-  }
+  
+  // MARK: - CRUD (StatsModel)
   
   @discardableResult
   func insertStats(date: Date = Date(), icon: String, category: String, time: String) throws -> StatsModel {
@@ -104,5 +97,14 @@ final class SwiftDataManager: TimerRepository {
     } catch {
       throw RepositoryError.saveFailed
     }
+  }
+
+  // MARK: - Helper
+
+  func fetch(by id: UUID) throws -> TimerModel? {
+    let predicate = #Predicate<TimerModel> { $0.timerID == id }
+    var descriptor = FetchDescriptor<TimerModel>(predicate: predicate)
+    descriptor.fetchLimit = 1
+    return try modelContext.fetch(descriptor).first
   }
 }
