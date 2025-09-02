@@ -5,14 +5,19 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import UIKit
 import RxSwift
 import SnapKit
 import Then
-import UIKit
+
 
 final class TimerRunViewController: UIViewController {
+  // MARK: - viewModel & disposeBag
+
   private let viewModel: TimerRunViewModel
   private let disposeBag = DisposeBag()
+
+  // MARK: - init
 
   init(timerID: UUID, repo: TimerRepository) {
     // UUID를 받아올 때마다 새로운 VM을 생성
@@ -40,6 +45,8 @@ final class TimerRunViewController: UIViewController {
     $0.alignment = .fill
   }
 
+  // MARK: - viewDidLoad
+
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .appWhite
@@ -48,6 +55,8 @@ final class TimerRunViewController: UIViewController {
     loadData()
     bind()
   }
+
+  // MARK: - Data Loading
 
   private func loadData() {
     do {
@@ -60,9 +69,13 @@ final class TimerRunViewController: UIViewController {
     }
   }
 
+  // MARK: - configureUI
+
   private func configureUI() {
     view.addSubview(rootStack)
   }
+
+  // MARK: - configureLayout
 
   private func configureLayout() {
     rootStack.snp.makeConstraints {
@@ -70,6 +83,9 @@ final class TimerRunViewController: UIViewController {
     }
   }
 
+  // MARK: - Bindings
+
+  /// Rx 바인딩 설정 (버튼 탭, 진행률 등)
   private func bind() {
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonBarView.startPauseTap
@@ -111,14 +127,14 @@ final class TimerRunViewController: UIViewController {
         animator.startAnimation()
       })
       .disposed(by: disposeBag)
-    
+
     viewModel.isRunningDriver
       .drive(with: self) { vc, isRunning in
         // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
         vc.buttonBarView.updateStateStartPauseButtonImage(isRunning: isRunning)
       }
       .disposed(by: disposeBag)
-    
+
     viewModel.goalTimeText
       .asObservable()
       .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
@@ -126,6 +142,8 @@ final class TimerRunViewController: UIViewController {
       .drive(timerView.goalTimeLabel.rx.text)
       .disposed(by: disposeBag)
   }
+
+  // MARK: UI Configuration
 
   private func configureAll(timer: TimerModel) {
     headerView.configure(model: timer)

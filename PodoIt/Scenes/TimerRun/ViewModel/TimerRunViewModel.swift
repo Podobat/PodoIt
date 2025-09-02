@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import RxCocoa
 import RxSwift
+import RxCocoa
 
 final class TimerRunViewModel {
   // MARK: - Dependencies
@@ -143,10 +143,8 @@ final class TimerRunViewModel {
   private func makeGoalTimeText(tick: Observable<Int>) -> Driver<String> {
     return tick.withUnretained(self)
       .map { vm, _ in
-        let now = Date()
-        let runningTime = vm.state.isRunning ? Int(now.timeIntervalSince(vm.state.stateStart)) : 0
-        let totalStudyTime = vm.state.studySeconds + runningTime
-        let remaining = max(vm.goalTime - totalStudyTime, 0)
+        let totalStudyTime = vm.totalStudyTime()
+        let remaining = max(vm.goalTime - totalStudyTime, 0) // 남은 시간은 목표시간 - 총 공부시간
         return TimerRunViewModel.formatGoalTime(seconds: remaining)
       }
       .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
@@ -157,14 +155,7 @@ final class TimerRunViewModel {
   private func makeRunningTimeText(tick: Observable<Int>) -> Driver<String> {
     return tick.withUnretained(self)
       .map { vm, _ in
-        let now = Date()
-        // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산
-        // 휴식중이면 실시간 경과는 0인 상태
-        let runningTime = vm.state.isRunning ? Int(now.timeIntervalSince(vm.state.stateStart)) : 0
-        
-        // 누적된 총 공부시간 + 진행중 공부 경과시간 계산
-        let totalStudyTime = vm.state.studySeconds + runningTime
-        
+        let totalStudyTime = vm.totalStudyTime()
         // 총 공부 시간을 "h:mm:ss" 형태 문자열로 반환
         return TimerRunViewModel.format(seconds: totalStudyTime)
       }
@@ -178,9 +169,7 @@ final class TimerRunViewModel {
   private func makeProgress(tick: Observable<Int>) -> Driver<Float> {
     return tick.withUnretained(self)
       .map { vm, _ in
-        let now = Date()
-        let runningTime = vm.state.isRunning ? Int(now.timeIntervalSince(vm.state.stateStart)) : 0
-        let totalStudyTime = vm.state.studySeconds + runningTime
+        let totalStudyTime = vm.totalStudyTime()
         let progressValue = Float(totalStudyTime) / Float(vm.goalTime)
         return min(progressValue, 1.0)
       }
@@ -205,5 +194,16 @@ final class TimerRunViewModel {
     let m = seconds / 60
     let s = seconds % 60
     return String(format: "%02d:%02d", m, s)
+  }
+}
+
+extension TimerRunViewModel {
+  // 최신의 총 공부 시간을 반환
+  private func totalStudyTime(now: Date = Date()) -> (Int) {
+    // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
+    let runningTime = state.isRunning ? Int(now.timeIntervalSince(state.stateStart)) : 0
+    // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
+    let totalStudyTime = state.studySeconds + runningTime
+    return totalStudyTime
   }
 }
