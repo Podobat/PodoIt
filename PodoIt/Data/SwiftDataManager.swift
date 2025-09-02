@@ -79,6 +79,25 @@ final class SwiftDataManager: TimerRepository {
       throw RepositoryError.saveFailed
     }
   }
+  
+  // MARK: - CRUD (StatsModel)
+  
+  @discardableResult
+  func insertStats(date: Date = Date(), icon: String, category: String, time: String) throws -> StatsModel {
+    let entity = StatsModel(
+      date: date,
+      icon: icon,
+      category: category,
+      time: time
+    )
+    modelContext.insert(entity)
+    do {
+      try modelContext.save()
+      return entity
+    } catch {
+      throw RepositoryError.saveFailed
+    }
+  }
 
   // MARK: - Helper
 
