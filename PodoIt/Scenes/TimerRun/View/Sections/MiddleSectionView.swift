@@ -38,11 +38,15 @@ final class MiddleSectionView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
 
+  // MARK: - configureUI
+
   private func configureUI() {
     addSubview(switchContainerView)
     switchContainerView.addSubview(progressContainer)
     progressContainer.addSubview(progressBar)
   }
+
+  // MARK: - configureLayout
 
   private func configureLayout() {
     switchContainerView.snp.makeConstraints {
@@ -60,5 +64,12 @@ final class MiddleSectionView: UIView {
       $0.leading.trailing.equalToSuperview().inset(4)
       $0.height.equalTo(24)
     }
+  }
+
+  // MARK: - Progress State/Color Update
+
+  func updateProgressBar(progress: Float) {
+    progressBar.setProgress(progress, animated: false)
+    progressBar.progressTintColor = .primary600
   }
 }

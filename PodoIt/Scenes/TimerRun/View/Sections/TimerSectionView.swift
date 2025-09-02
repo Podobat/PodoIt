@@ -16,17 +16,17 @@ final class TimerSectionView: UIView {
     $0.spacing = 8
   }
 
-  private let goalTimeContainerView = UIView().then { // 아이콘 + 목표 시간/달성 Label
-    $0.layer.cornerRadius = 14
+  private(set) var goalTimeContainerView = UIView().then { // 아이콘 + 목표 시간/달성 Label
     $0.backgroundColor = .gray100
   }
 
-  private let goalIconImageView = UIImageView().then { // 아이콘
+  private var goalIconImageView = UIImageView().then { // 아이콘
     $0.image = UIImage(named: "flag")
+    $0.tintColor = .gray900
     $0.contentMode = .scaleAspectFit
   }
 
-  private(set) var goalTimeLabel = UILabel().then { // 목표 시간/달성 Label
+  private var goalTimeLabel = UILabel().then { // 목표 시간/달성 Label
     $0.font = Typography.font(for: .labelMd(weight: .medium)).monospacedDigits()
     $0.textColor = .gray900
   }
@@ -42,6 +42,12 @@ final class TimerSectionView: UIView {
     super.init(frame: frame)
     configureUI()
     configureLayout()
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layoutIfNeeded()
+    goalTimeContainerView.layer.cornerRadius = goalTimeContainerView.bounds.height / 2
   }
 
   @available(*, unavailable)
@@ -72,6 +78,18 @@ final class TimerSectionView: UIView {
       $0.top.bottom.equalToSuperview().inset(4)
       $0.leading.equalTo(goalIconImageView.snp.trailing).offset(4)
       $0.trailing.equalToSuperview().inset(8)
+    }
+  }
+
+  // MARK: - update Goal Time
+
+  func updateGoalTime(goalTime: String) {
+    goalTimeLabel.text = goalTime // 조건 없이 계속해서 줄어드는 타이머 String값 바인딩
+    if goalTime == "00:00" { // 시간이 다 되었을 경우, 화면 업데이트
+      goalTimeContainerView.backgroundColor = .primary50
+      goalIconImageView.image = UIImage(named: "circle-check")
+      goalTimeLabel.text = "목표 달성 완료!"
+      goalTimeLabel.textColor = .primary700
     }
   }
 }
