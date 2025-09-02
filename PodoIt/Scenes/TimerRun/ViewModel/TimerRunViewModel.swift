@@ -94,6 +94,7 @@ final class TimerRunViewModel {
   }
   
   /// 정지
+  @MainActor
   func stop() {
     let now = Date()
     let lastTime = Int(now.timeIntervalSince(state.stateStart))
@@ -104,38 +105,32 @@ final class TimerRunViewModel {
       // 혹시 필요할까 싶어서 총 휴식 시간도 누적계산
       state.restSeconds += lastTime
     }
-    
-    /*
-     
-     Models/StateModel의 StatsModel에 저장해야 하는 테이터들
-     var statsID: UUID
-     var date: Date
-     var icon: String
-     var category: String
-     var time: Int
-     
-     */
-    
-    // TODO: 저장 (여기서는 임시로 print로 대체). 추후 SwiftData 저장으로 변경
- 
-    print("""
-      
-      UUID: \(timer?.timerID ?? self.timerID)
-      저장 기준 날짜(stop 버튼 tap한 UTC 기준): \(now)
-      앱 아이콘: \(timer?.iconName ?? "아이콘 이름 없네요")
-      제목/카테고리 이름: \(timer?.title ?? "카테고리명이 왜 없지")
-      목표 공부 시간: \(timer?.goalTime ?? 0)분
-      총 공부한 시간: \(state.studySeconds)초
-      총 공부 시간 format 적용: \(TimerRunViewModel.format(seconds: state.studySeconds))
-      
-      (혹시 몰라서 넣은)
-      총 휴식 시간: \(state.restSeconds)초
-      총 휴식 시간 format 적용: \(TimerRunViewModel.format(seconds: state.restSeconds))
-      """
-    )
+    save()
   }
-    
-  // TODO: makeRunningTimeText, makeGoalTimeText, makeProgress의 중복 코드 리팩토링 예정
+  
+  /// SwiftData의 StatsModel에 데이터 저장
+  @MainActor
+  private func save() {
+    guard let timer = self.timer else {
+      print("세이브 실패. 타이머 데이터가 없습니다.")
+      return
+    }
+    do {
+      try SwiftDataManager.shared.insertStats(
+        icon: timer.iconName, // 타이머 아이콘
+        category: timer.title, // 타이머 이름
+        time: TimerRunViewModel.format(seconds: state.studySeconds) // 총 공부 시간
+      )
+      print("""
+        [데이터 저장 완료]
+        아이콘 이름: \(timer.iconName)
+        타이머 이름: \(timer.title)
+        총 공부 시간: \(TimerRunViewModel.format(seconds: state.studySeconds))
+        """)
+    } catch {
+      print("데이터 저장 실패: \(RepositoryError.saveFailed)")
+    }
+  }
 
   // MARK: Stream
 
