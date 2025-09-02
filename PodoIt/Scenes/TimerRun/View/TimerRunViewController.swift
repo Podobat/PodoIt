@@ -134,13 +134,15 @@ final class TimerRunViewController: UIViewController {
       })
       .disposed(by: disposeBag)
 
+    // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
     viewModel.isRunningDriver
       .drive(with: self) { vc, isRunning in
         // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
-        vc.buttonBarView.updateStateStartPauseButtonImage(isRunning: isRunning)
+        vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
       }
       .disposed(by: disposeBag)
 
+    // 공부 목표시간을 Label에 바인딩
     viewModel.goalTimeText
       .asObservable()
       .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))

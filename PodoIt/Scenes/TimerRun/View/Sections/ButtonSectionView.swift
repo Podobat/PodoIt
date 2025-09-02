@@ -61,7 +61,7 @@ final class ButtonSectionView: UIView {
   }
   
   // MARK: 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
-  func updateStateStartPauseButtonImage(isRunning: Bool) {
+  func updateStartPauseButtonImage(isRunning: Bool) {
     if isRunning { // 공부 중
       startPauseButton.backgroundColor = .gray100
       startPauseButton.tintColor = .gray900
