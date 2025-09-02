@@ -87,6 +87,9 @@ final class TimerEditViewController: UIViewController {
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.setLeftPadding(Metrics.textFieldLeftPadding)
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    // 에러 테두리 대비 초기 상태
+    $0.layer.borderWidth = 0
+    $0.layer.borderColor = UIColor.clear.cgColor
   }
 
   // 목표시간 영역 컨테이너
@@ -202,6 +205,8 @@ final class TimerEditViewController: UIViewController {
     setupGestures()
 
     nameTextField.delegate = self
+    // 이름 필드 변경 실시간 감지 → 비면 빨간 스트로크
+    nameTextField.addTarget(self, action: #selector(nameEditingChanged), for: .editingChanged)
 
     goalTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     goalTitleLabel.setContentHuggingPriority(.required, for: .vertical)
@@ -464,6 +469,30 @@ final class TimerEditViewController: UIViewController {
     animated ? UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.6, options: .curveEaseInOut, animations: changes) : changes()
   }
 
+  // MARK: - Validation UI
+
+  private func errorStrokeColor() -> CGColor {
+    (UIColor(named: "error") ?? .systemRed).cgColor
+  }
+
+  private func setNameFieldError(_ show: Bool, animated: Bool = true) {
+    let updates = {
+      self.nameTextField.layer.borderWidth = show ? 1 : 0
+      self.nameTextField.layer.borderColor = show ? self.errorStrokeColor() : UIColor.clear.cgColor
+      self.nameTextField.layer.cornerRadius = Metrics.cornerRadius
+    }
+    if animated {
+      UIView.animate(withDuration: 0.15, animations: updates)
+    } else {
+      updates()
+    }
+  }
+
+  private func validateNameField() {
+    let text = (nameTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    setNameFieldError(text.isEmpty)
+  }
+
   // MARK: - Actions
 
   @objc private func backButtonTapped() {
@@ -565,6 +594,17 @@ final class TimerEditViewController: UIViewController {
     emojiButton.tintColor = Palette.Primary.p600
     dashedCircleView.isHidden = false
     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+  }
+
+  // 이름 편집 중 실시간 검증 (지우면 빨간 스트로크)
+  @objc private func nameEditingChanged(_ sender: UITextField) {
+    // 한글 조합 중이면 패스
+    if let marked = sender.markedTextRange,
+       sender.position(from: marked.start, offset: 0) != nil
+    {
+      return
+    }
+    validateNameField()
   }
 }
 
