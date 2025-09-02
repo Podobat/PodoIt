@@ -88,4 +88,21 @@ final class SwiftDataManager: TimerRepository {
     descriptor.fetchLimit = 1
     return try modelContext.fetch(descriptor).first
   }
+  
+  @discardableResult
+  func insertStats(date: Date = Date(), icon: String, category: String, time: String) throws -> StatsModel {
+    let entity = StatsModel(
+      date: date,
+      icon: icon,
+      category: category,
+      time: time
+    )
+    modelContext.insert(entity)
+    do {
+      try modelContext.save()
+      return entity
+    } catch {
+      throw RepositoryError.saveFailed
+    }
+  }
 }
