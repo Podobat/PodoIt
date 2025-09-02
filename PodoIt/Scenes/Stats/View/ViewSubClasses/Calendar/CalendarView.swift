@@ -189,6 +189,10 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
     let selectedDay = days[indexPath.item]
     print("선택된 날짜: \(titleLabel.text ?? "") \(selectedDay)일")
   }
+  
+  func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
+    return !days[indexPath.item].day.isEmpty
+  }
 }
 
 extension CalendarView {
