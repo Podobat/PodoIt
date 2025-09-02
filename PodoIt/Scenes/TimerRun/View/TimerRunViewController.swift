@@ -5,11 +5,10 @@
 //  Created by 서광용 on 8/28/25.
 //
 
-import UIKit
 import RxSwift
 import SnapKit
 import Then
-
+import UIKit
 
 final class TimerRunViewController: UIViewController {
   // MARK: - viewModel & disposeBag
@@ -95,6 +94,7 @@ final class TimerRunViewController: UIViewController {
       })
       .disposed(by: disposeBag)
 
+    // stop 버튼 tap하여 중지
     buttonBarView.stopButtonTap
       .withUnretained(self)
       .bind(onNext: { vc, _ in
@@ -103,6 +103,7 @@ final class TimerRunViewController: UIViewController {
       })
       .disposed(by: disposeBag)
 
+    // 총 공부시간 "0:00:00" 진행
     viewModel.runningTimeText
       .asObservable() // .take(until:)가 Observable 연산자라서 변경
       // .take(until:): 원본 스트림을 유지하다가, 어떤 신호가 오면 즉시 "complete(종료)"시킴.
@@ -113,18 +114,23 @@ final class TimerRunViewController: UIViewController {
       .drive(timerView.runningTimeLabel.rx.text)
       .disposed(by: disposeBag)
 
+    // progressBar 진행
     viewModel.progress
       .asObservable()
       .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
       .asDriver(onErrorJustReturn: 0.0)
       .drive(onNext: { [middleView] progress in
-        middleView.progressBar.layoutIfNeeded() // 애니메이션 꼬임 방지용. 미리 레이아웃 최신상태로
-        let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) // 선형으로 1초마다 애니메이션 객체 생성
-        animator.addAnimations {
-          middleView.progressBar.progress = progress // 매 틱 들어오는 진행률(progress) 값 바인딩
-          middleView.progressBar.layoutIfNeeded() // 안하면 툭툭 끊김
+        if progress >= 0.9999 { // 반올림 생각해서
+          middleView.updateProgressBar(progress: 1.0)
+        } else {
+          middleView.progressBar.layoutIfNeeded() // 애니메이션 꼬임 방지용. 미리 레이아웃 최신상태로
+          let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) // 선형으로 1초마다 애니메이션 객체 생성
+          animator.addAnimations {
+            middleView.progressBar.progress = progress // 매 틱 들어오는 진행률(progress) 값 바인딩
+            middleView.progressBar.layoutIfNeeded() // 안하면 툭툭 끊김
+          }
+          animator.startAnimation()
         }
-        animator.startAnimation()
       })
       .disposed(by: disposeBag)
 
