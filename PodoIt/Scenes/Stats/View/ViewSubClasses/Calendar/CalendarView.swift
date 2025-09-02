@@ -64,7 +64,7 @@ final class CalendarView: UIView {
   private let calendar = Calendar.current
   private let dateFormatter = DateFormatter()
   private var calendarDate = Date()
-  private var days = [String]()
+  private var days: [(day: String, isToday: Bool)] = []
 
   private var collectionViewHeightConstraint: Constraint?
 
@@ -160,7 +160,8 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
 
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CalendarCell.identifier, for: indexPath) as? CalendarCell else { return UICollectionViewCell() }
-    cell.update(day: days[indexPath.item])
+    let day = days[indexPath.item]
+    cell.update(day: day.day, isToday: day.isToday)
     return cell
   }
 
@@ -184,7 +185,7 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
   }
 
   func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    guard !days[indexPath.item].isEmpty else { return }
+    guard !days[indexPath.item].day.isEmpty else { return }
     let selectedDay = days[indexPath.item]
     print("선택된 날짜: \(titleLabel.text ?? "") \(selectedDay)일")
   }
@@ -226,11 +227,16 @@ extension CalendarView {
 
     for day in 0 ..< totalDays {
       if day < startDayOfTheWeek {
-        days.append("")
+        days.append(("", false))
         continue
       }
       let dayNumber = day - startDayOfTheWeek + 1
-      days.append("\(dayNumber)")
+      let isToday = (
+        todayComponents.year == currentComponents.year &&
+        todayComponents.month == currentComponents.month &&
+        todayComponents.day == dayNumber
+      )
+      days.append(("\(dayNumber)", isToday))
 
       // 오늘 날짜일 때만 선택 IndexPath 저장
       if todayComponents.year == currentComponents.year,
