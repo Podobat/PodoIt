@@ -201,6 +201,8 @@ final class TimerEditViewController: UIViewController {
     setupConstraints()
     setupGestures()
 
+    nameTextField.delegate = self
+
     goalTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     goalTitleLabel.setContentHuggingPriority(.required, for: .vertical)
     goalValueArea.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
@@ -600,12 +602,57 @@ extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate 
   }
 }
 
-// MARK: - UITextFieldDelegate
+// MARK: - UITextFieldDelegate (15자 제한)
 
 extension TimerEditViewController: UITextFieldDelegate {
   func textFieldShouldReturn(_ textField: UITextField) -> Bool {
     textField.resignFirstResponder()
     return true
+  }
+
+  // 이름 필드 15자 제한
+  func textField(_ textField: UITextField,
+                 shouldChangeCharactersIn range: NSRange,
+                 replacementString string: String) -> Bool
+  {
+    // 다른 텍스트필드는 제한 X
+    guard textField === nameTextField else { return true }
+
+    // 한글 등 조합 중(회색 밑줄 상태)일 땐 제한 적용 X
+    if let marked = textField.markedTextRange,
+       textField.position(from: marked.start, offset: 0) != nil
+    {
+      return true
+    }
+
+    let limit = 15
+    let current = textField.text ?? ""
+
+    // NSRange -> String.Range
+    guard let swiftRange = Range(range, in: current) else { return true }
+
+    // 바뀐 뒤 텍스트 가정
+    let proposed = current.replacingCharacters(in: swiftRange, with: string)
+
+    // 15자 이하면 허용
+    if proposed.count <= limit { return true }
+
+    // 초과 시 : 남은 길이만 허용 (붙여넣기 대비)
+    let replacingCount = current[swiftRange].count
+    let remaining = limit - (current.count - replacingCount)
+
+    guard remaining > 0 else {
+      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      return false
+    }
+
+    // 남은 칸만큼 replacement 자르기
+    let allowedPrefix = String(string.prefix(remaining))
+    let truncated = current.replacingCharacters(in: swiftRange, with: allowedPrefix)
+    textField.text = truncated
+
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    return false // 우리가 직접 세팅했으니 시스템 변경은 막음
   }
 }
 
