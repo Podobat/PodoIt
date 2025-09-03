@@ -646,7 +646,7 @@ final class TimerEditViewController: UIViewController {
     // 중복 제목
     if viewModel.hasDuplicateTitle(title) {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
-      showToast("중복된 이름이 있어요.", above: saveButton)
+      showToast("중복된 이름이 있어요.", icon: UIImage(named: "bang"), above: saveButton)
       return
     }
 
