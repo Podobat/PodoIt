@@ -13,7 +13,13 @@ final class MiddleSectionView: UIView {
   // progressBar / restTimerButton을 번갈아가며 isHidden처리 예정
   // progressBar은 top.bottom = 16, restTimerButton은 top.bottom = 12
   // 토글 될 때마다 위 아래 여백을 미리 만들어두고 토글되서 바꾸는 식으로 해야할 듯 싶음
-  private let switchContainerView = UIView()
+  private let switchVStackView = UIStackView().then { // progressView, restButtonsView를 감싼 스택뷰
+    $0.axis = .vertical
+  }
+  
+  private let progressView = UIView() // progressBar를 감싸는 View (isHidden 대상)
+  
+  private let restButtonsView = UIView() // restButtons를 감싸는 View (isHidden 대상)
 
   private let progressContainer = UIView().then { // 진행률 바 배경 View
     $0.backgroundColor = .primary50
@@ -41,17 +47,27 @@ final class MiddleSectionView: UIView {
   // MARK: - configureUI
 
   private func configureUI() {
-    addSubview(switchContainerView)
-    switchContainerView.addSubview(progressContainer)
+    addSubview(switchVStackView)
+    [progressView, restButtonsView].forEach { switchVStackView.addArrangedSubview($0) }
+    progressView.addSubview(progressContainer)
     progressContainer.addSubview(progressBar)
   }
 
   // MARK: - configureLayout
 
   private func configureLayout() {
-    switchContainerView.snp.makeConstraints {
-      $0.top.bottom.equalToSuperview().inset(16)
+    switchVStackView.snp.makeConstraints {
+      $0.top.bottom.equalToSuperview()
+      $0.height.equalTo(64)
       $0.leading.trailing.equalToSuperview().inset(20)
+    }
+    
+    progressView.snp.makeConstraints {
+      $0.height.equalTo(32)
+    }
+    
+    restButtonsView.snp.makeConstraints {
+      $0.height.equalTo(40)
     }
 
     progressContainer.snp.makeConstraints {
