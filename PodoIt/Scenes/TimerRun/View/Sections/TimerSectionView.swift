@@ -104,9 +104,9 @@ final class TimerSectionView: UIView {
       sessionIconImageView.tintColor = UIColor(named: "Systematic/Error")
       sessionTimeLabel.textColor = UIColor(named: "Systematic/Error")
     } else { // 휴식 시간이 남아있을 경우
-      sessionContainerView.backgroundColor = .alert // TODO: 임시색상. 디자이너님이 주시면 초록으로 변경
-      sessionIconImageView.tintColor = .appBlack // TODO: 마찬가지로 색상 변경 예정
-      sessionTimeLabel.textColor = .appBlack // TODO: 예.. 마찬가지
+      sessionContainerView.backgroundColor = .green100
+      sessionIconImageView.tintColor = .green600
+      sessionTimeLabel.textColor = .green600
     }
   }
 }
