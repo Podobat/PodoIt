@@ -79,9 +79,21 @@ final class SwiftDataManager: TimerRepository {
       throw RepositoryError.saveFailed
     }
   }
-  
-  // MARK: - CRUD (StatsModel)
-  
+
+  // MARK: - Helper
+
+  func fetch(by id: UUID) throws -> TimerModel? {
+    let predicate = #Predicate<TimerModel> { $0.timerID == id }
+    var descriptor = FetchDescriptor<TimerModel>(predicate: predicate)
+    descriptor.fetchLimit = 1
+    return try modelContext.fetch(descriptor).first
+  }
+}
+
+// MARK: - CRUD (StatsModel)
+
+extension SwiftDataManager: StatsRepository {
+  // CREATE
   @discardableResult
   func insertStats(date: Date = Date(), icon: String, category: String, time: String) throws -> StatsModel {
     let entity = StatsModel(
@@ -93,18 +105,39 @@ final class SwiftDataManager: TimerRepository {
     modelContext.insert(entity)
     do {
       try modelContext.save()
+      DispatchQueue.main.async {
+        NotificationCenter.default.post(name: .statsDidChange, object: nil)
+      }
       return entity
     } catch {
       throw RepositoryError.saveFailed
     }
   }
 
-  // MARK: - Helper
+  // READ
+  // StatsModel에 저장된 카테고리들을 중복 없이 추출
+  func fetchDistinctCategories() throws -> [StatsCategoryModel] {
+    // StatsModel 전체 데이터 가져오기
+    let stats = try modelContext.fetch(FetchDescriptor<StatsModel>())
 
-  func fetch(by id: UUID) throws -> TimerModel? {
-    let predicate = #Predicate<TimerModel> { $0.timerID == id }
-    var descriptor = FetchDescriptor<TimerModel>(predicate: predicate)
-    descriptor.fetchLimit = 1
-    return try modelContext.fetch(descriptor).first
+    var seen = Set<String>() // 이미 본 카테고리 이름 저장
+    var unique: [StatsCategoryModel] = [] // 중복 제거 후 결과 배열
+
+    // 모든 StatsModel 순회
+    for s in stats {
+      // 아직 안 본 카테고리일 때만 추가
+      if !seen.contains(s.category) {
+        seen.insert(s.category) // 본 목록에 추가
+        // icon 값이 비어있으면 nil 처리
+        unique.append(.init(name: s.category, icon: s.icon.isEmpty ? nil : s.icon))
+      }
+    }
+
+    // "전체" 항목을 항상 맨 앞에 추가하고, 혹시 중복된 건 걸러냄
+    return [.all] + unique.filter { $0.name != "전체" }
   }
+}
+
+extension Notification.Name {
+  static let statsDidChange = Notification.Name("StatsDidChange")
 }

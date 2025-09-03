@@ -14,17 +14,14 @@ import UIKit
 final class StatsViewController: UIViewController {
   // MARK: - Properties
 
+  private let viewModel = StatsViewModel()
+
   private let disposeBag = DisposeBag()
 
   private let headerView = StatsHeaderView()
   private let calendarView = CalendarView()
   private let calendarColorView = CalendarColorView()
   private let summaryView = StatsSummaryView()
-
-  private var selectedCategory = StatsCategoryModel.all // 기본 선택값
-
-  // 임시
-  private let categories = StatsCategoryModel.items
 
   private let scrollView = UIScrollView().then {
     $0.backgroundColor = .gray100
@@ -42,6 +39,7 @@ final class StatsViewController: UIViewController {
     super.viewDidLoad()
     configureUI()
     bind()
+    viewModel.viewDidLoad()
   }
 
   // MARK: - Private Methods
@@ -78,38 +76,43 @@ final class StatsViewController: UIViewController {
   }
 
   private func bind() {
-    // HeaderView 카테고리 버튼 탭
+    // 1) 선택된 카테고리 → 헤더 버튼 타이틀 업데이트
+    viewModel.selectedCategory
+      .asDriver()
+      .drive(onNext: { [weak self] category in
+        self?.headerView.updateCategory(category)
+        // 필요 시: self?.reloadStatsData(for: category)
+      })
+      .disposed(by: disposeBag)
+
+    // 2) 헤더 버튼 탭 → 시트 표시 (현재 목록/선택값 사용)
     headerView.categoryButton.rx.tap
-      .throttle(.milliseconds(300), scheduler: MainScheduler.instance) // 연속 탭 방지
-      .subscribe(onNext: { [weak self] in
-        guard let self = self else { return }
-        self.presentCategorySheet()
+      .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
+      .withLatestFrom(Observable.combineLatest(viewModel.categories.asObservable(),
+                                               viewModel.selectedCategory.asObservable()))
+      .subscribe(onNext: { [weak self] categories, selected in
+        self?.presentCategorySheet(categories: categories, selected: selected)
       })
       .disposed(by: disposeBag)
   }
 
   // MARK: - CategorySheet Presentation
 
-  private func presentCategorySheet() {
+  private func presentCategorySheet(categories: [StatsCategoryModel], selected: StatsCategoryModel) {
     let sheet = CategorySheetViewController(
       categories: categories,
-      selectedCategory: selectedCategory,
+      selectedCategory: selected,
       onSelect: { [weak self] category in
-        guard let self = self else { return }
-        self.selectedCategory = category
-
-        // HeaderView에 아이콘과 이름 함께 표시
-        self.headerView.updateCategory(category)
-
-        // 선택된 카테고리에 맞춰 통계 UI 갱신 - 임시
-        self.reloadStatsData(for: category)
+        self?.viewModel.didSelect(category: category)
+        self?.reloadStatsData(for: category)
       }
     )
     present(sheet, animated: true)
   }
 
-  // MARK: - 통계 데이터 갱신 (임시)
+  // MARK: - Helpers
 
+  // 통계 갱신 훅 (필요 시 구현)
   private func reloadStatsData(for category: StatsCategoryModel) {
     print("선택된 카테고리: \(category.name)")
   }
