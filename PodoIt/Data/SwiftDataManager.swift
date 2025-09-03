@@ -92,7 +92,7 @@ final class SwiftDataManager: TimerRepository {
 
 // MARK: - CRUD (StatsModel)
 
-extension SwiftDataManager {
+extension SwiftDataManager: StatsRepository {
   // CREATE
   @discardableResult
   func insertStats(date: Date = Date(), icon: String, category: String, time: String) throws -> StatsModel {
