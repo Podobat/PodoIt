@@ -153,6 +153,7 @@ final class TimerRunViewController: UIViewController {
           vc.timerView.updateRestTimeUI(restTime: restTime)
         }
       }
+      .disposed(by: disposeBag)
   }
 
   // MARK: UI Configuration

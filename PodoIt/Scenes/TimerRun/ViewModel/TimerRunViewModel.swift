@@ -109,8 +109,8 @@ final class TimerRunViewModel {
       state.restSeconds += lastTime
     }
     
-    // 총 공부시간이 1초 이상일 경우에만 save()
-    guard state.studySeconds > 0 else { return }
+    // 총 공부시간이 60초 이상일 경우에만 save()
+    guard state.studySeconds > 59 else { return }
     save()
   }
   
