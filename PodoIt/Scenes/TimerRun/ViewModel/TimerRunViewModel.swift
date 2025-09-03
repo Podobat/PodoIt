@@ -169,7 +169,7 @@ final class TimerRunViewModel {
     return tick.withUnretained(self)
       .map { vm, _ in // 300초 - 휴식시간, 0
         let now = Date()
-        let elaspedRestTime = Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간
+        let elaspedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         let totalRestTime = vm.state.restSeconds + elaspedRestTime // 새롭게 갱신되는 총 휴식 시간
         // 남은 휴식 시간 = 300초(기본 값) - 총 휴식 시간(실시간), 음수로 간다면 0으로 반환(max)
         let remainingRestTime = max(vm.restSeconds - totalRestTime, 0)
