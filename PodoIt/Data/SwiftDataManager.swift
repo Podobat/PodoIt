@@ -136,6 +136,56 @@ extension SwiftDataManager: StatsRepository {
     // "전체" 항목을 항상 맨 앞에 추가하고, 혹시 중복된 건 걸러냄
     return [.all] + unique.filter { $0.name != "전체" }
   }
+
+  // 기간과 카테고리에 맞는 StatsModel 목록 조회
+  //   - start: 조회 시작일 (포함) 
+  //   - end:   조회 종료일 (미포함)
+  // - Returns: 조건에 맞는 StatsModel 배열
+  func fetchStats(from start: Date, to end: Date, categoryName: String) throws -> [StatsModel] {
+    // "전체"면 카테고리 조건 없이 기간만 체크
+    // 특정 카테고리면 기간 + 카테고리명 조건 동시 체크
+    let predicate: Predicate<StatsModel>
+    if categoryName == "전체" {
+      predicate = #Predicate<StatsModel> { s in
+        s.date >= start && s.date < end
+      }
+    } else {
+      let name = categoryName // 캡처용 지역 변수 (closure 내부에서 참조 가능하도록)
+      predicate = #Predicate<StatsModel> { s in
+        s.date >= start && s.date < end && s.category == name
+      }
+    }
+
+    // FetchDescriptor: 조건 + 정렬 방식 정의
+    let descriptor = FetchDescriptor<StatsModel>(
+      predicate: predicate,
+      sortBy: [SortDescriptor(\.date, order: .forward)] // 날짜 오름차순
+    )
+
+    do {
+      return try modelContext.fetch(descriptor)
+    } catch {
+      // SwiftData fetch 실패 → RepositoryError로 변환
+      throw RepositoryError.fetchFailed
+    }
+  }
+
+  // 특정 카테고리 이름에 대해, 저장된 데이터 중 가장 최신의 아이콘 값 조회
+  func fetchLatestIcon(for categoryName: String) throws -> String? {
+    let name = categoryName
+    // 조건: 카테고리명 일치 + icon 값이 비어있지 않은 데이터만
+    let predicate = #Predicate<StatsModel> { $0.category == name && !$0.icon.isEmpty }
+
+    // 최신(날짜 내림차순) 1건만 가져오기
+    var desc = FetchDescriptor<StatsModel>(
+      predicate: predicate,
+      sortBy: [SortDescriptor(\.date, order: .reverse)]
+    )
+    desc.fetchLimit = 1
+
+    // 최신 아이콘 반환 (없으면 nil)
+    return try modelContext.fetch(desc).first?.icon
+  }
 }
 
 extension Notification.Name {
