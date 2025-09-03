@@ -101,14 +101,14 @@ final class TimerSectionView: UIView {
 
   /// 휴식 중. 휴식시간이 끝나는것을 기준으로 UI 업데이트
   func updateRestTimeUI(restTime: String) {
-    sessionTimeLabel.text = restTime
     sessionIconImageView.image = UIImage(named: "cup")
-    // TODO: 휴식시간이 끝나는거 임시로 String 줬지만. 시간으로 잡는게 좋을듯
-    if activeTimerLabel.text == "휴식 시간이 끝났어요" { // 휴식 시간이 끝났을 경우
-      sessionContainerView.backgroundColor = UIColor(named: "Systematic/Error")?.withAlphaComponent(0.08) // 투명도 8%
-      sessionIconImageView.tintColor = UIColor(named: "Systematic/Error")
-      sessionTimeLabel.textColor = UIColor(named: "Systematic/Error")
+    if restTime == "00:00" { // 휴식 시간이 끝났을 경우
+      activeTimerLabel.text = "휴식 시간이 끝났어요"
+      sessionContainerView.backgroundColor = .error.withAlphaComponent(0.08) // 투명도 0.8%
+      sessionIconImageView.tintColor = .error
+      sessionTimeLabel.textColor = .error
     } else { // 휴식 시간이 남아있을 경우
+      sessionTimeLabel.text = restTime
       sessionContainerView.backgroundColor = .green100
       sessionIconImageView.tintColor = .green600
       sessionTimeLabel.textColor = .green600
