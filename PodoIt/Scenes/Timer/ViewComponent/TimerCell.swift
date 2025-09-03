@@ -100,7 +100,7 @@ final class TimerCell: UICollectionViewCell {
     $0.layer.cornerCurve = .continuous
     $0.clipsToBounds = true
 
-    // 아이콘만 32로 보여주고 버튼은 56x56
+    // 아이콘만 24로 보여주고 버튼은 56x56
     // 시스템이 중앙에 배치해줌
     $0.contentHorizontalAlignment = .center
     $0.contentVerticalAlignment = .center
