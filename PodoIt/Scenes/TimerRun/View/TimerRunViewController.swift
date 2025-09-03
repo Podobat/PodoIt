@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import RxCocoa
 import RxSwift
 import SnapKit
 import Then
@@ -103,15 +104,18 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // 총 공부시간 "0:00:00" 진행
-    viewModel.runningTimeText
+    let activeTimerText: Driver<String> = viewModel.isRunningDriver
+      .flatMapLatest { [weak self] isRunning in // 중첩을 펴서 최신의 Driver만 유지
+        guard let self else { return Driver.just("00:00") }
+        // 공부중이면 공부 시간 타이머, 휴식중이면 휴식 시간 타이머를 실행
+        return isRunning ? self.viewModel.runningTimeText : self.viewModel.restTimeText
+      }
+
+    activeTimerText // 총 공부 진행시간 / 휴식 진행 시간 Text
       .asObservable() // .take(until:)가 Observable 연산자라서 변경
-      // .take(until:): 원본 스트림을 유지하다가, 어떤 신호가 오면 즉시 "complete(종료)"시킴.
-      // viewWillDisappear가 불릴 때 이벤트 방출. 신호받고 complete -> 구독이 dispose -> interval 스케줄링도 멈춤
-      // 당장은 pop이라 없어도 문제 없겠지만, push하거나 modal 등으로 바뀔 수 있으니 유지.
       .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
-      .asDriver(onErrorJustReturn: "0:00:00")
-      .drive(timerView.runningTimeLabel.rx.text)
+      .asDriver(onErrorJustReturn: "00:00")
+      .drive(timerView.activeTimerLabel.rx.text)
       .disposed(by: disposeBag)
 
     // progressBar 진행

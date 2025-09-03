@@ -31,7 +31,7 @@ final class TimerSectionView: UIView {
     $0.textColor = .gray900
   }
 
-  private(set) var runningTimeLabel = UILabel().then { // 공부 집중 시간 Label
+  private(set) var activeTimerLabel = UILabel().then { // 공부,휴식 진행 시간 Label
     $0.text = "0:00:00"
     $0.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
     $0.textColor = .appBlack
@@ -58,7 +58,7 @@ final class TimerSectionView: UIView {
   private func configureUI() {
     backgroundColor = .appWhite
     addSubview(vStackView)
-    [goalTimeContainerView, runningTimeLabel].forEach { vStackView.addArrangedSubview($0) }
+    [goalTimeContainerView, activeTimerLabel].forEach { vStackView.addArrangedSubview($0) }
     [goalIconImageView, goalTimeLabel].forEach { goalTimeContainerView.addSubview($0) }
   }
 
