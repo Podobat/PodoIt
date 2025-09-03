@@ -94,14 +94,6 @@ final class StatsViewController: UIViewController {
         self?.presentCategorySheet(categories: categories, selected: selected)
       })
       .disposed(by: disposeBag)
-
-    // 3) 에러 메시지 (있으면 알림)
-    viewModel.errorMessage
-      .asSignal()
-      .emit(onNext: { [weak self] message in
-        self?.presentAlert(message: message)
-      })
-      .disposed(by: disposeBag)
   }
 
   // MARK: - CategorySheet Presentation
@@ -119,12 +111,6 @@ final class StatsViewController: UIViewController {
   }
 
   // MARK: - Helpers
-
-  private func presentAlert(message: String) {
-    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: "확인", style: .default))
-    present(alert, animated: true)
-  }
 
   // 통계 갱신 훅 (필요 시 구현)
   private func reloadStatsData(for category: StatsCategoryModel) {
