@@ -95,11 +95,13 @@ final class TimerSectionView: UIView {
 
   // MARK: - update Goal Time
 
+  // TODO: VM에서 상태 판정해서 enum으로 묶어서 case로 돌려주도록 리팩토링
   /// 공부 중. 목표시간 달성 시 UI 업데이트
-  func updateGoalTimeUI(goalTime: String) {
+  func updateGoalTimeUI(goalTime: String, runningTime: String) {
     sessionTimeLabel.text = goalTime // 조건 없이 계속해서 줄어드는 타이머 String값 바인딩
     activeTimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
-    if goalTime == "00:00" { // 시간이 다 되었을 경우, 화면 업데이트
+    activeTimerLabel.text = runningTime
+    if goalTime == "00:00" { // 공부 목표 시간에 달성했을 경우, 화면 업데이트
       sessionContainerView.backgroundColor = .primary50
       sessionIconImageView.image = UIImage(named: "circle-check")
       sessionTimeLabel.text = "목표 달성 완료!"
@@ -118,12 +120,16 @@ final class TimerSectionView: UIView {
     if restTime == "00:00" { // 휴식 시간이 끝났을 경우
       activeTimerLabel.text = "휴식 시간이 끝났어요"
       activeTimerLabel.font = Typography.font(for: .displayMd(weight: .semibold)).withSize(32).monospacedDigits()
-      sessionContainerView.backgroundColor = .error.withAlphaComponent(0.08) // 투명도 0.8%
+      sessionContainerView.backgroundColor = .error.withAlphaComponent(0.08) // 투명도 8%
       sessionIconImageView.tintColor = .error
       sessionTimeLabel.textColor = .error
     } else { // 휴식 시간이 남아있을 경우
-      sessionTimeLabel.text = restTime
+      activeTimerLabel.text = restTime
       activeTimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
+      
+      // TODO: 총 휴식 시간을 바인딩해주어야함
+//      sessionTimeLabel.text = ?
+      
       sessionContainerView.backgroundColor = .green100
       sessionIconImageView.tintColor = .green600
       sessionTimeLabel.textColor = .green600
