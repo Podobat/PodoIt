@@ -48,7 +48,7 @@ final class StatsViewModel {
   func didSelect(category: StatsCategoryModel) {
     selectedCategory.accept(category)
   }
-  
+
   // 카테고리 갱신
   private func reloadCategories() {
     do {
