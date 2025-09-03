@@ -81,7 +81,6 @@ final class StatsViewController: UIViewController {
       .asDriver()
       .drive(onNext: { [weak self] category in
         self?.headerView.updateCategory(category)
-        // 필요 시: self?.reloadStatsData(for: category)
       })
       .disposed(by: disposeBag)
 
@@ -94,6 +93,21 @@ final class StatsViewController: UIViewController {
         self?.presentCategorySheet(categories: categories, selected: selected)
       })
       .disposed(by: disposeBag)
+
+    calendarView.selectedDate
+      .bind(to: viewModel.selectedDate)
+      .disposed(by: disposeBag)
+
+    summaryView.segmentIndexChanged
+      .bind(to: viewModel.selectedSegmentIndex)
+      .disposed(by: disposeBag)
+
+    // VM → SummaryView 반영
+    viewModel.summary
+      .drive(onNext: { [weak self] ui in
+        self?.summaryView.apply(items: ui.items, totalTimeText: ui.totalText)
+      })
+      .disposed(by: disposeBag)
   }
 
   // MARK: - CategorySheet Presentation
@@ -104,16 +118,8 @@ final class StatsViewController: UIViewController {
       selectedCategory: selected,
       onSelect: { [weak self] category in
         self?.viewModel.didSelect(category: category)
-        self?.reloadStatsData(for: category)
       }
     )
     present(sheet, animated: true)
-  }
-
-  // MARK: - Helpers
-
-  // 통계 갱신 훅 (필요 시 구현)
-  private func reloadStatsData(for category: StatsCategoryModel) {
-    print("선택된 카테고리: \(category.name)")
   }
 }
