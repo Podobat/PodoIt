@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import RxSwift
 import RxCocoa
+import RxSwift
 
 final class TimerRunViewModel {
   // MARK: - Dependencies
@@ -36,6 +36,7 @@ final class TimerRunViewModel {
   
   // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
   private(set) var goalTime: Int = 0
+  private let restSeconds: Int = 300 // 기본 휴식시간 5분 고정
   
   // MARK: - Tick (공유 타이머 스트림)
   
@@ -45,10 +46,11 @@ final class TimerRunViewModel {
     .share(replay: 1, scope: .whileConnected) // share로 한 번에 여러곳에 공유. 가장 최근 이벤트 1개 방출 및 구독자가 존재할때만 스트림 유지
   
   // MARK: - Outputs (UI 바인딩용 Driver)
-
-  lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // UI바인딩용. 공부시간을 방출
-  lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick)
-  lazy var progress: Driver<Float> = makeProgress(tick: tick) // UI바인딩용. progress 진행률 방출
+  
+  lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick) // 목표시간을 방출
+  lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // 공부시간을 방출
+  lazy var restTimeText: Driver<String> = makeRestTimeText(tick: tick) // 남은 휴식시간 방출
+  lazy var progress: Driver<Float> = makeProgress(tick: tick) // progress 진행률 방출
   
   // MARK: - init
 
@@ -119,14 +121,14 @@ final class TimerRunViewModel {
       try SwiftDataManager.shared.insertStats(
         icon: timer.iconName, // 타이머 아이콘
         category: timer.title, // 타이머 이름
-        time: TimerRunViewModel.format(seconds: state.studySeconds) // 총 공부 시간
+        time: TimerRunViewModel.formatHMMSS(seconds: state.studySeconds) // 총 공부 시간
       )
       print("""
-        [데이터 저장 완료]
-        아이콘 이름: \(timer.iconName)
-        타이머 이름: \(timer.title)
-        총 공부 시간: \(TimerRunViewModel.format(seconds: state.studySeconds))
-        """)
+      [데이터 저장 완료]
+      아이콘 이름: \(timer.iconName)
+      타이머 이름: \(timer.title)
+      총 공부 시간: \(TimerRunViewModel.formatHMMSS(seconds: state.studySeconds))
+      """)
     } catch {
       print("데이터 저장 실패: \(RepositoryError.saveFailed)")
     }
@@ -139,8 +141,8 @@ final class TimerRunViewModel {
     return tick.withUnretained(self)
       .map { vm, _ in
         let totalStudyTime = vm.totalStudyTime()
-        let remaining = max(vm.goalTime - totalStudyTime, 0) // 남은 시간은 목표시간 - 총 공부시간
-        return TimerRunViewModel.formatGoalTime(seconds: remaining)
+        let remainingStudyTime = max(vm.goalTime - totalStudyTime, 0) // 남은 시간은 목표시간 - 총 공부시간
+        return TimerRunViewModel.formatMMSS(seconds: remainingStudyTime)
       }
       .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
       .asDriver(onErrorJustReturn: "00:00")
@@ -152,13 +154,26 @@ final class TimerRunViewModel {
       .map { vm, _ in
         let totalStudyTime = vm.totalStudyTime()
         // 총 공부 시간을 "h:mm:ss" 형태 문자열로 반환
-        return TimerRunViewModel.format(seconds: totalStudyTime)
+        return TimerRunViewModel.formatHMMSS(seconds: totalStudyTime)
       }
       .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
   }
   
-  // MARK: progress 스트림
+  /// UI의 라벨에 바인딩할 휴식시간 문자열 Driver 생성
+  private func makeRestTimeText(tick: Observable<Int>) -> Driver<String> {
+    return tick.withUnretained(self)
+      .map { vm, _ in // 300초 - 휴식시간, 0
+        let now = Date()
+        let elaspedRestTime = Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간
+        let totalRestTime = vm.state.restSeconds + elaspedRestTime // 새롭게 갱신되는 총 휴식 시간
+        // 남은 휴식 시간 = 300초(기본 값) - 총 휴식 시간(실시간), 음수로 간다면 0으로 반환(max)
+        let remainingRestTime = max(vm.restSeconds - totalRestTime, 0)
+        return TimerRunViewModel.formatMMSS(seconds: remainingRestTime)
+      }
+      .distinctUntilChanged()
+      .asDriver(onErrorJustReturn: "00:00")
+  }
 
   /// UIProgressView 진행률
   private func makeProgress(tick: Observable<Int>) -> Driver<Float> {
@@ -175,15 +190,15 @@ final class TimerRunViewModel {
   // MARK: - Formatters
 
   /// 시간 포맷터 ("h:mm:ss")
-  private static func format(seconds: Int) -> String {
+  private static func formatHMMSS(seconds: Int) -> String {
     let h = seconds / 3600
     let m = (seconds % 3600) / 60
     let s = seconds % 60
     return String(format: "%d:%02d:%02d", h, m, s) // 0:12:53, 1:50:49, 12:49:39등으로 포맷
   }
   
-  /// 목표 시간 포맷터 ("mm:ss")
-  private static func formatGoalTime(seconds: Int) -> String {
+  /// 시간 포맷터 ("mm:ss")
+  private static func formatMMSS(seconds: Int) -> String {
     // 값이 3600이 들어옴
     // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
     let m = seconds / 60
