@@ -138,6 +138,7 @@ final class TimerRunViewController: UIViewController {
         let (isRunning, goalTime, restTime, runningTime) = data
         // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
         vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
+        vc.middleView.updateIsHiddenView(isRunning: isRunning)
 
         if isRunning { // 공부중
           vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)

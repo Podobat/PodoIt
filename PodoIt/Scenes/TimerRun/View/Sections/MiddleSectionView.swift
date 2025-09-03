@@ -16,7 +16,7 @@ final class MiddleSectionView: UIView {
   
   // progress
   private let progressView = UIView().then { // progressBar를 감싸는 View (isHidden 대상)
-    $0.isHidden = false
+    $0.isHidden = true
   }
 
   private let progressContainer = UIView().then { // 진행률 바 배경 View
@@ -33,7 +33,7 @@ final class MiddleSectionView: UIView {
   
   // buttons
   private let restButtonsView = UIView().then { // restButtons를 감싸는 View (isHidden 대상)
-    $0.isHidden = true
+    $0.isHidden = false
   }
   private let buttonsHStackView = UIStackView().then { // 3개 버튼의 H스택뷰
     $0.axis = .horizontal
@@ -85,6 +85,7 @@ final class MiddleSectionView: UIView {
       $0.backgroundColor = .gray100
       $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
       $0.setTitleColor(.gray900, for: .normal)
+      $0.layer.cornerRadius = 8
     }
   }
 
@@ -118,7 +119,15 @@ final class MiddleSectionView: UIView {
     }
     
     buttonsHStackView.snp.makeConstraints {
-      $0.directionalEdges.equalToSuperview()
+      $0.centerX.equalToSuperview()
+      $0.top.bottom.equalToSuperview()
+    }
+    
+    restAddButtons.forEach {
+      $0.snp.makeConstraints {
+        $0.width.equalTo(72)
+        $0.height.equalTo(44) // TODO: 44 주고싶어요.. 디자이너님과 대화
+      }
     }
   }
 
@@ -127,5 +136,16 @@ final class MiddleSectionView: UIView {
   func updateProgressBar(progress: Float) {
     progressBar.setProgress(progress, animated: false)
     progressBar.progressTintColor = .primary600
+  }
+  
+  // MARK: - isHidden Update
+  func updateIsHiddenView(isRunning: Bool) {
+    if isRunning { // 공부 중
+      progressView.isHidden = false
+      restButtonsView.isHidden = true
+    } else { // 휴식 중
+      progressView.isHidden = true
+      restButtonsView.isHidden = false
+    }
   }
 }
