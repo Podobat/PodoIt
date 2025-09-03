@@ -47,9 +47,10 @@ final class TimerRunViewModel {
   
   // MARK: - Outputs (UI 바인딩용 Driver)
   
-  lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick) // 목표시간을 방출
-  lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // 공부시간을 방출
-  lazy var restTimeText: Driver<String> = makeRestTimeText(tick: tick) // 남은 휴식시간 방출
+  lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick) // 공부 목표시간 (MM:SS)
+  lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // 공부중인 시간 (H:MM:SS)
+//  lazy var  // 총 휴식중인 시간
+  lazy var restTimeText: Driver<String> = makeRestTimeText(tick: tick) // 남은 휴식시간 방출 (기본 5분. MM:SS)
   lazy var progress: Driver<Float> = makeProgress(tick: tick) // progress 진행률 방출
   
   // MARK: - init

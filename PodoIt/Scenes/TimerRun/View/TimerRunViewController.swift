@@ -139,23 +139,19 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
-    viewModel.isRunningDriver
-      .drive(with: self) { vc, isRunning in
-        // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
+    // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
+    Driver.combineLatest(viewModel.isRunningDriver, viewModel.goalTimeText, viewModel.restTimeText)
+      .drive(with: self) { vc, data in
+        let (isRunning, goalTime, restTime) = data
+        // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
         vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
-      }
-      .disposed(by: disposeBag)
 
-    // 공부 목표시간을 Label에 바인딩 및 목표시간 달성 시 UI update
-    viewModel.goalTimeText
-      .asObservable()
-      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
-      .asDriver(onErrorJustReturn: "00:00")
-      .drive(with: self) { vc, goalTime in
-        vc.timerView.updateGoalTime(goalTime: goalTime)
+        if isRunning { // 공부중
+          vc.timerView.updateGoalTimeUI(goalTime: goalTime)
+        } else { // 휴식중
+          vc.timerView.updateRestTimeUI(restTime: restTime)
+        }
       }
-      .disposed(by: disposeBag)
   }
 
   // MARK: UI Configuration

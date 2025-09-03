@@ -53,11 +53,6 @@
 			path = PodoIt;
 			sourceTree = "<group>";
 		};
-		E8E8A1A82E5EDF44005B829A /* SwiftDataTimerRepositoryTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SwiftDataTimerRepositoryTests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,7 +87,6 @@
 			isa = PBXGroup;
 			children = (
 				E8571A132E50B3B2001CAD9D /* PodoIt */,
-				E8E8A1A82E5EDF44005B829A /* SwiftDataTimerRepositoryTests */,
 				F2DEA0CD2E58548E00484FE7 /* Frameworks */,
 				E8571A122E50B3B2001CAD9D /* Products */,
 			);
@@ -161,9 +155,6 @@
 			);
 			dependencies = (
 				E8E8A1AC2E5EDF44005B829A /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				E8E8A1A82E5EDF44005B829A /* SwiftDataTimerRepositoryTests */,
 			);
 			name = SwiftDataTimerRepositoryTests;
 			packageProductDependencies = (
