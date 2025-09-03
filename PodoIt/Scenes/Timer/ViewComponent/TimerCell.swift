@@ -12,6 +12,12 @@ import UIKit
 final class TimerCell: UICollectionViewCell {
   static let reuseIdentifier = "TimerCell"
 
+  #if DEBUG
+  private static let showSecondsInList = true
+  #else
+  private static let showSecondsInList = false
+  #endif
+
   // MARK: - Metrics
 
   private enum Metrics {
@@ -177,17 +183,54 @@ final class TimerCell: UICollectionViewCell {
     updateContent(timer: timer, today: today)
   }
 
+//  private func setupAccessibility(timer: TimerModel, today: String) {
+//    isAccessibilityElement = true
+//    accessibilityLabel = "\(timer.title), 집중 목표 \(timer.goalTime)분, 오늘 \(today)"
+//  }
+
   private func setupAccessibility(timer: TimerModel, today: String) {
     isAccessibilityElement = true
-    accessibilityLabel = "\(timer.title), 집중 목표 \(timer.goalTime)분, 오늘 \(today)"
+    if Self.showSecondsInList {
+      let secs = timer.goalTime * 60
+      accessibilityLabel = "\(timer.title), 집중 목표 \(secs)초, 오늘 \(today)"
+    } else {
+      accessibilityLabel = "\(timer.title), 집중 목표 \(timer.goalTime)분, 오늘 \(today)"
+    }
   }
 
   private func updateContent(timer: TimerModel, today: String) {
     iconLabel.text = timer.iconName
     titleLabel.text = timer.title
+
+    #if DEBUG
+    if Self.showSecondsInList, let secs = DebugGoalSecondsStore.get(for: timer.timerID) {
+      focusValueLabel.text = "\(secs)초"
+    } else {
+      focusValueLabel.text = "\(timer.goalTime)분"
+    }
+    #else
     focusValueLabel.text = "\(timer.goalTime)분"
+    #endif
+
     todayValueLabel.text = today
   }
+
+//    if Self.showSecondsInList {
+//      let secs = timer.goalTime * 60
+//      focusValueLabel.text = "\(secs)초"
+//    } else {
+//      focusValueLabel.text = "\(timer.goalTime)분"
+//    }
+//
+//    todayValueLabel.text = today
+//  }
+
+//  private func updateContent(timer: TimerModel, today: String) {
+//    iconLabel.text = timer.iconName
+//    titleLabel.text = timer.title
+//    focusValueLabel.text = "\(timer.goalTime)분"
+//    todayValueLabel.text = today
+//  }
 }
 
 // MARK: - UIView Extension
@@ -205,3 +248,33 @@ extension UIStackView {
     views.forEach(addArrangedSubview)
   }
 }
+
+#if DEBUG
+enum DebugGoalSecondsStore {
+  private static let keyPrefix = "debug.goalSeconds."
+
+  static func set(_ secs: Int, for id: String) {
+    UserDefaults.standard.set(secs, forKey: keyPrefix + id)
+  }
+
+  static func get(for id: String) -> Int? {
+    UserDefaults.standard.object(forKey: keyPrefix + id) as? Int
+  }
+
+  static func remove(for id: String) {
+    UserDefaults.standard.removeObject(forKey: keyPrefix + id)
+  }
+
+  static func set(_ secs: Int, for id: UUID) {
+    set(secs, for: id.uuidString)
+  }
+
+  static func get(for id: UUID) -> Int? {
+    get(for: id.uuidString)
+  }
+
+  static func remove(for id: UUID) {
+    remove(for: id.uuidString)
+  }
+}
+#endif
