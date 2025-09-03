@@ -115,7 +115,7 @@ final class TimerSectionView: UIView {
   }
 
   /// 휴식 중. 휴식시간이 끝나는것을 기준으로 UI 업데이트
-  func updateRestTimeUI(restTime: String) {
+  func updateRestTimeUI(restTime: String, totalRestTime: String) {
     sessionIconImageView.image = UIImage(named: "cup")
     if restTime == "00:00" { // 휴식 시간이 끝났을 경우
       activeTimerLabel.text = "휴식 시간이 끝났어요"
@@ -126,10 +126,7 @@ final class TimerSectionView: UIView {
     } else { // 휴식 시간이 남아있을 경우
       activeTimerLabel.text = restTime
       activeTimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
-      
-      // TODO: 총 휴식 시간을 바인딩해주어야함
-//      sessionTimeLabel.text = ?
-      
+      sessionTimeLabel.text = totalRestTime
       sessionContainerView.backgroundColor = .green100
       sessionIconImageView.tintColor = .green600
       sessionTimeLabel.textColor = .green600

@@ -129,13 +129,14 @@ final class TimerRunViewController: UIViewController {
     // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
     // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
     Driver.combineLatest(
-      viewModel.isRunningDriver,
-      viewModel.goalTimeText,
-      viewModel.restTimeText,
-      viewModel.runningTimeText
+      viewModel.isRunningDriver, // 공부/휴식 중 상태 (Bool)
+      viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
+      viewModel.totalRestTimeText, // 총 "휴식 중인 시간" (MM:SS)
+      viewModel.restTimeText, // "남은 휴식시간" (기본 5분. MM:SS)
+      viewModel.runningTimeText // 공부중인 시간 (H:MM:SS)
     )
       .drive(with: self) { vc, data in
-        let (isRunning, goalTime, restTime, runningTime) = data
+        let (isRunning, goalTime, totalRestTime, restTime, runningTime) = data
         // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
         vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
         vc.middleView.updateIsHiddenView(isRunning: isRunning)
@@ -143,7 +144,7 @@ final class TimerRunViewController: UIViewController {
         if isRunning { // 공부중
           vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)
         } else { // 휴식중
-          vc.timerView.updateRestTimeUI(restTime: restTime)
+          vc.timerView.updateRestTimeUI(restTime: restTime, totalRestTime: totalRestTime)
         }
       }
       .disposed(by: disposeBag)
