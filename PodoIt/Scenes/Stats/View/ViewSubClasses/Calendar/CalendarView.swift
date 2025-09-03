@@ -6,6 +6,7 @@
 //
 
 import RxCocoa
+import RxRelay
 import RxSwift
 import SnapKit
 import Then
@@ -26,7 +27,10 @@ final class CalendarView: UIView {
 
   private let disposeBag = DisposeBag()
 
-  private var selectedIndexPath: IndexPath?
+  private let selectedDateRelay = BehaviorRelay<Date>(value: Date())
+  var selectedDate: Observable<Date> { selectedDateRelay.asObservable() }
+
+  private var lastSelectedDate: Date? = Date() // 앱 시작 시 오늘을 기본 선택으로
 
   private lazy var titleLabel = UILabel().then {
     $0.text = "2003년 01월"
@@ -186,8 +190,16 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
 
   func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard !days[indexPath.item].day.isEmpty else { return }
-    let selectedDay = days[indexPath.item]
-    print("선택된 날짜: \(titleLabel.text ?? "") \(selectedDay)일")
+    let dayNumber = Int(days[indexPath.item].day) ?? 1
+
+    var comps = calendar.dateComponents([.year, .month], from: calendarDate)
+    comps.day = dayNumber
+    if let date = calendar.date(from: comps) {
+      // 선택된 날짜 방출
+      selectedDateRelay.accept(date)
+      lastSelectedDate = date
+    }
+    print("선택된 날짜: \(titleLabel.text ?? "") \(dayNumber)일")
   }
 
   func collectionView(_: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
@@ -221,13 +233,14 @@ extension CalendarView {
 
   private func updateDays() {
     days.removeAll()
-    selectedIndexPath = nil // 달이 바뀔 때마다 초기화
 
     let startDayOfTheWeek = self.startDayOfTheWeek()
     let totalDays = startDayOfTheWeek + endDate()
 
     let todayComponents = calendar.dateComponents([.year, .month, .day], from: Date())
     let currentComponents = calendar.dateComponents([.year, .month], from: calendarDate)
+
+    var selectedIndexPath: IndexPath?
 
     for day in 0 ..< totalDays {
       if day < startDayOfTheWeek {
@@ -241,20 +254,21 @@ extension CalendarView {
           todayComponents.day == dayNumber
       )
       days.append(("\(dayNumber)", isToday))
-
-      // 오늘 날짜일 때만 선택 IndexPath 저장
-      if todayComponents.year == currentComponents.year,
-         todayComponents.month == currentComponents.month,
-         todayComponents.day == dayNumber
-      {
-        selectedIndexPath = IndexPath(item: day, section: 0)
-      }
     }
 
     collectionView.reloadData()
     collectionView.layoutIfNeeded()
 
-    // 오늘 날짜가 있는 달일 때만 선택 적용
+    if let last = lastSelectedDate {
+      let lastComps = calendar.dateComponents([.year, .month, .day], from: last)
+      if lastComps.year == currentComponents.year,
+         lastComps.month == currentComponents.month,
+         let day = lastComps.day
+      {
+        let item = startDayOfTheWeek + (day - 1)
+        selectedIndexPath = IndexPath(item: item, section: 0)
+      }
+    }
     if let indexPath = selectedIndexPath {
       collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
     }
@@ -276,6 +290,10 @@ extension CalendarView {
     let components = calendar.dateComponents([.year, .month], from: Date())
     calendarDate = calendar.date(from: components) ?? Date()
     updateCalendar()
+
+    // 오늘 날짜 한 번 방출 (초기 상태 전달)
+    selectedDateRelay.accept(Date())
+    lastSelectedDate = Date()
   }
 }
 

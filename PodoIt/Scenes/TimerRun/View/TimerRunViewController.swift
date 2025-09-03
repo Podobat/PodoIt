@@ -105,21 +105,6 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // isRunning 상태에 따라 runningTimeText(공부 타이머) 또는 restTimeText(휴식 타이머) 스트림 선택
-//    let timerTextStream: Driver<String> = viewModel.isRunningDriver
-//      .flatMapLatest { [weak self] isRunning in // 중첩을 펴서 최신의 Driver만 유지
-//        guard let self else { return Driver.just("00:00") }
-//        // 공부중이면 공부 시간 타이머, 휴식중이면 휴식 시간 타이머를 실행
-//        return isRunning ? self.viewModel.runningTimeText : self.viewModel.restTimeText
-//      }
-
-//    timerTextStream // runningTimeText(공부 타이머) 또는 restTimeText(휴식 타이머) 스트림
-//      .asObservable() // .take(until:)가 Observable 연산자라서 변경
-//      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
-//      .asDriver(onErrorJustReturn: "00:00")
-//      .drive(timerView.activeTimerLabel.rx.text)
-//      .disposed(by: disposeBag)
-
     // progressBar 진행
     viewModel.progress
       .asObservable()
@@ -153,6 +138,7 @@ final class TimerRunViewController: UIViewController {
         let (isRunning, goalTime, restTime, runningTime) = data
         // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
         vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
+        vc.middleView.updateIsHiddenView(isRunning: isRunning)
 
         if isRunning { // 공부중
           vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)

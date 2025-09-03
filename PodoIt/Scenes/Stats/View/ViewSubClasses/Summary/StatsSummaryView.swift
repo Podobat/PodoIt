@@ -12,22 +12,6 @@ import Then
 import UIKit
 
 final class StatsSummaryView: UIView {
-  // 더미데이터
-  struct DummyStatsData: Hashable {
-    let icon: String
-    let title: String
-    let stats: String
-  }
-
-  let dummyStats: [DummyStatsData] = [
-    DummyStatsData(icon: "🔥", title: "공부", stats: "1시간 5분"),
-    DummyStatsData(icon: "💻", title: "개발", stats: "1시간 40분"),
-    DummyStatsData(icon: "🦊", title: "운동", stats: "1시간 1분"),
-    DummyStatsData(icon: "🐶", title: "산책", stats: "55분"),
-    DummyStatsData(icon: "🐤", title: "강의 듣기", stats: "1시간 33분"),
-    DummyStatsData(icon: "🍇", title: "포도 먹기", stats: "5분"),
-  ]
-
   // MARK: - Metrics
 
   private enum Layout {
@@ -41,6 +25,9 @@ final class StatsSummaryView: UIView {
   // MARK: - Properties
 
   private let disposeBag = DisposeBag()
+
+  // 세그 선택 인덱스(0=일간, 1=월간) 외부로 전달
+  var segmentIndexChanged: Observable<Int> { segmentedControl.tapIndexRelay.asObservable() }
 
   private let container = PaddedContainerView(horizontal: Layout.horizontalPadding, vertical: Layout.verticalPadding).then {
     $0.backgroundColor = .gray100
@@ -127,7 +114,7 @@ final class StatsSummaryView: UIView {
     super.init(frame: frame)
     configureUI()
     bind()
-    collectionViewSetup()
+//    collectionViewSetup()
   }
 
   @available(*, unavailable)
@@ -186,19 +173,11 @@ final class StatsSummaryView: UIView {
 
   // MARK: - CollectionView Setup
 
-  // 컬렉션뷰에 데이터를 적용하는 함수
-  private func collectionViewSetup() {
-    var snapshot = NSDiffableDataSourceSnapshot<Int, DummyStatsData>()
-    snapshot.appendSections([0]) // 단일 섹션
-    snapshot.appendItems(dummyStats) // 더미데이터 적용
-    dataSource.apply(snapshot, animatingDifferences: false)
-    // 셀 높이 계산
-    updateCollectionViewHeight()
-  }
-
   // DiffableDataSource를 생성하는 함수
-  private func makeDataSource(_ collectionView: UICollectionView) -> UICollectionViewDiffableDataSource<Int, DummyStatsData> {
-    return UICollectionViewDiffableDataSource<Int, DummyStatsData>(
+  private func makeDataSource(_ collectionView: UICollectionView)
+    -> UICollectionViewDiffableDataSource<Int, StatsSummaryModel>
+  {
+    UICollectionViewDiffableDataSource<Int, StatsSummaryModel>(
       collectionView: collectionView
     ) { collectionView, indexPath, item in
       guard let cell = collectionView.dequeueReusableCell(
@@ -213,12 +192,22 @@ final class StatsSummaryView: UIView {
   }
 
   // 셀 높이 계산 함수
-  private func updateCollectionViewHeight() {
-    let cellHeight: CGFloat = 36 // 셀 높이
-    let totalHeight = CGFloat(dummyStats.count) * cellHeight
-    collectionViewHeightConstraint?.update(offset: totalHeight)
-    // 레이아웃 반영
+  private func updateCollectionViewHeight(itemCount: Int) {
+    let cellHeight: CGFloat = 36
+    collectionViewHeightConstraint?.update(offset: CGFloat(itemCount) * cellHeight)
     layoutIfNeeded()
+  }
+
+  // 외부에서 리스트/총합 주입
+  func apply(items: [StatsSummaryModel], totalTimeText: String) {
+    totalTimeLabel.text = totalTimeText
+
+    var snapshot = NSDiffableDataSourceSnapshot<Int, StatsSummaryModel>()
+    snapshot.appendSections([0])
+    snapshot.appendItems(items)
+    dataSource.apply(snapshot, animatingDifferences: false)
+
+    updateCollectionViewHeight(itemCount: items.count)
   }
 
   // MARK: - Bind
