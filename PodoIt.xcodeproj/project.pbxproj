@@ -124,6 +124,26 @@
 			productReference = E8571A112E50B3B2001CAD9D /* PodoIt.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E8E8A1A62E5EDF44005B829A /* SwiftDataTimerRepositoryTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E8E8A1AD2E5EDF44005B829A /* Build configuration list for PBXNativeTarget "SwiftDataTimerRepositoryTests" */;
+			buildPhases = (
+				E8E8A1A32E5EDF44005B829A /* Sources */,
+				E8E8A1A42E5EDF44005B829A /* Frameworks */,
+				E8E8A1A52E5EDF44005B829A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E8E8A1AC2E5EDF44005B829A /* PBXTargetDependency */,
+			);
+			name = SwiftDataTimerRepositoryTests;
+			packageProductDependencies = (
+			);
+			productName = SwiftDataTimerRepositoryTests;
+			productReference = E8E8A1A72E5EDF44005B829A /* SwiftDataTimerRepositoryTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
