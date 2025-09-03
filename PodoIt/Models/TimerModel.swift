@@ -14,6 +14,7 @@ final class TimerModel: Identifiable {
   var title: String
   var iconName: String
   var goalTime: Int
+  var createdAt: Date
 
   init(
     timerID: UUID = UUID(),
@@ -25,5 +26,6 @@ final class TimerModel: Identifiable {
     self.title = title
     self.iconName = iconName
     self.goalTime = goalTime
+    self.createdAt = Date()
   }
 }
