@@ -107,6 +107,9 @@ final class TimerRunViewModel {
       // 혹시 필요할까 싶어서 총 휴식 시간도 누적계산
       state.restSeconds += lastTime
     }
+    
+    // 총 공부시간이 1초 이상일 경우에만 save()
+    guard state.studySeconds > 0 else { return }
     save()
   }
   
