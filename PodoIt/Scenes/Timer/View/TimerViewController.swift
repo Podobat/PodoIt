@@ -58,11 +58,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   private let addButton = UIButton(type: .system).then {
     let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate)
     $0.setImage(image, for: .normal)
-    $0.setTitle("추가하기", for: .normal)
     $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
-    $0.setTitleColor(.appWhite, for: .normal)
-    $0.tintColor = .appWhite
-    $0.backgroundColor = Palette.Primary.p600
     $0.layer.cornerRadius = 24
     $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
     $0.semanticContentAttribute = .forceLeftToRight
@@ -101,14 +97,20 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   }
 
   private func updateAddButtonState() {
+    // 터치가 뒤로 통과하지 않도록 버튼은 항상 터치 가능 상태 유지
+    addButton.isEnabled = true
+    addButton.isUserInteractionEnabled = true
+
     // 5개면 비활성화 + gray200, 아니면 활성 + 기본 색
     if isAtLimit {
-      addButton.isEnabled = false
       addButton.backgroundColor = Palette.Gray.g200
-      addButton.tintColor = .appWhite
+      addButton.setTitle("최대 갯수 도달", for: .normal)
+      addButton.setTitleColor(Palette.Gray.g400, for: .normal)
+      addButton.tintColor = Palette.Gray.g400
     } else {
-      addButton.isEnabled = true
       addButton.backgroundColor = Palette.Primary.p600
+      addButton.setTitle("추가하기", for: .normal)
+      addButton.setTitleColor(.appWhite, for: .normal)
       addButton.tintColor = .appWhite
     }
   }
@@ -142,6 +144,12 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
     // 초기 상태 반영
     updateAddButtonState()
+  }
+
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    // 항상 버튼이 위에 오도록
+    view.bringSubviewToFront(addButton)
   }
 
   // MARK: - Actions
