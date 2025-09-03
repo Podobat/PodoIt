@@ -105,14 +105,15 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    let activeTimerText: Driver<String> = viewModel.isRunningDriver
+    // isRunning 상태에 따라 runningTimeText(공부 타이머) 또는 restTimeText(휴식 타이머) 스트림 선택
+    let timerTextStream: Driver<String> = viewModel.isRunningDriver
       .flatMapLatest { [weak self] isRunning in // 중첩을 펴서 최신의 Driver만 유지
         guard let self else { return Driver.just("00:00") }
         // 공부중이면 공부 시간 타이머, 휴식중이면 휴식 시간 타이머를 실행
         return isRunning ? self.viewModel.runningTimeText : self.viewModel.restTimeText
       }
 
-    activeTimerText // 총 공부 진행시간 / 휴식 진행 시간 Text
+    timerTextStream // runningTimeText(공부 타이머) 또는 restTimeText(휴식 타이머) 스트림
       .asObservable() // .take(until:)가 Observable 연산자라서 변경
       .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
       .asDriver(onErrorJustReturn: "00:00")
@@ -139,8 +140,10 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
+    
     // TODO: restTimeText 아님. 데이터 이거 아니야
+    // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
+    // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
     Driver.combineLatest(viewModel.isRunningDriver, viewModel.goalTimeText, viewModel.restTimeText)
       .drive(with: self) { vc, data in
         let (isRunning, goalTime, restTime) = data

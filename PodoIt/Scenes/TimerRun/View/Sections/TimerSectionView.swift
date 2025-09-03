@@ -91,6 +91,11 @@ final class TimerSectionView: UIView {
       sessionIconImageView.image = UIImage(named: "circle-check")
       sessionTimeLabel.text = "목표 달성 완료!"
       sessionTimeLabel.textColor = .primary700
+    } else { // 목표시간 도달 전
+      sessionContainerView.backgroundColor = .gray100
+      sessionIconImageView.image = UIImage(named: "flag")
+      sessionIconImageView.tintColor = .gray900
+      sessionTimeLabel.textColor = .gray900
     }
   }
 
