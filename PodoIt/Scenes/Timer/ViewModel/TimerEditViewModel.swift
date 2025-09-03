@@ -35,4 +35,11 @@ final class TimerEditViewModel {
     try repo.delete(id: id)
     editing = nil
   }
+
+  // 중복 제목 체크
+  func hasDuplicateTitle(_ title: String) -> Bool {
+    guard let all = try? repo.fetchAll() else { return false }
+    let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    return all.contains { $0.title == trimmed && $0.timerID != editing?.timerID }
+  }
 }

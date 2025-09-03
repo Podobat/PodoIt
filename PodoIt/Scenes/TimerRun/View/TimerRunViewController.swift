@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import RxCocoa
 import RxSwift
 import SnapKit
 import Then
@@ -89,6 +90,7 @@ final class TimerRunViewController: UIViewController {
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonBarView.startPauseTap
       .asDriver()
+      .throttle(.seconds(1)) // 0.5초 안에 여러번 눌러도 1번만 실행됨
       .drive(with: self) { vc, _ in
         vc.viewModel.startAndPause()
       }
@@ -103,16 +105,20 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // 총 공부시간 "0:00:00" 진행
-    viewModel.runningTimeText
-      .asObservable() // .take(until:)가 Observable 연산자라서 변경
-      // .take(until:): 원본 스트림을 유지하다가, 어떤 신호가 오면 즉시 "complete(종료)"시킴.
-      // viewWillDisappear가 불릴 때 이벤트 방출. 신호받고 complete -> 구독이 dispose -> interval 스케줄링도 멈춤
-      // 당장은 pop이라 없어도 문제 없겠지만, push하거나 modal 등으로 바뀔 수 있으니 유지.
-      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
-      .asDriver(onErrorJustReturn: "0:00:00")
-      .drive(timerView.runningTimeLabel.rx.text)
-      .disposed(by: disposeBag)
+    // isRunning 상태에 따라 runningTimeText(공부 타이머) 또는 restTimeText(휴식 타이머) 스트림 선택
+//    let timerTextStream: Driver<String> = viewModel.isRunningDriver
+//      .flatMapLatest { [weak self] isRunning in // 중첩을 펴서 최신의 Driver만 유지
+//        guard let self else { return Driver.just("00:00") }
+//        // 공부중이면 공부 시간 타이머, 휴식중이면 휴식 시간 타이머를 실행
+//        return isRunning ? self.viewModel.runningTimeText : self.viewModel.restTimeText
+//      }
+
+//    timerTextStream // runningTimeText(공부 타이머) 또는 restTimeText(휴식 타이머) 스트림
+//      .asObservable() // .take(until:)가 Observable 연산자라서 변경
+//      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
+//      .asDriver(onErrorJustReturn: "00:00")
+//      .drive(timerView.activeTimerLabel.rx.text)
+//      .disposed(by: disposeBag)
 
     // progressBar 진행
     viewModel.progress
@@ -134,21 +140,25 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
-    viewModel.isRunningDriver
-      .drive(with: self) { vc, isRunning in
-        // 공부 중/휴식 중 상태에 따른 버튼 이미지, 색상 변경
+    // TODO: restTimeText 아님. 데이터 이거 아니야
+    // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
+    // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
+    Driver.combineLatest(
+      viewModel.isRunningDriver,
+      viewModel.goalTimeText,
+      viewModel.restTimeText,
+      viewModel.runningTimeText
+    )
+      .drive(with: self) { vc, data in
+        let (isRunning, goalTime, restTime, runningTime) = data
+        // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
         vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
-      }
-      .disposed(by: disposeBag)
 
-    // 공부 목표시간을 Label에 바인딩 및 목표시간 달성 시 UI update
-    viewModel.goalTimeText
-      .asObservable()
-      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
-      .asDriver(onErrorJustReturn: "00:00")
-      .drive(with: self) { vc, goalTime in
-        vc.timerView.updateGoalTime(goalTime: goalTime)
+        if isRunning { // 공부중
+          vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)
+        } else { // 휴식중
+          vc.timerView.updateRestTimeUI(restTime: restTime)
+        }
       }
       .disposed(by: disposeBag)
   }
