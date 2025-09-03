@@ -19,19 +19,8 @@
 		F2715BAF2E5840A9001FDECE /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = F2715BAE2E5840A9001FDECE /* Dependencies */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		E8E8A1AB2E5EDF44005B829A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E8571A092E50B3B2001CAD9D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = E8571A102E50B3B2001CAD9D;
-			remoteInfo = PodoIt;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		E8571A112E50B3B2001CAD9D /* PodoIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PodoIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E8E8A1A72E5EDF44005B829A /* SwiftDataTimerRepositoryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftDataTimerRepositoryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -73,13 +62,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8E8A1A42E5EDF44005B829A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -96,7 +78,6 @@
 			isa = PBXGroup;
 			children = (
 				E8571A112E50B3B2001CAD9D /* PodoIt.app */,
-				E8E8A1A72E5EDF44005B829A /* SwiftDataTimerRepositoryTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -176,10 +157,6 @@
 					E8571A102E50B3B2001CAD9D = {
 						CreatedOnToolsVersion = 16.4;
 					};
-					E8E8A1A62E5EDF44005B829A = {
-						CreatedOnToolsVersion = 16.4;
-						TestTargetID = E8571A102E50B3B2001CAD9D;
-					};
 				};
 			};
 			buildConfigurationList = E8571A0C2E50B3B2001CAD9D /* Build configuration list for PBXProject "PodoIt" */;
@@ -208,20 +185,12 @@
 			projectRoot = "";
 			targets = (
 				E8571A102E50B3B2001CAD9D /* PodoIt */,
-				E8E8A1A62E5EDF44005B829A /* SwiftDataTimerRepositoryTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		E8571A0F2E50B3B2001CAD9D /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		E8E8A1A52E5EDF44005B829A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -238,22 +207,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E8E8A1A32E5EDF44005B829A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		E8E8A1AC2E5EDF44005B829A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = E8571A102E50B3B2001CAD9D /* PodoIt */;
-			targetProxy = E8E8A1AB2E5EDF44005B829A /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		E8571A3B2E50B3B3001CAD9D /* Debug */ = {
@@ -443,40 +397,6 @@
 			};
 			name = Release;
 		};
-		E8E8A1AE2E5EDF44005B829A /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hxxru.SwiftDataTimerRepositoryTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PodoIt.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PodoIt";
-			};
-			name = Debug;
-		};
-		E8E8A1AF2E5EDF44005B829A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hxxru.SwiftDataTimerRepositoryTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PodoIt.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PodoIt";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -494,15 +414,6 @@
 			buildConfigurations = (
 				E8571A3B2E50B3B3001CAD9D /* Debug */,
 				E8571A3C2E50B3B3001CAD9D /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		E8E8A1AD2E5EDF44005B829A /* Build configuration list for PBXNativeTarget "SwiftDataTimerRepositoryTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				E8E8A1AE2E5EDF44005B829A /* Debug */,
-				E8E8A1AF2E5EDF44005B829A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
