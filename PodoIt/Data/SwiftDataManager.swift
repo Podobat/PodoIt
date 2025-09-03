@@ -105,6 +105,9 @@ extension SwiftDataManager: StatsRepository {
     modelContext.insert(entity)
     do {
       try modelContext.save()
+      DispatchQueue.main.async {
+        NotificationCenter.default.post(name: .statsDidChange, object: nil)
+      }
       return entity
     } catch {
       throw RepositoryError.saveFailed
@@ -133,4 +136,8 @@ extension SwiftDataManager: StatsRepository {
     // "전체" 항목을 항상 맨 앞에 추가하고, 혹시 중복된 건 걸러냄
     return [.all] + unique.filter { $0.name != "전체" }
   }
+}
+
+extension Notification.Name {
+  static let statsDidChange = Notification.Name("StatsDidChange")
 }
