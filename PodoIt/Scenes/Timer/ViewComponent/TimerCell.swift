@@ -24,7 +24,8 @@ final class TimerCell: UICollectionViewCell {
     static let cornerRadius: CGFloat = 12
     static let emojiFrame: CGFloat = 28
     static let emojiFont: CGFloat = 18
-    static let playSize: CGFloat = 32
+    static let playOuterSize: CGFloat = 56
+    static let playSize: CGFloat = 24
     static let stackHPadding: CGFloat = 16
     static let stackVPadding: CGFloat = 20
     static let interItemSpacing: CGFloat = 10
@@ -94,9 +95,19 @@ final class TimerCell: UICollectionViewCell {
   private lazy var playButton = UIButton(type: .system).then {
     let image = UIImage(named: "play-fill")?.withRenderingMode(.alwaysOriginal)
     $0.setImage(image, for: .normal)
-    $0.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
+    $0.backgroundColor = .gray100
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.layer.cornerCurve = .continuous
+    $0.clipsToBounds = true
+
+    // 아이콘만 32로 보여주고 버튼은 56x56
+    // 시스템이 중앙에 배치해줌
+    $0.contentHorizontalAlignment = .center
+    $0.contentVerticalAlignment = .center
+
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     $0.setContentHuggingPriority(.required, for: .horizontal)
+
     $0.addTarget(self, action: #selector(handlePlayTapped), for: .touchUpInside)
   }
 
@@ -164,7 +175,7 @@ final class TimerCell: UICollectionViewCell {
     playButton.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(16)
       $0.centerY.equalToSuperview()
-      $0.size.equalTo(Metrics.playSize)
+      $0.size.equalTo(Metrics.playOuterSize)
     }
   }
 
