@@ -10,14 +10,14 @@ import Then
 import UIKit
 
 final class MiddleSectionView: UIView {
-  // progressBar / restTimerButton을 번갈아가며 isHidden처리 예정
-  // progressBar은 top.bottom = 16, restTimerButton은 top.bottom = 12
-  // 토글 될 때마다 위 아래 여백을 미리 만들어두고 토글되서 바꾸는 식으로 해야할 듯 싶음
+  // MARK: Components
+
   private let switchContainerView = UIView() // progressView, restButtonsView를 감싼 스택뷰
   
-  private let progressView = UIView() // progressBar를 감싸는 View (isHidden 대상)
-  
-  private let restButtonsView = UIView() // restButtons를 감싸는 View (isHidden 대상)
+  // progress
+  private let progressView = UIView().then { // progressBar를 감싸는 View (isHidden 대상)
+    $0.isHidden = false
+  }
 
   private let progressContainer = UIView().then { // 진행률 바 배경 View
     $0.backgroundColor = .primary50
@@ -30,6 +30,35 @@ final class MiddleSectionView: UIView {
     $0.layer.cornerRadius = 12
     $0.clipsToBounds = true
   }
+  
+  // buttons
+  private let restButtonsView = UIView().then { // restButtons를 감싸는 View (isHidden 대상)
+    $0.isHidden = true
+  }
+  private let buttonsHStackView = UIStackView().then { // 3개 버튼의 H스택뷰
+    $0.axis = .horizontal
+    $0.alignment = .center
+    $0.distribution = .equalSpacing
+    $0.spacing = 8
+  }
+  
+  private let plusOneMinuteButton = UIButton(type: .system).then { // +1분
+    $0.setTitle("+1분", for: .normal)
+  }
+  private let plusFiveMinuteButton = UIButton(type: .system).then { // +5분
+    $0.setTitle("+5분", for: .normal)
+  }
+  private let plusTenMinuteButton = UIButton(type: .system).then { // +10분
+    $0.setTitle("+10분", for: .normal)
+  }
+  
+  private lazy var restAddButtons: [UIButton] = [ // 버튼들 공통 로직 쓰기 편하도록 묶음
+    plusOneMinuteButton,
+    plusFiveMinuteButton,
+    plusTenMinuteButton,
+  ]
+  
+  // MARK: - init
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -49,6 +78,14 @@ final class MiddleSectionView: UIView {
     [progressView, restButtonsView].forEach { switchContainerView.addSubview($0) }
     progressView.addSubview(progressContainer)
     progressContainer.addSubview(progressBar)
+    restButtonsView.addSubview(buttonsHStackView)
+    restAddButtons.forEach { buttonsHStackView.addArrangedSubview($0) }
+    
+    restAddButtons.forEach {
+      $0.backgroundColor = .gray100
+      $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
+      $0.setTitleColor(.gray900, for: .normal)
+    }
   }
 
   // MARK: - configureLayout
@@ -63,11 +100,6 @@ final class MiddleSectionView: UIView {
       $0.top.bottom.equalToSuperview().inset(16)
       $0.leading.trailing.equalToSuperview()
     }
-    
-    restButtonsView.snp.makeConstraints {
-      $0.top.bottom.equalToSuperview().inset(12)
-      $0.leading.trailing.equalToSuperview()
-    }
 
     progressContainer.snp.makeConstraints {
       $0.directionalEdges.equalToSuperview()
@@ -78,6 +110,15 @@ final class MiddleSectionView: UIView {
       $0.centerY.equalToSuperview()
       $0.leading.trailing.equalToSuperview().inset(4)
       $0.height.equalTo(24)
+    }
+    
+    restButtonsView.snp.makeConstraints {
+      $0.top.bottom.equalToSuperview().inset(12)
+      $0.leading.trailing.equalToSuperview()
+    }
+    
+    buttonsHStackView.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview()
     }
   }
 
