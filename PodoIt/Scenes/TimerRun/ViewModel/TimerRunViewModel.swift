@@ -49,8 +49,10 @@ final class TimerRunViewModel {
   
   lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick) // 공부 목표시간 (MM:SS)
   lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // 공부중인 시간 (H:MM:SS)
-//  lazy var  // 총 휴식중인 시간
-  lazy var restTimeText: Driver<String> = makeRestTimeText(tick: tick) // 남은 휴식시간 방출 (기본 5분. MM:SS)
+
+  lazy var totalRestTimeText: Driver<String> = makeTotalRestTimeText(tick: tick) // 총 "휴식 중인 시간"
+  lazy var restTimeText: Driver<String> = makeRestTimeText(tick: tick) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
+
   lazy var progress: Driver<Float> = makeProgress(tick: tick) // progress 진행률 방출
   
   // MARK: - init
@@ -163,16 +165,30 @@ final class TimerRunViewModel {
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
   }
   
-  /// UI의 라벨에 바인딩할 휴식시간 문자열 Driver 생성
+  // MARK: - makeRestTimeText, makeTotalRestTimeText 중복 로직 리팩토링 예정
+  /// UI의 라벨에 바인딩할 "남은 휴식 시간" 문자열 Driver 생성
   private func makeRestTimeText(tick: Observable<Int>) -> Driver<String> {
     return tick.withUnretained(self)
       .map { vm, _ in // 300초 - 휴식시간, 0
         let now = Date()
-        let elaspedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
+        let elapsedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         // 매 섹션마다 휴식시간 5분으로 초기화
         // 300초(기본 값) - 이번 세션에 휴식중인 시간 (음수라면 0으로 max)
-        let remainingRestTime = max(vm.defaultRestSeconds - elaspedRestTime, 0)
+        let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime, 0)
         return TimerRunViewModel.formatMMSS(seconds: remainingRestTime)
+      }
+      .distinctUntilChanged()
+      .asDriver(onErrorJustReturn: "00:00")
+  }
+  
+  /// UI의 라벨에 바인딩할 "총 휴식중인 시간" 문자열 Driver 생성
+  private func makeTotalRestTimeText(tick: Observable<Int>) -> Driver<String> {
+    return tick.withUnretained(self)
+      .map { vm, _ in // now(현재) - stateStart(휴식 섹션 시작한 시간)
+        let now = Date()
+        let elapsedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart))
+        let totalRestTime = min(elapsedRestTime, 1800) // 쉬는 시간 최대 30분(1800초)
+        return TimerRunViewModel.formatMMSS(seconds: totalRestTime)
       }
       .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "00:00")
