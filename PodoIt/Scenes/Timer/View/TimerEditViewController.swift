@@ -10,6 +10,15 @@ import Then
 import UIKit
 
 final class TimerEditViewController: UIViewController {
+  // MARK: - Test Configuration
+
+  // 빌드타입별 테스트 모드 설정
+  #if DEBUG
+  private static let isTestMode = true
+  #else
+  private static let isTestMode = false
+  #endif
+
   // ViewModel 주입
   private let viewModel: TimerEditViewModel
 
@@ -116,20 +125,35 @@ final class TimerEditViewController: UIViewController {
     $0.isUserInteractionEnabled = true // 탭 제스처
   }
 
-  // 분 선택 피커
-  private lazy var minutePicker = UIPickerView().then {
+  // 통합 타임 피커
+  private lazy var timePicker = UIPickerView().then {
     $0.dataSource = self
     $0.delegate = self
     $0.backgroundColor = .clear
     $0.showsSelectionIndicator = false
   }
 
-  // 분 고정 유닛
-  private let unitLabel = UILabel().then {
-    $0.attributedText = Typography.attributed("분", style: .headingXl(weight: .semibold), color: .gray600)
+  private lazy var unitLabel = UILabel().then { [isTest = TimerEditViewController.isTestMode] in
+    let unit = isTest ? "초" : "분"
+    $0.attributedText = Typography.attributed(unit, style: .headingXl(weight: .semibold), color: .gray600)
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     $0.setContentHuggingPriority(.required, for: .horizontal)
   }
+
+//  // 분 선택 피커
+//  private lazy var minutePicker = UIPickerView().then {
+//    $0.dataSource = self
+//    $0.delegate = self
+//    $0.backgroundColor = .clear
+//    $0.showsSelectionIndicator = false
+//  }
+
+//  // 분 고정 유닛
+//  private let unitLabel = UILabel().then {
+//    $0.attributedText = Typography.attributed("분", style: .headingXl(weight: .semibold), color: .gray600)
+//    $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+//    $0.setContentHuggingPriority(.required, for: .horizontal)
+//  }
 
   // 접힘 상태에서 중앙값 표시
   private let collapsedValueLabel = UILabel().then {
@@ -171,13 +195,28 @@ final class TimerEditViewController: UIViewController {
   // MARK: - Constraints
 
   private var goalContainerHeightConstraint: Constraint?
-  private var minutePickerMinHeightConstraint: Constraint?
+  // private var minutePickerMinHeightConstraint: Constraint?
+  private var timePickerMinHeightConstraint: Constraint?
   private var isPickerExpanded = false
 
   // MARK: - Data
 
-  private let minuteOptions: [Int] = Array(stride(from: 5, through: 180, by: 5))
-  private var selectedMinutes: Int = 50
+  private lazy var timeOptions: [Int] = {
+    if TimerEditViewController.isTestMode {
+      // 테스트 모드: 30초부터 10분까지 30초 간격 (초 단위)
+      return Array(stride(from: 30, through: 600, by: 30))
+    } else {
+      // 프로덕션 모드: 5분부터 3시간까지 5분 간격 (분 단위)
+      return Array(stride(from: 5, through: 180, by: 5))
+    }
+  }()
+
+  private lazy var selectedTime: Int = TimerEditViewController.isTestMode ? 120 : 50 // 테스트: 120초(2분) / 프로덕션: 50분
+
+//  // MARK: - Data
+//
+//  private let minuteOptions: [Int] = Array(stride(from: 5, through: 180, by: 5))
+//  private var selectedMinutes: Int = 50
 
   // 이모지 상태
   private var selectedEmoji: String?
@@ -211,12 +250,17 @@ final class TimerEditViewController: UIViewController {
     goalTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     goalTitleLabel.setContentHuggingPriority(.required, for: .vertical)
     goalValueArea.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
-    minutePicker.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+    // minutePicker.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+    timePicker.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
     unitLabel.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
 
-    if let idx = minuteOptions.firstIndex(of: selectedMinutes) {
-      minutePicker.selectRow(idx, inComponent: 0, animated: false)
+    if let idx = timeOptions.firstIndex(of: selectedTime) {
+      timePicker.selectRow(idx, inComponent: 0, animated: false)
     }
+
+//    if let idx = minuteOptions.firstIndex(of: selectedMinutes) {
+//      minutePicker.selectRow(idx, inComponent: 0, animated: false)
+//    }
 
     // 편집 모드 처리 (타이틀/프리필/휴지통 표시)
     setupEditMode()
@@ -231,10 +275,26 @@ final class TimerEditViewController: UIViewController {
     if let editing = viewModel.editing {
       titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingMd, color: .appBlack)
       nameTextField.text = editing.title
-      selectedMinutes = editing.goalTime
-      if let editIdx = minuteOptions.firstIndex(of: selectedMinutes) {
-        minutePicker.selectRow(editIdx, inComponent: 0, animated: false)
+
+      if TimerEditViewController.isTestMode {
+        selectedTime = editing.goalTime * 60
+      } else {
+        selectedTime = editing.goalTime
       }
+
+      if let editIdx = timeOptions.firstIndex(of: selectedTime) {
+        timePicker.selectRow(editIdx, inComponent: 0, animated: false)
+      } else if let nearest = timeOptions.min(by: { abs($0 - selectedTime) < abs($1 - selectedTime) }),
+                let idx = timeOptions.firstIndex(of: nearest)
+      {
+        selectedTime = nearest
+        timePicker.selectRow(idx, inComponent: 0, animated: false)
+      }
+
+//      selectedMinutes = editing.goalTime
+//      if let editIdx = minuteOptions.firstIndex(of: selectedMinutes) {
+//        minutePicker.selectRow(editIdx, inComponent: 0, animated: false)
+//      }
       // 이모지 프리필
       if !editing.iconName.isEmpty {
         setEmojiOnButton(editing.iconName)
@@ -286,7 +346,8 @@ final class TimerEditViewController: UIViewController {
     view.addSubview(emojiInputField)
 
     goalContainerView.addSubviews([goalTitleLabel, goalValueArea])
-    goalValueArea.addSubviews([minutePicker, unitLabel, collapsedValueLabel])
+    // goalValueArea.addSubviews([minutePicker, unitLabel, collapsedValueLabel])
+    goalValueArea.addSubviews([timePicker, unitLabel, collapsedValueLabel])
 
     emojiButton.addSubview(dashedCircleView)
     dashedCircleView.isUserInteractionEnabled = false
@@ -375,7 +436,7 @@ final class TimerEditViewController: UIViewController {
       $0.trailing.equalToSuperview().inset(Metrics.unitRightInset)
     }
 
-    minutePicker.snp.makeConstraints {
+    timePicker.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.leading.equalToSuperview()
       $0.trailing.equalTo(unitLabel.snp.leading).offset(-Metrics.unitLeftSpacing)
@@ -383,12 +444,27 @@ final class TimerEditViewController: UIViewController {
       $0.bottom.lessThanOrEqualToSuperview()
       $0.width.greaterThanOrEqualTo(Metrics.inlinePickerMinWidth)
 
-      minutePickerMinHeightConstraint = $0.height
+      timePickerMinHeightConstraint = $0.height
         .greaterThanOrEqualTo(Metrics.pickerRowHeight * 3)
         .constraint
     }
 
-    minutePickerMinHeightConstraint?.deactivate()
+    timePickerMinHeightConstraint?.deactivate()
+
+//    minutePicker.snp.makeConstraints {
+//      $0.centerY.equalToSuperview()
+//      $0.leading.equalToSuperview()
+//      $0.trailing.equalTo(unitLabel.snp.leading).offset(-Metrics.unitLeftSpacing)
+//      $0.top.greaterThanOrEqualToSuperview()
+//      $0.bottom.lessThanOrEqualToSuperview()
+//      $0.width.greaterThanOrEqualTo(Metrics.inlinePickerMinWidth)
+//
+//      minutePickerMinHeightConstraint = $0.height
+//        .greaterThanOrEqualTo(Metrics.pickerRowHeight * 3)
+//        .constraint
+//    }
+//
+//    minutePickerMinHeightConstraint?.deactivate()
 
     collapsedValueLabel.snp.makeConstraints {
       $0.center.equalToSuperview()
@@ -423,11 +499,32 @@ final class TimerEditViewController: UIViewController {
     }
   }
 
+//  private func updateCollapsedLabelText() {
+//    // 숫자(마지막 글자에만 kerning 8)
+//    let number = NSMutableAttributedString(
+//      attributedString: Typography.attributed(
+//        "\(selectedMinutes)", style: .displayMd(weight: .semibold), color: .appBlack
+//      )
+//    )
+//    if number.length > 0 {
+//      number.addAttribute(.kern, value: 8, range: NSRange(location: number.length - 1, length: 1))
+//    }
+
   private func updateCollapsedLabelText() {
-    // 숫자(마지막 글자에만 kerning 8)
+    let valueText: String
+    let unitText: String
+
+    if TimerEditViewController.isTestMode {
+      valueText = "\(selectedTime)" // 초 값
+      unitText = "초"
+    } else {
+      valueText = "\(selectedTime)" // 분 값
+      unitText = "분"
+    }
+
     let number = NSMutableAttributedString(
       attributedString: Typography.attributed(
-        "\(selectedMinutes)", style: .displayMd(weight: .semibold), color: .appBlack
+        valueText, style: .displayMd(weight: .semibold), color: .appBlack
       )
     )
     if number.length > 0 {
@@ -435,8 +532,11 @@ final class TimerEditViewController: UIViewController {
     }
 
     // 단위
-    let unit = Typography.attributed("분", style: .headingXl(weight: .semibold), color: .gray600)
+//    let unit = Typography.attributed("분", style: .headingXl(weight: .semibold), color: .gray600)
+//    number.append(unit)
+//    collapsedValueLabel.attributedText = number
 
+    let unit = Typography.attributed(unitText, style: .headingXl(weight: .semibold), color: .gray600)
     number.append(unit)
     collapsedValueLabel.attributedText = number
   }
@@ -444,10 +544,10 @@ final class TimerEditViewController: UIViewController {
   private func applyCollapsedUI(animated: Bool) {
     isPickerExpanded = false
     unitLabel.isHidden = true
-    minutePicker.isHidden = true
+    timePicker.isHidden = true
     collapsedValueLabel.isHidden = false
 
-    minutePickerMinHeightConstraint?.deactivate()
+    timePickerMinHeightConstraint?.deactivate()
     goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightCollapsed)
     updateValueAreaStyle(isCollapsed: true)
 
@@ -458,16 +558,44 @@ final class TimerEditViewController: UIViewController {
   private func applyExpandedUI(animated: Bool) {
     isPickerExpanded = true
     unitLabel.isHidden = false
-    minutePicker.isHidden = false
+    timePicker.isHidden = false
     collapsedValueLabel.isHidden = true
 
-    minutePickerMinHeightConstraint?.activate()
+    timePickerMinHeightConstraint?.activate()
     goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightExpanded)
     updateValueAreaStyle(isCollapsed: false)
 
     let changes = { self.view.layoutIfNeeded() }
     animated ? UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.6, options: .curveEaseInOut, animations: changes) : changes()
   }
+
+//  private func applyCollapsedUI(animated: Bool) {
+//    isPickerExpanded = false
+//    unitLabel.isHidden = true
+//    minutePicker.isHidden = true
+//    collapsedValueLabel.isHidden = false
+//
+//    minutePickerMinHeightConstraint?.deactivate()
+//    goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightCollapsed)
+//    updateValueAreaStyle(isCollapsed: true)
+//
+//    let changes = { self.view.layoutIfNeeded() }
+//    animated ? UIView.animate(withDuration: 0.25, animations: changes) : changes()
+//  }
+//
+//  private func applyExpandedUI(animated: Bool) {
+//    isPickerExpanded = true
+//    unitLabel.isHidden = false
+//    minutePicker.isHidden = false
+//    collapsedValueLabel.isHidden = true
+//
+//    minutePickerMinHeightConstraint?.activate()
+//    goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightExpanded)
+//    updateValueAreaStyle(isCollapsed: false)
+//
+//    let changes = { self.view.layoutIfNeeded() }
+//    animated ? UIView.animate(withDuration: 0.28, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.6, options: .curveEaseInOut, animations: changes) : changes()
+//  }
 
   // MARK: - Validation UI
 
@@ -508,19 +636,41 @@ final class TimerEditViewController: UIViewController {
     // 아이콘 결정 우선순위: selectedEmoji → attributedTitle.string → 기본값
     let attributed = emojiButton.attributedTitle(for: .normal)?.string
     let icon = selectedEmoji ?? (attributed?.isEmpty == false ? attributed! : "🟣")
-    let minutes = selectedMinutes
+    // let minutes = selectedMinutes
 
     guard !title.isEmpty else {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
       return
     }
 
+    let minutes: Int
+    if TimerEditViewController.isTestMode {
+      minutes = max(1, Int(ceil(Double(selectedTime) / 60.0)))
+    } else {
+      minutes = selectedTime
+    }
+
     do {
       try viewModel.save(title: title, iconName: icon, goalMinutes: minutes)
+
+      #if DEBUG
+      if let id = viewModel.editing?.timerID {
+        let secs = TimerEditViewController.isTestMode ? selectedTime : (minutes * 60)
+        DebugGoalSecondsStore.set(secs, for: id)
+      }
+      #endif
+
       navigationController?.popViewController(animated: true)
     } catch {
       print("save error:", error)
     }
+
+//    do {
+//      try viewModel.save(title: title, iconName: icon, goalMinutes: minutes)
+//      navigationController?.popViewController(animated: true)
+//    } catch {
+//      print("save error:", error)
+//    }
   }
 
   @objc private func deleteButtonTapped() {
@@ -612,7 +762,10 @@ final class TimerEditViewController: UIViewController {
 
 extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate {
   func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
-  func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { minuteOptions.count }
+  // func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int { minuteOptions.count }
+  func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+    timeOptions.count
+  }
 
   func pickerView(_ pickerView: UIPickerView,
                   viewForRow row: Int,
@@ -620,20 +773,24 @@ extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate 
                   reusing view: UIView?) -> UIView
   {
     let label = (view as? UILabel) ?? UILabel()
-    label.text = "\(minuteOptions[row])"
+    // label.text = "\(minuteOptions[row])"
+    label.text = "\(timeOptions[row])"
     label.font = Typography.font(for: .displayMd(weight: .semibold))
     label.textColor = .appBlack
     label.textAlignment = .center
     label.adjustsFontForContentSizeCategory = true
 
     label.isAccessibilityElement = true
-    label.accessibilityLabel = "\(minuteOptions[row])분"
+    // label.accessibilityLabel = "\(minuteOptions[row])분"
+    let unit = TimerEditViewController.isTestMode ? "초" : "분"
+    label.accessibilityLabel = "\(timeOptions[row])\(unit)"
 
     return label
   }
 
   func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-    selectedMinutes = minuteOptions[row]
+    // selectedMinutes = minuteOptions[row]
+    selectedTime = timeOptions[row]
     if !isPickerExpanded { updateCollapsedLabelText() }
   }
 
