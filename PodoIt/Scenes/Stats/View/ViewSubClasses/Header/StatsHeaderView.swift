@@ -69,7 +69,7 @@ final class StatsHeaderView: UIView {
 
   func updateCategory(_ category: StatsCategoryModel) {
     if let icon = category.icon {
-      categoryButton.setTitle("\(icon) " + "\(category.name)".limited(to: 10, addEllipsis: true), for: .normal)
+      categoryButton.setTitle("\(icon) " + "\(category.name)".limited(to: 8, addEllipsis: true), for: .normal)
     } else {
       categoryButton.setTitle(category.name, for: .normal)
     }
