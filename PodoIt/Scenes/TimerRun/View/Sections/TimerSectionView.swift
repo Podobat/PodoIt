@@ -26,6 +26,8 @@ final class TimerSectionView: UIView {
     $0.contentMode = .scaleAspectFit
   }
 
+  private var testView = UIView()
+
   private var sessionTimeLabel = UILabel().then { // 목표 시간/달성 or 휴식 상태 Label
     $0.font = Typography.font(for: .labelMd(weight: .medium)).monospacedDigits()
     $0.textColor = .gray900
@@ -58,7 +60,8 @@ final class TimerSectionView: UIView {
   private func configureUI() {
     backgroundColor = .appWhite
     addSubview(vStackView)
-    [sessionContainerView, activeTimerLabel].forEach { vStackView.addArrangedSubview($0) }
+    [sessionContainerView, testView].forEach { vStackView.addArrangedSubview($0) }
+    testView.addSubview(activeTimerLabel)
     [sessionIconImageView, sessionTimeLabel].forEach { sessionContainerView.addSubview($0) }
   }
 
@@ -66,6 +69,15 @@ final class TimerSectionView: UIView {
     vStackView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(8)
       $0.leading.trailing.equalToSuperview().inset(20)
+    }
+
+    testView.snp.makeConstraints {
+      $0.height.equalTo(56)
+      $0.centerX.equalToSuperview()
+    }
+
+    activeTimerLabel.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview()
     }
 
     sessionIconImageView.snp.makeConstraints {
@@ -86,6 +98,7 @@ final class TimerSectionView: UIView {
   /// 공부 중. 목표시간 달성 시 UI 업데이트
   func updateGoalTimeUI(goalTime: String) {
     sessionTimeLabel.text = goalTime // 조건 없이 계속해서 줄어드는 타이머 String값 바인딩
+    activeTimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
     if goalTime == "00:00" { // 시간이 다 되었을 경우, 화면 업데이트
       sessionContainerView.backgroundColor = .primary50
       sessionIconImageView.image = UIImage(named: "circle-check")
@@ -104,11 +117,13 @@ final class TimerSectionView: UIView {
     sessionIconImageView.image = UIImage(named: "cup")
     if restTime == "00:00" { // 휴식 시간이 끝났을 경우
       activeTimerLabel.text = "휴식 시간이 끝났어요"
+      activeTimerLabel.font = Typography.font(for: .displayMd(weight: .semibold)).withSize(32).monospacedDigits()
       sessionContainerView.backgroundColor = .error.withAlphaComponent(0.08) // 투명도 0.8%
       sessionIconImageView.tintColor = .error
       sessionTimeLabel.textColor = .error
     } else { // 휴식 시간이 남아있을 경우
       sessionTimeLabel.text = restTime
+      activeTimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
       sessionContainerView.backgroundColor = .green100
       sessionIconImageView.tintColor = .green600
       sessionTimeLabel.textColor = .green600

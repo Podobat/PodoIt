@@ -140,7 +140,6 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    
     // TODO: restTimeText 아님. 데이터 이거 아니야
     // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
     // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
