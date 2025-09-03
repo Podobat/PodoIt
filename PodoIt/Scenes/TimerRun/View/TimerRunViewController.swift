@@ -140,6 +140,7 @@ final class TimerRunViewController: UIViewController {
       .disposed(by: disposeBag)
 
     // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
+    // TODO: restTimeText 아님. 데이터 이거 아니야
     Driver.combineLatest(viewModel.isRunningDriver, viewModel.goalTimeText, viewModel.restTimeText)
       .drive(with: self) { vc, data in
         let (isRunning, goalTime, restTime) = data
