@@ -19,6 +19,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   // MARK: - State
 
   private var timers: [TimerModel] = []
+  private let maxTimers: Int = 5
 
   // init 추가
   init(repository: TimerRepository) {
@@ -83,6 +84,10 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     return cv
   }()
 
+  // MARK: - Helpers
+
+  private var isAtLimit: Bool { timers.count >= maxTimers }
+
   private func updateUI() {
     if timers.isEmpty {
       emptyStateView.isHidden = false
@@ -90,6 +95,21 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     } else {
       emptyStateView.isHidden = true
       collectionView.isHidden = false
+    }
+
+    updateAddButtonState()
+  }
+
+  private func updateAddButtonState() {
+    // 5개면 비활성화 + gray200, 아니면 활성 + 기본 색
+    if isAtLimit {
+      addButton.isEnabled = false
+      addButton.backgroundColor = Palette.Gray.g200
+      addButton.tintColor = .appWhite
+    } else {
+      addButton.isEnabled = true
+      addButton.backgroundColor = Palette.Primary.p600
+      addButton.tintColor = .appWhite
     }
   }
 
@@ -120,11 +140,16 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     navigationItem.largeTitleDisplayMode = .never
     configureUI()
     addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+    // 초기 상태 반영
+    updateAddButtonState()
   }
 
   // MARK: - Actions
 
   @objc private func addButtonTapped() {
+    // 5개면 더 못 만들게 막기
+    guard !isAtLimit else { return }
+
     // ViewModel 주입
     let vm = TimerEditViewModel()
     let editVC = TimerEditViewController(viewModel: vm)
@@ -203,7 +228,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
 extension TimerViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    timers.count
+    return min(timers.count, maxTimers)
   }
 
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
