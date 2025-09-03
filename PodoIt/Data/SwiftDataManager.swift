@@ -13,17 +13,30 @@ import SwiftData
 final class SwiftDataManager: TimerRepository {
   static let shared = SwiftDataManager()
 
-  // Dependencies에서 주입받은 ModelContext 사용
-  @Dependency(\.modelContext) private var modelContext
+  private let modelContainer: ModelContainer
+  private var modelContext: ModelContext {
+    modelContainer.mainContext
+  }
 
-  private init() {}
+  private init() {
+    do {
+      modelContainer = try ModelContainer(for: TimerModel.self, StatsModel.self)
+    } catch {
+      fatalError("Failed to create ModelContainer: \(error)")
+    }
+  }
+
+//  // Dependencies에서 주입받은 ModelContext 사용
+//  @Dependency(\.modelContext) private var modelContext
+//
+//  private init() {}
 
   // MARK: - CRUD (TimerRepository)
 
   func fetchAll() throws -> [TimerModel] {
-    // 현재는 timerID 오름차순. createdAt 추가 시 최신순으로 변경 권장.
+    // createdAt 기준 최신순
     let descriptor = FetchDescriptor<TimerModel>(
-      sortBy: [SortDescriptor(\.timerID, order: .forward)]
+      sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
     )
     do {
       return try modelContext.fetch(descriptor)
@@ -138,7 +151,7 @@ extension SwiftDataManager: StatsRepository {
   }
 
   // 기간과 카테고리에 맞는 StatsModel 목록 조회
-  //   - start: 조회 시작일 (포함) 
+  //   - start: 조회 시작일 (포함)
   //   - end:   조회 종료일 (미포함)
   // - Returns: 조건에 맞는 StatsModel 배열
   func fetchStats(from start: Date, to end: Date, categoryName: String) throws -> [StatsModel] {
