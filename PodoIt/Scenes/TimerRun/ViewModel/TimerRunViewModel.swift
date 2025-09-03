@@ -91,8 +91,8 @@ final class TimerRunViewModel {
     }
     
     state.isRunning.toggle()
-    isRunningRelay.accept(state.isRunning) // 변경된 상태 저장
     state.stateStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
+    isRunningRelay.accept(state.isRunning) // 변경된 상태 저장
   }
   
   /// 정지

@@ -90,6 +90,7 @@ final class TimerRunViewController: UIViewController {
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonBarView.startPauseTap
       .asDriver()
+      .throttle(.seconds(1)) // 0.5초 안에 여러번 눌러도 1번만 실행됨
       .drive(with: self) { vc, _ in
         vc.viewModel.startAndPause()
       }
