@@ -87,6 +87,21 @@ final class TimerRunViewController: UIViewController {
 
   /// Rx 바인딩 설정 (버튼 탭, 진행률 등)
   private func bind() {
+    let addOne = middleView.plusOneMinuteButtonTap.asSignal().map { RestAddCase.one }
+    let addFive = middleView.plusFiveMinuteButtonTap.asSignal().map { RestAddCase.five }
+    let addTen = middleView.plusTenMinuteButtonTap.asSignal().map { RestAddCase.ten }
+
+    // 세 스트림을 하나로 합침
+    let restAddSignal = Signal.merge(addOne, addFive, addTen)
+
+    // restAddSignal이 "어떤 버튼이 눌렸는지"를 인식해서 값을 반환
+    restAddSignal
+      .withUnretained(self)
+      .emit(onNext: { vc, addTime in
+        vc.viewModel.addRestTime(seconds: addTime.seconds) // 반한된 값(60, 300, 600초)을 할당함
+      })
+      .disposed(by: disposeBag)
+
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonBarView.startPauseTap
       .asDriver()
@@ -125,9 +140,8 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // TODO: restTimeText 아님. 데이터 이거 아니야
     // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
-    // 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
+    // combineLatest: 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
     Driver.combineLatest(
       viewModel.isRunningDriver, // 공부/휴식 중 상태 (Bool)
       viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
@@ -135,19 +149,19 @@ final class TimerRunViewController: UIViewController {
       viewModel.restTimeText, // "남은 휴식시간" (기본 5분. MM:SS)
       viewModel.runningTimeText // 공부중인 시간 (H:MM:SS)
     )
-      .drive(with: self) { vc, data in
-        let (isRunning, goalTime, totalRestTime, restTime, runningTime) = data
-        // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
-        vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
-        vc.middleView.updateIsHiddenView(isRunning: isRunning)
+    .drive(with: self) { vc, data in
+      let (isRunning, goalTime, totalRestTime, restTime, runningTime) = data
+      // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
+      vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
+      vc.middleView.updateIsHiddenView(isRunning: isRunning)
 
-        if isRunning { // 공부중
-          vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)
-        } else { // 휴식중
-          vc.timerView.updateRestTimeUI(restTime: restTime, totalRestTime: totalRestTime)
-        }
+      if isRunning { // 공부중
+        vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)
+      } else { // 휴식중
+        vc.timerView.updateRestTimeUI(restTime: restTime, totalRestTime: totalRestTime)
       }
-      .disposed(by: disposeBag)
+    }
+    .disposed(by: disposeBag)
   }
 
   // MARK: UI Configuration
