@@ -98,7 +98,7 @@ final class TimerRunViewController: UIViewController {
     restAddSignal
       .withUnretained(self)
       .emit(onNext: { vc, addTime in
-        vc.viewModel.restAddSeconds += addTime.seconds // 반한된 값(60, 300, 600초)을 할당함
+        vc.viewModel.addRestTime(seconds: addTime.seconds) // 반한된 값(60, 300, 600초)을 할당함
       })
       .disposed(by: disposeBag)
 
