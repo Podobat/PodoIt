@@ -51,6 +51,7 @@ final class TimerRunViewModel {
   // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
   private(set) var goalTime: Int = 0
   private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
+  private let restTimeLimit = 1800 // 휴식시간 최대 1800초 제한
   var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   // 버튼/상태 변화시에 즉시 재계산을 위함
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
@@ -206,7 +207,7 @@ final class TimerRunViewModel {
         // 매 섹션마다 휴식시간 5분으로 초기화
         // 300초(기본 값) - 이번 세션에 휴식중인 시간 + 추가된 휴식 시간(restAddSeconds), (음수라면 0으로 max)
         let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime + vm.restAddSeconds, 0)
-//        let 최대 remainingRestTime이랑 max를 1800초
+        // TODO: 최대 휴식 시간을 30분으로 잡기. (로직이 생각이 전혀 안나서 못막은 상태.. 정 안되면 시간부터 내려가는 식으로..)
         return TimerRunViewModel.formatMMSS(seconds: remainingRestTime)
       }
       .distinctUntilChanged()
