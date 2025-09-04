@@ -9,6 +9,20 @@ import Foundation
 import RxCocoa
 import RxSwift
 
+enum RestAddCase {
+  case one
+  case five
+  case ten
+  
+  var seconds: Int {
+    switch self {
+    case .one: return 60
+    case .five: return 300
+    case .ten: return 600
+    }
+  }
+}
+
 final class TimerRunViewModel {
   // MARK: - Dependencies
 
@@ -37,6 +51,7 @@ final class TimerRunViewModel {
   // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
   private(set) var goalTime: Int = 0
   private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
+  var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   
   // MARK: - Tick (공유 타이머 스트림)
   
@@ -166,6 +181,7 @@ final class TimerRunViewModel {
   }
   
   // MARK: - makeRestTimeText, makeTotalRestTimeText 중복 로직 리팩토링 예정
+
   /// UI의 라벨에 바인딩할 "남은 휴식 시간" 문자열 Driver 생성
   private func makeRestTimeText(tick: Observable<Int>) -> Driver<String> {
     return tick.withUnretained(self)
@@ -173,8 +189,8 @@ final class TimerRunViewModel {
         let now = Date()
         let elapsedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         // 매 섹션마다 휴식시간 5분으로 초기화
-        // 300초(기본 값) - 이번 세션에 휴식중인 시간 (음수라면 0으로 max)
-        let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime, 0)
+        // 300초(기본 값) - 이번 세션에 휴식중인 시간 + 추가된 휴식 시간(restAddSeconds), (음수라면 0으로 max)
+        let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime + vm.restAddSeconds, 0)
         return TimerRunViewModel.formatMMSS(seconds: remainingRestTime)
       }
       .distinctUntilChanged()

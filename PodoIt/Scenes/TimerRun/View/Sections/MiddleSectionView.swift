@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import RxCocoa
 import SnapKit
 import Then
 import UIKit
@@ -13,7 +14,7 @@ final class MiddleSectionView: UIView {
   // MARK: Components
 
   private let switchContainerView = UIView() // progressView, restButtonsView를 감싼 스택뷰
-  
+
   // progress
   private let progressView = UIView().then { // progressBar를 감싸는 View (isHidden 대상)
     $0.isHidden = true
@@ -30,34 +31,37 @@ final class MiddleSectionView: UIView {
     $0.layer.cornerRadius = 12
     $0.clipsToBounds = true
   }
-  
+
   // buttons
   private let restButtonsView = UIView().then { // restButtons를 감싸는 View (isHidden 대상)
     $0.isHidden = false
   }
+
   private let buttonsHStackView = UIStackView().then { // 3개 버튼의 H스택뷰
     $0.axis = .horizontal
     $0.alignment = .center
     $0.distribution = .equalSpacing
     $0.spacing = 8
   }
-  
+
   private let plusOneMinuteButton = UIButton(type: .system).then { // +1분
     $0.setTitle("+1분", for: .normal)
   }
+
   private let plusFiveMinuteButton = UIButton(type: .system).then { // +5분
     $0.setTitle("+5분", for: .normal)
   }
+
   private let plusTenMinuteButton = UIButton(type: .system).then { // +10분
     $0.setTitle("+10분", for: .normal)
   }
-  
+
   private lazy var restAddButtons: [UIButton] = [ // 버튼들 공통 로직 쓰기 편하도록 묶음
     plusOneMinuteButton,
     plusFiveMinuteButton,
     plusTenMinuteButton,
   ]
-  
+
   // MARK: - init
 
   override init(frame: CGRect) {
@@ -80,12 +84,12 @@ final class MiddleSectionView: UIView {
     progressContainer.addSubview(progressBar)
     restButtonsView.addSubview(buttonsHStackView)
     restAddButtons.forEach { buttonsHStackView.addArrangedSubview($0) }
-    
-    restAddButtons.forEach {
-      $0.backgroundColor = .gray100
-      $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
-      $0.setTitleColor(.gray900, for: .normal)
-      $0.layer.cornerRadius = 8
+
+    for restAddButton in restAddButtons {
+      restAddButton.backgroundColor = .gray100
+      restAddButton.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
+      restAddButton.setTitleColor(.gray900, for: .normal)
+      restAddButton.layer.cornerRadius = 8
     }
   }
 
@@ -96,7 +100,7 @@ final class MiddleSectionView: UIView {
       $0.top.bottom.equalToSuperview()
       $0.leading.trailing.equalToSuperview().inset(20)
     }
-    
+
     progressView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(16)
       $0.leading.trailing.equalToSuperview()
@@ -112,19 +116,19 @@ final class MiddleSectionView: UIView {
       $0.leading.trailing.equalToSuperview().inset(4)
       $0.height.equalTo(24)
     }
-    
+
     restButtonsView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(12)
       $0.leading.trailing.equalToSuperview()
     }
-    
+
     buttonsHStackView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.bottom.equalToSuperview()
     }
-    
-    restAddButtons.forEach {
-      $0.snp.makeConstraints {
+
+    for restAddButton in restAddButtons {
+      restAddButton.snp.makeConstraints {
         $0.width.equalTo(72)
         $0.height.equalTo(44)
       }
@@ -137,8 +141,9 @@ final class MiddleSectionView: UIView {
     progressBar.setProgress(progress, animated: false)
     progressBar.progressTintColor = .primary600
   }
-  
+
   // MARK: - isHidden Update
+
   func updateIsHiddenView(isRunning: Bool) {
     if isRunning { // 공부 중
       progressView.isHidden = false
@@ -147,5 +152,19 @@ final class MiddleSectionView: UIView {
       progressView.isHidden = true
       restButtonsView.isHidden = false
     }
+  }
+}
+
+extension MiddleSectionView {
+  var plusOneMinuteButtonTap: ControlEvent<Void> { // +1분
+    return plusOneMinuteButton.rx.tap
+  }
+
+  var plusFiveMinuteButtonTap: ControlEvent<Void> { // +5분
+    return plusFiveMinuteButton.rx.tap
+  }
+
+  var plusTenMinuteButtonTap: ControlEvent<Void> { // +10분
+    return plusTenMinuteButton.rx.tap
   }
 }
