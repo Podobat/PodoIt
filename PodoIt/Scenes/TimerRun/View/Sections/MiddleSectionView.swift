@@ -126,7 +126,7 @@ final class MiddleSectionView: UIView {
     restAddButtons.forEach {
       $0.snp.makeConstraints {
         $0.width.equalTo(72)
-        $0.height.equalTo(44) // TODO: 44 주고싶어요.. 디자이너님과 대화
+        $0.height.equalTo(44)
       }
     }
   }
