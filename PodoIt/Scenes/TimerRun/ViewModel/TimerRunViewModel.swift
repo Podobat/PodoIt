@@ -9,6 +9,20 @@ import Foundation
 import RxCocoa
 import RxSwift
 
+enum RestAddCase {
+  case one
+  case five
+  case ten
+  
+  var seconds: Int {
+    switch self {
+    case .one: return 60
+    case .five: return 300
+    case .ten: return 600
+    }
+  }
+}
+
 final class TimerRunViewModel {
   // MARK: - Dependencies
 
@@ -37,6 +51,10 @@ final class TimerRunViewModel {
   // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
   private(set) var goalTime: Int = 0
   private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
+  private let restTimeLimit = 1800 // 휴식시간 최대 1800초 제한
+  var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
+  // 버튼/상태 변화시에 즉시 재계산을 위함
+  private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
   
   // MARK: - Tick (공유 타이머 스트림)
   
@@ -45,13 +63,20 @@ final class TimerRunViewModel {
     .startWith(0) // startWith(0)을 안붙여주면, 첫 이벤트가 1초 뒤에 옴.
     .share(replay: 1, scope: .whileConnected) // share로 한 번에 여러곳에 공유. 가장 최근 이벤트 1개 방출 및 구독자가 존재할때만 스트림 유지
   
-  // MARK: - Outputs (UI 바인딩용 Driver)
+  // tick(1초) + 버튼 이벤트를 합쳐서 재계산하는 트리거
+  // 버튼 누를 시 tick(1초)뒤가 아닌 즉시 시간이 재계산되게 하기 위해서
+  private lazy var restTimeUpdateTrigger: Observable<Void> = Observable.merge(
+    tick.map { _ in }, // Observable<Void>로 반환
+    restUpdateRelay.asObservable()
+  )
   
+  // MARK: - Outputs (UI 바인딩용 Driver)
+
   lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick) // 공부 목표시간 (MM:SS)
   lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // 공부중인 시간 (H:MM:SS)
 
   lazy var totalRestTimeText: Driver<String> = makeTotalRestTimeText(tick: tick) // 총 "휴식 중인 시간"
-  lazy var restTimeText: Driver<String> = makeRestTimeText(tick: tick) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
+  lazy var restTimeText: Driver<String> = makeRestTimeText(tigger: restTimeUpdateTrigger) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
 
   lazy var progress: Driver<Float> = makeProgress(tick: tick) // progress 진행률 방출
   
@@ -74,6 +99,12 @@ final class TimerRunViewModel {
   }
   
   // MARK: - Actions
+  
+  /// 휴식 시간 추가 (+1/+5/+10) 후 즉시 라벨 갱신
+  func addRestTime(seconds: Int) {
+    restAddSeconds += seconds
+    restUpdateRelay.accept(()) // Void라서 넣지 않고 신호만 보냄
+  }
 
   /// 시작/일시정지 버튼 토글
   func startAndPause() {
@@ -166,15 +197,17 @@ final class TimerRunViewModel {
   }
   
   // MARK: - makeRestTimeText, makeTotalRestTimeText 중복 로직 리팩토링 예정
+
   /// UI의 라벨에 바인딩할 "남은 휴식 시간" 문자열 Driver 생성
-  private func makeRestTimeText(tick: Observable<Int>) -> Driver<String> {
-    return tick.withUnretained(self)
+  private func makeRestTimeText(tigger: Observable<Void>) -> Driver<String> {
+    return tigger.withUnretained(self)
       .map { vm, _ in // 300초 - 휴식시간, 0
         let now = Date()
         let elapsedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         // 매 섹션마다 휴식시간 5분으로 초기화
-        // 300초(기본 값) - 이번 세션에 휴식중인 시간 (음수라면 0으로 max)
-        let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime, 0)
+        // 300초(기본 값) - 이번 세션에 휴식중인 시간 + 추가된 휴식 시간(restAddSeconds), (음수라면 0으로 max)
+        let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime + vm.restAddSeconds, 0)
+        // TODO: 최대 휴식 시간을 30분으로 잡기. (로직이 생각이 전혀 안나서 못막은 상태.. 정 안되면 시간부터 내려가는 식으로..)
         return TimerRunViewModel.formatMMSS(seconds: remainingRestTime)
       }
       .distinctUntilChanged()
