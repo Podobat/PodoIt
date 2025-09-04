@@ -39,6 +39,20 @@ final class StatsSummaryView: UIView {
   }
 
   private let segmentedControl = StatsCustomSegmentedControl(items: ["일간", "월간"])
+  
+  private let emptyView = UIView().then {
+    $0.backgroundColor = .appWhite
+    $0.isHidden = true
+  }
+  
+  private let emptyLabel = UILabel().then {
+    $0.textAlignment = .center
+    $0.numberOfLines = 0
+    $0.text = "이 날에는 기록된\n집중 시간이 없어요."
+    $0.font = Typography.font(for: .bodyLg(weight: .regular))
+    $0.textColor = .gray400
+    $0.lineBreakMode = .byWordWrapping
+  }
 
   private let totalTimeTotalLabel = UILabel.makeAttributed(
     text: "총", style: .headingMd, color: .gray500, alignment: .left
@@ -102,7 +116,7 @@ final class StatsSummaryView: UIView {
   // 높이를 제약할 변수
   private var collectionViewHeightConstraint: Constraint?
 
-  private lazy var vStack = UIStackView(arrangedSubviews: [segmentedControl, totalTimeStackView, collectionView]).then {
+  private lazy var vStack = UIStackView(arrangedSubviews: [segmentedControl, emptyView, totalTimeStackView, collectionView]).then {
     $0.axis = .vertical
     $0.alignment = .center
     $0.spacing = 16
@@ -149,6 +163,7 @@ final class StatsSummaryView: UIView {
     [container].forEach { addSubview($0) }
     [summaryContainer].forEach { container.contentView.addSubview($0) }
     [vStack].forEach { summaryContainer.contentView.addSubview($0) }
+    emptyView.addSubview(emptyLabel)
   }
 
   private func setupConstraints() {
@@ -168,6 +183,15 @@ final class StatsSummaryView: UIView {
       // 초기값 0으로 설정, 나중에 계산해서 업데이트
       collectionViewHeightConstraint = $0.height.equalTo(0).constraint
       $0.directionalHorizontalEdges.equalToSuperview()
+    }
+    
+    emptyView.snp.makeConstraints {
+      $0.height.equalTo(106)
+      $0.directionalHorizontalEdges.equalToSuperview()
+    }
+    
+    emptyLabel.snp.makeConstraints {
+      $0.center.equalToSuperview()
     }
   }
 
@@ -199,15 +223,37 @@ final class StatsSummaryView: UIView {
   }
 
   // 외부에서 리스트/총합 주입
-  func apply(items: [StatsSummaryModel], totalTimeText: String) {
+  func apply(items: [StatsSummaryModel], totalTimeText: String, isDaily: Bool) {
+    // 합계 텍스트
     totalTimeLabel.text = totalTimeText
 
+    // 리스트 스냅샷
     var snapshot = NSDiffableDataSourceSnapshot<Int, StatsSummaryModel>()
     snapshot.appendSections([0])
     snapshot.appendItems(items)
     dataSource.apply(snapshot, animatingDifferences: false)
 
+    // 컬렉션뷰 높이 갱신
     updateCollectionViewHeight(itemCount: items.count)
+
+    // 보여줄 섹션 토글
+    let hasData = !items.isEmpty
+    totalTimeStackView.isHidden = !hasData
+    collectionView.isHidden = !hasData
+    emptyView.isHidden = hasData
+
+    // empty 라벨 텍스트/폰트 토글
+    if !hasData {
+      if isDaily {
+        // 일간
+        emptyLabel.text = "이 날에는 기록된\n집중 시간이 없어요."
+        emptyLabel.font = Typography.font(for: .bodyLg(weight: .regular))
+      } else {
+        // 월간
+        emptyLabel.text = "이 달에는 기록된\n집중 시간이 없어요."
+        emptyLabel.font = Typography.font(for: .bodyLg(weight: .semibold))
+      }
+    }
   }
 
   // MARK: - Bind
