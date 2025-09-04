@@ -103,11 +103,18 @@ final class StatsViewController: UIViewController {
       .disposed(by: disposeBag)
 
     // VM → SummaryView 반영
-    viewModel.summary
-      .drive(onNext: { [weak self] ui in
-        self?.summaryView.apply(items: ui.items, totalTimeText: ui.totalText)
-      })
-      .disposed(by: disposeBag)
+    Driver.combineLatest(
+      viewModel.summary, // SummaryUI(items, totalText)
+      viewModel.selectedSegmentIndex.asDriver() // 0=일간, 1=월간
+    )
+    .drive(onNext: { [weak self] ui, seg in
+      self?.summaryView.apply(
+        items: ui.items,
+        totalTimeText: ui.totalText,
+        isDaily: seg == 0
+      )
+    })
+    .disposed(by: disposeBag)
   }
 
   // MARK: - CategorySheet Presentation
