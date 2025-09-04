@@ -56,6 +56,7 @@ final class SwiftDataManager: TimerRepository {
     modelContext.insert(entity)
     do {
       try modelContext.save()
+      statsDidChange()
       return entity
     } catch {
       throw RepositoryError.saveFailed
@@ -71,6 +72,7 @@ final class SwiftDataManager: TimerRepository {
     entity.goalTime = goalMinutes
     do {
       try modelContext.save()
+      statsDidChange()
     } catch {
       throw RepositoryError.saveFailed
     }
@@ -88,6 +90,7 @@ final class SwiftDataManager: TimerRepository {
     }
     do {
       try modelContext.save()
+      statsDidChange()
     } catch {
       throw RepositoryError.saveFailed
     }
@@ -118,9 +121,7 @@ extension SwiftDataManager: StatsRepository {
     modelContext.insert(entity)
     do {
       try modelContext.save()
-      DispatchQueue.main.async {
-        NotificationCenter.default.post(name: .statsDidChange, object: nil)
-      }
+      statsDidChange()
       return entity
     } catch {
       throw RepositoryError.saveFailed
@@ -129,25 +130,24 @@ extension SwiftDataManager: StatsRepository {
 
   // READ
   // StatsModel에 저장된 카테고리들을 중복 없이 추출
+  /// TimerModel 기반 카테고리 목록 조회 (저장 시 중복 보장 → 조회 중복 제거 없음)
   func fetchDistinctCategories() throws -> [StatsCategoryModel] {
-    // StatsModel 전체 데이터 가져오기
-    let stats = try modelContext.fetch(FetchDescriptor<StatsModel>())
+    // 1. TimerModel 전부 조회 (최신 생성 순)
+    let descriptor = FetchDescriptor<TimerModel>(
+      sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+    )
+    let timers = try modelContext.fetch(descriptor)
 
-    var seen = Set<String>() // 이미 본 카테고리 이름 저장
-    var unique: [StatsCategoryModel] = [] // 중복 제거 후 결과 배열
-
-    // 모든 StatsModel 순회
-    for s in stats {
-      // 아직 안 본 카테고리일 때만 추가
-      if !seen.contains(s.category) {
-        seen.insert(s.category) // 본 목록에 추가
-        // icon 값이 비어있으면 nil 처리
-        unique.append(.init(name: s.category, icon: s.icon.isEmpty ? nil : s.icon))
-      }
+    // 2. TimerModel -> StatsCategoryModel 매핑
+    let categories = timers.map {
+      StatsCategoryModel(
+        name: $0.title,
+        icon: $0.iconName.isEmpty ? nil : $0.iconName
+      )
     }
 
-    // "전체" 항목을 항상 맨 앞에 추가하고, 혹시 중복된 건 걸러냄
-    return [.all] + unique.filter { $0.name != "전체" }
+    // 3. "전체"는 무조건 맨 앞에
+    return [.all] + categories
   }
 
   // 기간과 카테고리에 맞는 StatsModel 목록 조회
@@ -201,6 +201,13 @@ extension SwiftDataManager: StatsRepository {
   }
 }
 
+extension SwiftDataManager {
+  private func statsDidChange() {
+    DispatchQueue.main.async {
+      NotificationCenter.default.post(name: .statsDidChange, object: nil)
+    }
+  }
+}
 extension Notification.Name {
   static let statsDidChange = Notification.Name("StatsDidChange")
 }
