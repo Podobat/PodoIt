@@ -11,7 +11,7 @@ import UIKit
 
 final class SettingViewController: UIViewController {
   private let viewModel = SettingViewModel()
-  private let myAppID = 544007664 // 임시 AppID: Youtube
+  private let myAppID = 6752013483
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.backgroundColor = .appWhite

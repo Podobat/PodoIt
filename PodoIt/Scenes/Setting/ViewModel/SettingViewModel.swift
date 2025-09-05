@@ -9,18 +9,18 @@ import Foundation
 
 final class SettingViewModel {
   private(set) var currentTheme: Theme
-  
+
   init() {
     // UserDefaults에서 불러오기, 없다면 .system
     let saved = UserDefaults.standard.string(forKey: "theme")
     self.currentTheme = Theme(rawValue: saved ?? "") ?? .system
   }
-  
+
   func applyTheme(_ theme: Theme) {
     currentTheme = theme
     UserDefaults.standard.set(theme.rawValue, forKey: "theme")
   }
-  
+
   var items: [SettingItem] {
     return [
       .notification(isOn: false),
@@ -28,8 +28,7 @@ final class SettingViewModel {
       // UserDefaults 저장과 UI는 완성. 어떤 상태를 했냐에 따라서 테마 변경만 지원하면 끝.
       // .theme(current: currentTheme),
       .inquiry,
-      // TODO: 앱 배포 승인 후, appid 나오면 appid 수정 후 다시 노출
-      // .review
+      .review
     ]
   }
 }
