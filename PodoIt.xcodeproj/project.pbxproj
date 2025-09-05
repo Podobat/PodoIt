@@ -201,6 +201,7 @@
 				DEVELOPMENT_TEAM = NCUV99Q4S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PodoIt/Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
@@ -234,6 +235,7 @@
 				DEVELOPMENT_TEAM = NCUV99Q4S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PodoIt/Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
