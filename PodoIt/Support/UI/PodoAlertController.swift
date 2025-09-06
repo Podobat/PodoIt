@@ -83,7 +83,7 @@ final class PodoAlertController: UIViewController {
     super.init(nibName: nil, bundle: nil)
 
     titleLabel.attributedText = centered(Typography.attributed(title, style: .headingLg, color: .appBlack))
-    messageLabel.attributedText = centered(Typography.attributed(message, style: .bodyLg(weight: .regular), color: .gray500))
+    messageLabel.attributedText = centered(messageLabelTargetBolding(fullText: message, boldTarget: "1분 이상"))
 
     cancelButton.setAttributedTitle(
       Typography.attributed(cancelTitle, style: .labelLg(weight: .semibold), color: .gray900),
@@ -253,6 +253,26 @@ extension PodoAlertController {
       value: p,
       range: NSRange(location: 0, length: m.length
     ))
+    return m
+  }
+  
+  private func messageLabelTargetBolding(fullText: String, boldTarget: String) -> NSAttributedString {
+    // 기본 스타일은 기본 messageLabel의 Typography값으로 전체는 원 상태 유지
+    let base = Typography.attributed(
+      fullText,
+      style: .bodyLg(weight: .regular),
+      color: .gray500
+    )
+    // 스타일을 변경해주어야 하니 "가변"상태로 변경
+    let m = NSMutableAttributedString(attributedString: base)
+    
+    // 원하는 일부 부분(target)만 볼드처리
+    if let range = fullText.range(of: boldTarget) { // boldTarget 구간만 가져옴
+      let ns = NSRange(range, in: fullText) // nsRange로 변환
+      // 원하는 구간만 ".bold"로 덮어쓰기 (다른 부분은 수정되지 않고 base상태)
+      let boldFont = Typography.font(for: .bodyLg(weight: .bold))
+      m.addAttribute(.font, value: boldFont, range: ns) // 가변으로 만들어준 m에다가 내가 원하는 구간(ns)에 bold(boldFont)처리를 해서 주입
+    }
     return m
   }
 }
