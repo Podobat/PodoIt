@@ -115,8 +115,10 @@ final class TimerRunViewController: UIViewController {
     buttonBarView.stopButtonTap
       .asDriver()
       .drive(with: self) { vc, _ in
-        vc.viewModel.stop()
-        vc.navigationController?.popViewController(animated: true) // pop되면서 interval도 중지
+        PodoAlertController.presentStopTimerAlert(from: vc, onConfirm: {
+          vc.viewModel.stop()
+          vc.navigationController?.popViewController(animated: true)
+        })
       }
       .disposed(by: disposeBag)
 
