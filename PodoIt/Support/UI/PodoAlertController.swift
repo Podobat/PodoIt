@@ -36,11 +36,33 @@ final class PodoAlertController: UIViewController {
       message: message,
       cancelTitle: cancelTitle,
       confirmTitle: confirmTitle,
+      confirmColor: .error,
       onConfirm: onConfirm
     )
     vc.modalPresentationStyle = .overFullScreen // 반투명
     vc.modalTransitionStyle = .crossDissolve // fase in/out
     presenter.present(vc, animated: false) // 알럿 표시
+  }
+  
+  static func presentStopTimerAlert(
+    from presenter: UIViewController,
+    title: String = "아직 목표 시간을 채우지 않았어요.\n그래도 종료할까요?",
+    message: String = "1분 이상 집중한 시간은 그대로 기록돼요.",
+    cancelTitle: String = "계속하기",
+    confirmTitle: String = "그만두기",
+    onConfirm: @escaping () -> Void
+  ) {
+    let vc = PodoAlertController(
+      title: title,
+      message: message,
+      cancelTitle: cancelTitle,
+      confirmTitle: confirmTitle,
+      confirmColor: .primary600,
+      onConfirm: onConfirm
+    )
+    vc.modalPresentationStyle = .overFullScreen
+    vc.modalTransitionStyle = .crossDissolve
+    presenter.present(vc, animated: true)
   }
 
   // MARK: - Init
@@ -51,6 +73,7 @@ final class PodoAlertController: UIViewController {
        message: String,
        cancelTitle: String,
        confirmTitle: String,
+       confirmColor: UIColor,
        onConfirm: @escaping () -> Void)
   {
     self.confirmHandler = onConfirm
@@ -67,6 +90,7 @@ final class PodoAlertController: UIViewController {
       Typography.attributed(confirmTitle, style: .labelLg(weight: .semibold), color: .appWhite),
       for: .normal
     )
+    confirmButton.backgroundColor = confirmColor
   }
 
   @available(*, unavailable)
@@ -99,7 +123,6 @@ final class PodoAlertController: UIViewController {
   }
 
   private let confirmButton = UIButton(type: .system).then {
-    $0.backgroundColor = .error
     $0.layer.cornerRadius = Metrics.buttonCornerRadius
     // $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
     $0.accessibilityIdentifier = "podoAlert.confirm"
