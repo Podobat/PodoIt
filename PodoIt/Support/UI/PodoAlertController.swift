@@ -100,7 +100,7 @@ final class PodoAlertController: UIViewController {
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
   // MARK: - Views
-  
+
   private let dimView = UIControl().then {
     $0.backgroundColor = UIColor.black.withAlphaComponent(0.5)
     $0.alpha = 0
@@ -251,11 +251,11 @@ extension PodoAlertController {
     m.addAttribute(
       .paragraphStyle,
       value: p,
-      range: NSRange(location: 0, length: m.length
-    ))
+      range: NSRange(location: 0, length: m.length)
+    )
     return m
   }
-  
+
   private func messageLabelTargetBolding(fullText: String, boldTarget: String) -> NSAttributedString {
     // 기본 스타일은 기본 messageLabel의 Typography값으로 전체는 원 상태 유지
     let base = Typography.attributed(
@@ -265,7 +265,7 @@ extension PodoAlertController {
     )
     // 스타일을 변경해주어야 하니 "가변"상태로 변경
     let m = NSMutableAttributedString(attributedString: base)
-    
+
     // 원하는 일부 부분(target)만 볼드처리
     if let range = fullText.range(of: boldTarget) { // boldTarget 구간만 가져옴
       let ns = NSRange(range, in: fullText) // nsRange로 변환
