@@ -43,10 +43,13 @@ final class PodoAlertController: UIViewController {
     vc.modalTransitionStyle = .crossDissolve // fase in/out
     presenter.present(vc, animated: false) // 알럿 표시
   }
-  
+
   static func presentStopTimerAlert(
     from presenter: UIViewController,
-    title: String = "아직 목표 시간을 채우지 않았어요.\n그래도 종료할까요?",
+    title: String = """
+    아직 목표 시간을 채우지 않았어요.
+    그래도 종료할까요?
+    """,
     message: String = "1분 이상 집중한 시간은 그대로 기록돼요.",
     cancelTitle: String = "계속하기",
     confirmTitle: String = "그만두기",
@@ -110,7 +113,10 @@ final class PodoAlertController: UIViewController {
     $0.clipsToBounds = true
   }
 
-  private let titleLabel = UILabel()
+  private let titleLabel = UILabel().then {
+    $0.numberOfLines = 0
+  }
+
   private let messageLabel = UILabel().then {
     $0.numberOfLines = 0
     $0.textAlignment = .center
