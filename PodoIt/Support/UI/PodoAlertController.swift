@@ -82,8 +82,8 @@ final class PodoAlertController: UIViewController {
     self.confirmHandler = onConfirm
     super.init(nibName: nil, bundle: nil)
 
-    titleLabel.attributedText = Typography.attributed(title, style: .headingLg, color: .appBlack)
-    messageLabel.attributedText = Typography.attributed(message, style: .bodyLg(weight: .regular), color: .gray500)
+    titleLabel.attributedText = centered(Typography.attributed(title, style: .headingLg, color: .appBlack))
+    messageLabel.attributedText = centered(Typography.attributed(message, style: .bodyLg(weight: .regular), color: .gray500))
 
     cancelButton.setAttributedTitle(
       Typography.attributed(cancelTitle, style: .labelLg(weight: .semibold), color: .gray900),
@@ -100,7 +100,7 @@ final class PodoAlertController: UIViewController {
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
   // MARK: - Views
-
+  
   private let dimView = UIControl().then {
     $0.backgroundColor = UIColor.black.withAlphaComponent(0.5)
     $0.alpha = 0
@@ -119,7 +119,6 @@ final class PodoAlertController: UIViewController {
 
   private let messageLabel = UILabel().then {
     $0.numberOfLines = 0
-    $0.textAlignment = .center
   }
 
   private let cancelButton = UIButton(type: .system).then {
@@ -240,5 +239,20 @@ final class PodoAlertController: UIViewController {
     animateOut { [weak self] in
       self?.dismiss(animated: false) { handler() }
     }
+  }
+}
+
+extension PodoAlertController {
+  private func centered(_ attr: NSAttributedString) -> NSAttributedString {
+    let m = NSMutableAttributedString(attributedString: attr)
+    let p = NSMutableParagraphStyle()
+    p.alignment = .center
+    p.lineBreakMode = .byWordWrapping
+    m.addAttribute(
+      .paragraphStyle,
+      value: p,
+      range: NSRange(location: 0, length: m.length
+    ))
+    return m
   }
 }
