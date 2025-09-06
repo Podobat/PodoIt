@@ -10,8 +10,9 @@ import Then
 import UIKit
 
 final class AnimationSectionView: UIView {
-  private let dummyImage = UIImageView().then {
-    $0.image = UIImage(named: "dummy-animation-preview")
+  private let stateImageView = UIImageView().then {
+    $0.image = UIImage(named: "focus")
+    $0.contentMode = .scaleAspectFit // 비율 유지하면서 잘리지 않도록
     // VC에 있는 rootStack의 stackView 내부에서 우선순위는 적용되지 않음.
     // 다만, 그 내부에 있는 컴포넌트 우선순위는 적용되기 때문에 이미지 뷰의 우선순위를 낮춰서 rootStack 내에서 남는 공간을 이 뷰가 차지하도록 함
     $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
@@ -20,11 +21,8 @@ final class AnimationSectionView: UIView {
 
   override init(frame: CGRect) {
     super.init(frame: frame)
-    addSubview(dummyImage)
-
-    dummyImage.snp.makeConstraints {
-      $0.directionalEdges.equalToSuperview().inset(20)
-    }
+    configureUI()
+    configureLayout()
   }
 
   @available(*, unavailable)
@@ -32,7 +30,21 @@ final class AnimationSectionView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
 
-  private func configureUI() {}
+  private func configureUI() {
+    addSubview(stateImageView)
+  }
 
-  private func configureLayout() {}
+  private func configureLayout() {
+    stateImageView.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview().inset(20)
+    }
+  }
+
+  func updateStateImage(isRunning: Bool) {
+    if isRunning { // 공부 중
+      stateImageView.image = UIImage(named: "focus")
+    } else {
+      stateImageView.image = UIImage(named: "rest")
+    }
+  }
 }
