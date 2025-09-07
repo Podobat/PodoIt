@@ -49,7 +49,6 @@ final class TimerRunViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .appWhite
     configureUI()
     configureLayout()
     loadData()
@@ -72,6 +71,7 @@ final class TimerRunViewController: UIViewController {
   // MARK: - configureUI
 
   private func configureUI() {
+    view.backgroundColor = .appWhite
     view.addSubview(rootStack)
   }
 

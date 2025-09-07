@@ -11,6 +11,8 @@ import Then
 import UIKit
 
 final class ButtonSectionView: UIView {
+  // MARK: - Components
+
   private let hStackView = UIStackView().then {
     $0.axis = .horizontal
     $0.spacing = 16
@@ -32,6 +34,8 @@ final class ButtonSectionView: UIView {
     $0.clipsToBounds = true
   }
   
+  // MARK: - init
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureUI()
@@ -43,12 +47,16 @@ final class ButtonSectionView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: - configureUI
+
   private func configureUI() {
     backgroundColor = .appWhite
     addSubview(hStackView)
     [stopButton, startPauseButton].forEach { hStackView.addArrangedSubview($0) }
   }
   
+  // MARK: - configureLayout
+
   private func configureLayout() {
     hStackView.snp.makeConstraints {
       $0.centerX.equalToSuperview()

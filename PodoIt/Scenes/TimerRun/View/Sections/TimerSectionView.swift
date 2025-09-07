@@ -10,6 +10,7 @@ import Then
 import UIKit
 
 final class TimerSectionView: UIView {
+  // MARK: - Components
   private let vStackView = UIStackView().then {
     $0.axis = .vertical
     $0.alignment = .center
@@ -26,12 +27,12 @@ final class TimerSectionView: UIView {
     $0.contentMode = .scaleAspectFit
   }
 
-  private var testView = UIView()
-
   private var sessionTimeLabel = UILabel().then { // 목표 시간/달성 or 휴식 상태 Label
     $0.font = Typography.font(for: .labelMd(weight: .medium)).monospacedDigits()
     $0.textColor = .gray900
   }
+  
+  private var activeTimeContainerView = UIView()
 
   private(set) var activeTimerLabel = UILabel().then { // 공부,휴식 진행 시간 Label
     $0.text = "0:00:00"
@@ -40,12 +41,14 @@ final class TimerSectionView: UIView {
     $0.textAlignment = .center
   }
 
+  // MARK: - init
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureUI()
     configureLayout()
   }
 
+  // MARK: - layoutSubviews
   override func layoutSubviews() {
     super.layoutSubviews()
     layoutIfNeeded()
@@ -57,21 +60,23 @@ final class TimerSectionView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
 
+  // MARK: - configureUI
   private func configureUI() {
     backgroundColor = .appWhite
     addSubview(vStackView)
-    [sessionContainerView, testView].forEach { vStackView.addArrangedSubview($0) }
-    testView.addSubview(activeTimerLabel)
+    [sessionContainerView, activeTimeContainerView].forEach { vStackView.addArrangedSubview($0) }
+    activeTimeContainerView.addSubview(activeTimerLabel)
     [sessionIconImageView, sessionTimeLabel].forEach { sessionContainerView.addSubview($0) }
   }
 
+  // MARK: - configureLayout
   private func configureLayout() {
     vStackView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(8)
       $0.leading.trailing.equalToSuperview().inset(20)
     }
 
-    testView.snp.makeConstraints {
+    activeTimeContainerView.snp.makeConstraints {
       $0.height.equalTo(56)
       $0.centerX.equalToSuperview()
     }
