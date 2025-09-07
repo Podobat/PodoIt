@@ -8,7 +8,7 @@
 import UIKit
 
 extension String {
-    func limited(to maxLength: Int, addEllipsis: Bool = false) -> String {
+    func limited(to maxLength: Int, addEllipsis: Bool = true) -> String {
         guard self.count > maxLength else { return self }
         let prefixText = self.prefix(maxLength)
         return addEllipsis ? prefixText + "…" : String(prefixText)
