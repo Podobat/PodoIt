@@ -9,12 +9,6 @@ import Foundation
 import RxCocoa
 import RxSwift
 
-protocol StatsRepository {
-  func fetchDistinctCategories() throws -> [StatsCategoryModel]
-  func fetchStats(from start: Date, to end: Date, categoryName: String) throws -> [StatsModel]
-  func fetchLatestIcon(for categoryName: String) throws -> String?
-}
-
 final class StatsViewModel {
   let selectedDate = BehaviorRelay<Date>(value: Date()) // CalendarView.selectedDate 바인딩
   let selectedSegmentIndex = BehaviorRelay<Int>(value: 0) // 0=일간, 1=월간 (StatsSummaryView.segmentIndexChanged 바인딩)
