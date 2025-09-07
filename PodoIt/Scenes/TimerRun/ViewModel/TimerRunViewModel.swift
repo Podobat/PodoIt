@@ -35,9 +35,9 @@ final class TimerRunViewModel {
   private let disposeBag = DisposeBag()
   
   private(set) var state = TimerSessionState(
-    sessionStart: Date(),
-    stateStart: Date(),
-    isRunning: true,
+    studySessionStart: Date(),
+    intervalStart: Date(),
+    isStudying: true,
     totalStudySeconds: 0,
     totalRestSeconds: 0 // UserDefaults 써서 앱 껐다 켜졌을때 시간 계산에 사용됨. 그 전에는 사용 x
   )
@@ -113,10 +113,10 @@ final class TimerRunViewModel {
     
     let now = Date()
     // 이번 구간의 시간(현재 시간 - 현재 구간(공부/휴식))
-    let time = Int(now.timeIntervalSince(state.stateStart))
+    let time = Int(now.timeIntervalSince(state.intervalStart))
     
     // 상태에 따라서 시간 누적
-    if state.isRunning {
+    if state.isStudying {
       state.totalStudySeconds += time // 공부 시간 누적
       print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
     } else {
@@ -124,18 +124,18 @@ final class TimerRunViewModel {
       print("현재까지 총 휴식 시간: \(state.totalRestSeconds)")
     }
     
-    state.isRunning.toggle()
-    state.stateStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
-    isRunningRelay.accept(state.isRunning) // 변경된 상태 저장
+    state.isStudying.toggle()
+    state.intervalStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
+    isRunningRelay.accept(state.isStudying) // 변경된 상태 저장
   }
   
   /// 정지
   @MainActor
   func stop() {
     let now = Date()
-    let lastTime = Int(now.timeIntervalSince(state.stateStart))
+    let lastTime = Int(now.timeIntervalSince(state.intervalStart))
     
-    if state.isRunning {
+    if state.isStudying {
       state.totalStudySeconds += lastTime
     } else {
       // 혹시 필요할까 싶어서 총 휴식 시간도 누적계산
@@ -203,7 +203,7 @@ final class TimerRunViewModel {
     return tigger.withUnretained(self)
       .map { vm, _ in // 300초 - 휴식시간, 0
         let now = Date()
-        let elapsedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
+        let elapsedRestTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         // 매 섹션마다 휴식시간 5분으로 초기화
         // 300초(기본 값) - 이번 세션에 휴식중인 시간 + 추가된 휴식 시간(restAddSeconds), (음수라면 0으로 max)
         let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime + vm.restAddSeconds, 0)
@@ -219,7 +219,7 @@ final class TimerRunViewModel {
     return tick.withUnretained(self)
       .map { vm, _ in // now(현재) - stateStart(휴식 섹션 시작한 시간)
         let now = Date()
-        let elapsedRestTime = vm.state.isRunning ? 0 : Int(now.timeIntervalSince(vm.state.stateStart))
+        let elapsedRestTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart))
         let totalRestTime = min(elapsedRestTime, 1800) // 쉬는 시간 최대 30분(1800초)
         return TimerRunViewModel.formatMMSS(seconds: totalRestTime)
       }
@@ -263,7 +263,7 @@ extension TimerRunViewModel {
   // 최신의 총 공부 시간을 반환
   private func totalStudyTime(now: Date = Date()) -> (Int) {
     // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
-    let runningTime = state.isRunning ? Int(now.timeIntervalSince(state.stateStart)) : 0
+    let runningTime = state.isStudying ? Int(now.timeIntervalSince(state.intervalStart)) : 0
     // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
     let totalStudyTime = state.totalStudySeconds + runningTime
     return totalStudyTime
