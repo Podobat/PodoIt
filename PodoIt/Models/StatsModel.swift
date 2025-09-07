@@ -8,7 +8,6 @@
 import Foundation
 import SwiftData
 
-// Stats 모델
 @Model
 final class StatsModel: Hashable {
   var date: Date
