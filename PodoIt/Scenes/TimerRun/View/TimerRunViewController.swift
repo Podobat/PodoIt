@@ -32,14 +32,14 @@ final class TimerRunViewController: UIViewController {
 
   // MARK: - Components
 
-  private let headerView = HeaderSectionView()
-  private let animationView = AnimationSectionView()
-  private let timerView = TimerSectionView()
-  private let middleView = MiddleSectionView()
-  private let buttonBarView = ButtonSectionView()
+  private let headerSectionView = HeaderSectionView()
+  private let animationSectionView = AnimationSectionView()
+  private let timerSectionView = TimerSectionView()
+  private let progressRestSectionView = ProgressRestSectionView()
+  private let buttonSectionView = ButtonSectionView()
 
   private lazy var rootStack = UIStackView(arrangedSubviews: [
-    headerView, animationView, timerView, middleView, buttonBarView
+    headerSectionView, animationSectionView, timerSectionView, progressRestSectionView, buttonSectionView
   ]).then {
     $0.axis = .vertical
     $0.alignment = .fill
@@ -49,7 +49,6 @@ final class TimerRunViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .appWhite
     configureUI()
     configureLayout()
     loadData()
@@ -72,6 +71,7 @@ final class TimerRunViewController: UIViewController {
   // MARK: - configureUI
 
   private func configureUI() {
+    view.backgroundColor = .appWhite
     view.addSubview(rootStack)
   }
 
@@ -87,9 +87,9 @@ final class TimerRunViewController: UIViewController {
 
   /// Rx 바인딩 설정 (버튼 탭, 진행률 등)
   private func bind() {
-    let addOne = middleView.plusOneMinuteButtonTap.asSignal().map { RestAddCase.one }
-    let addFive = middleView.plusFiveMinuteButtonTap.asSignal().map { RestAddCase.five }
-    let addTen = middleView.plusTenMinuteButtonTap.asSignal().map { RestAddCase.ten }
+    let addOne = progressRestSectionView.plusOneMinuteButtonTap.asSignal().map { RestAddCase.one }
+    let addFive = progressRestSectionView.plusFiveMinuteButtonTap.asSignal().map { RestAddCase.five }
+    let addTen = progressRestSectionView.plusTenMinuteButtonTap.asSignal().map { RestAddCase.ten }
 
     // 세 스트림을 하나로 합침
     let restAddSignal = Signal.merge(addOne, addFive, addTen)
@@ -103,16 +103,16 @@ final class TimerRunViewController: UIViewController {
       .disposed(by: disposeBag)
 
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
-    buttonBarView.startPauseTap
+    buttonSectionView.startPauseTap
       .asDriver()
-      .throttle(.seconds(1)) // 0.5초 안에 여러번 눌러도 1번만 실행됨
+      .throttle(.seconds(1)) // 1초 안에 여러번 눌러도 1번만 실행됨
       .drive(with: self) { vc, _ in
         vc.viewModel.startAndPause()
       }
       .disposed(by: disposeBag)
 
     // stop 버튼 tap하여 중지
-    buttonBarView.stopButtonTap
+    buttonSectionView.stopButtonTap
       .asDriver()
       .drive(with: self) { vc, _ in
         PodoAlertController.presentStopTimerAlert(from: vc, onConfirm: {
@@ -125,17 +125,16 @@ final class TimerRunViewController: UIViewController {
     // progressBar 진행
     viewModel.progress
       .asObservable()
-      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
       .asDriver(onErrorJustReturn: 0.0)
       .drive(with: self) { vc, progress in
         if progress >= 0.9999 { // 반올림 생각해서
-          vc.middleView.updateProgressBar(progress: 1.0)
+          vc.progressRestSectionView.updateProgressBar(progress: 1.0)
         } else {
-          vc.middleView.progressBar.layoutIfNeeded() // 애니메이션 꼬임 방지용. 미리 레이아웃 최신상태로
+          vc.progressRestSectionView.progressBar.layoutIfNeeded() // 애니메이션 꼬임 방지용. 미리 레이아웃 최신상태로
           let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) // 선형으로 1초마다 애니메이션 객체 생성
           animator.addAnimations {
-            vc.middleView.progressBar.progress = progress // 매 틱 들어오는 진행률(progress) 값 바인딩
-            vc.middleView.progressBar.layoutIfNeeded() // 안하면 툭툭 끊김
+            vc.progressRestSectionView.progressBar.progress = progress // 매 틱 들어오는 진행률(progress) 값 바인딩
+            vc.progressRestSectionView.progressBar.layoutIfNeeded() // 안하면 툭툭 끊김
           }
           animator.startAnimation()
         }
@@ -145,23 +144,23 @@ final class TimerRunViewController: UIViewController {
     // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
     // combineLatest: 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
     Driver.combineLatest(
-      viewModel.isRunningDriver, // 공부/휴식 중 상태 (Bool)
+      viewModel.isStudyingDriver, // 공부/휴식 중 상태 (Bool)
       viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
+      viewModel.studyingTimeText, // 공부중인 시간 (H:MM:SS)
       viewModel.totalRestTimeText, // 총 "휴식 중인 시간" (MM:SS)
-      viewModel.restTimeText, // "남은 휴식시간" (기본 5분. MM:SS)
-      viewModel.runningTimeText // 공부중인 시간 (H:MM:SS)
+      viewModel.restingTimeText // "남은 휴식시간" (기본 5분. MM:SS)
     )
     .drive(with: self) { vc, data in
-      let (isRunning, goalTime, totalRestTime, restTime, runningTime) = data
+      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime) = data
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
-      vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
-      vc.middleView.updateIsHiddenView(isRunning: isRunning)
-      vc.animationView.updateStateImage(isRunning: isRunning)
+      vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
+      vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
+      vc.animationSectionView.updateStateImage(isStudying: isStudying)
 
-      if isRunning { // 공부중
-        vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)
+      if isStudying { // 공부중
+        vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)
       } else { // 휴식중
-        vc.timerView.updateRestTimeUI(restTime: restTime, totalRestTime: totalRestTime)
+        vc.timerSectionView.updateRestTimeUI(totalRestTime: totalRestTime, restingTime: restingTime)
       }
     }
     .disposed(by: disposeBag)
@@ -170,7 +169,7 @@ final class TimerRunViewController: UIViewController {
   // MARK: UI Configuration
 
   private func configureAll(timer: TimerModel) {
-    headerView.configure(model: timer)
+    headerSectionView.configure(model: timer)
   }
 
   deinit {
