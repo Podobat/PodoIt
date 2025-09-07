@@ -115,8 +115,10 @@ final class TimerRunViewController: UIViewController {
     buttonBarView.stopButtonTap
       .asDriver()
       .drive(with: self) { vc, _ in
-        vc.viewModel.stop()
-        vc.navigationController?.popViewController(animated: true) // pop되면서 interval도 중지
+        PodoAlertController.presentStopTimerAlert(from: vc, onConfirm: {
+          vc.viewModel.stop()
+          vc.navigationController?.popViewController(animated: true)
+        })
       }
       .disposed(by: disposeBag)
 
@@ -154,6 +156,7 @@ final class TimerRunViewController: UIViewController {
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
       vc.buttonBarView.updateStartPauseButtonImage(isRunning: isRunning)
       vc.middleView.updateIsHiddenView(isRunning: isRunning)
+      vc.animationView.updateStateImage(isRunning: isRunning)
 
       if isRunning { // 공부중
         vc.timerView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)
