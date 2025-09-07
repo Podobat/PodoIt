@@ -36,11 +36,36 @@ final class PodoAlertController: UIViewController {
       message: message,
       cancelTitle: cancelTitle,
       confirmTitle: confirmTitle,
+      confirmColor: .error,
       onConfirm: onConfirm
     )
     vc.modalPresentationStyle = .overFullScreen // 반투명
     vc.modalTransitionStyle = .crossDissolve // fase in/out
     presenter.present(vc, animated: false) // 알럿 표시
+  }
+
+  static func presentStopTimerAlert(
+    from presenter: UIViewController,
+    title: String = """
+    아직 목표 시간을 채우지 않았어요.
+    그래도 종료할까요?
+    """,
+    message: String = "1분 이상 집중한 시간은 그대로 기록돼요.",
+    cancelTitle: String = "계속하기",
+    confirmTitle: String = "그만두기",
+    onConfirm: @escaping () -> Void
+  ) {
+    let vc = PodoAlertController(
+      title: title,
+      message: message,
+      cancelTitle: cancelTitle,
+      confirmTitle: confirmTitle,
+      confirmColor: .primary600,
+      onConfirm: onConfirm
+    )
+    vc.modalPresentationStyle = .overFullScreen
+    vc.modalTransitionStyle = .crossDissolve
+    presenter.present(vc, animated: true)
   }
 
   // MARK: - Init
@@ -51,13 +76,14 @@ final class PodoAlertController: UIViewController {
        message: String,
        cancelTitle: String,
        confirmTitle: String,
+       confirmColor: UIColor,
        onConfirm: @escaping () -> Void)
   {
     self.confirmHandler = onConfirm
     super.init(nibName: nil, bundle: nil)
 
-    titleLabel.attributedText = Typography.attributed(title, style: .headingLg, color: .appBlack)
-    messageLabel.attributedText = Typography.attributed(message, style: .bodyLg(weight: .regular), color: .gray500)
+    titleLabel.attributedText = centered(Typography.attributed(title, style: .headingLg, color: .appBlack))
+    messageLabel.attributedText = centered(messageLabelTargetBolding(fullText: message, boldTarget: "1분 이상"))
 
     cancelButton.setAttributedTitle(
       Typography.attributed(cancelTitle, style: .labelLg(weight: .semibold), color: .gray900),
@@ -67,6 +93,7 @@ final class PodoAlertController: UIViewController {
       Typography.attributed(confirmTitle, style: .labelLg(weight: .semibold), color: .appWhite),
       for: .normal
     )
+    confirmButton.backgroundColor = confirmColor
   }
 
   @available(*, unavailable)
@@ -86,10 +113,12 @@ final class PodoAlertController: UIViewController {
     $0.clipsToBounds = true
   }
 
-  private let titleLabel = UILabel()
+  private let titleLabel = UILabel().then {
+    $0.numberOfLines = 0
+  }
+
   private let messageLabel = UILabel().then {
     $0.numberOfLines = 0
-    $0.textAlignment = .center
   }
 
   private let cancelButton = UIButton(type: .system).then {
@@ -99,7 +128,6 @@ final class PodoAlertController: UIViewController {
   }
 
   private let confirmButton = UIButton(type: .system).then {
-    $0.backgroundColor = .error
     $0.layer.cornerRadius = Metrics.buttonCornerRadius
     // $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
     $0.accessibilityIdentifier = "podoAlert.confirm"
@@ -211,5 +239,40 @@ final class PodoAlertController: UIViewController {
     animateOut { [weak self] in
       self?.dismiss(animated: false) { handler() }
     }
+  }
+}
+
+extension PodoAlertController {
+  private func centered(_ attr: NSAttributedString) -> NSAttributedString {
+    let m = NSMutableAttributedString(attributedString: attr)
+    let p = NSMutableParagraphStyle()
+    p.alignment = .center
+    p.lineBreakMode = .byWordWrapping
+    m.addAttribute(
+      .paragraphStyle,
+      value: p,
+      range: NSRange(location: 0, length: m.length)
+    )
+    return m
+  }
+
+  private func messageLabelTargetBolding(fullText: String, boldTarget: String) -> NSAttributedString {
+    // 기본 스타일은 기본 messageLabel의 Typography값으로 전체는 원 상태 유지
+    let base = Typography.attributed(
+      fullText,
+      style: .bodyLg(weight: .regular),
+      color: .gray500
+    )
+    // 스타일을 변경해주어야 하니 "가변"상태로 변경
+    let m = NSMutableAttributedString(attributedString: base)
+
+    // 원하는 일부 부분(target)만 볼드처리
+    if let range = fullText.range(of: boldTarget) { // boldTarget 구간만 가져옴
+      let ns = NSRange(range, in: fullText) // nsRange로 변환
+      // 원하는 구간만 ".bold"로 덮어쓰기 (다른 부분은 수정되지 않고 base상태)
+      let boldFont = Typography.font(for: .bodyLg(weight: .bold))
+      m.addAttribute(.font, value: boldFont, range: ns) // 가변으로 만들어준 m에다가 내가 원하는 구간(ns)에 bold(boldFont)처리를 해서 주입
+    }
+    return m
   }
 }
