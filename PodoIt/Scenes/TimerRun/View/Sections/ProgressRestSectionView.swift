@@ -1,5 +1,5 @@
 //
-//  MiddleSectionView.swift
+//  ProgressRestSectionView.swift
 //  PodoIt
 //
 //  Created by 서광용 on 8/28/25.
@@ -10,7 +10,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class MiddleSectionView: UIView {
+final class ProgressRestSectionView: UIView {
   // MARK: Components
 
   private let switchContainerView = UIView() // progressView, restButtonsView를 감싼 스택뷰
@@ -144,8 +144,8 @@ final class MiddleSectionView: UIView {
 
   // MARK: - isHidden Update
 
-  func updateIsHiddenView(isRunning: Bool) {
-    if isRunning { // 공부 중
+  func updateIsHiddenView(isStudying: Bool) {
+    if isStudying { // 공부 중
       progressView.isHidden = false
       restButtonsView.isHidden = true
     } else { // 휴식 중
@@ -155,7 +155,7 @@ final class MiddleSectionView: UIView {
   }
 }
 
-extension MiddleSectionView {
+extension ProgressRestSectionView {
   var plusOneMinuteButtonTap: ControlEvent<Void> { // +1분
     return plusOneMinuteButton.rx.tap
   }

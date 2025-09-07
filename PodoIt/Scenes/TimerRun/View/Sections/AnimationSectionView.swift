@@ -11,6 +11,7 @@ import UIKit
 
 final class AnimationSectionView: UIView {
   // MARK: - Components
+
   private let stateImageView = UIImageView().then {
     $0.image = UIImage(named: "focus")
     $0.contentMode = .scaleAspectFit // 비율 유지하면서 잘리지 않도록
@@ -21,6 +22,7 @@ final class AnimationSectionView: UIView {
   }
 
   // MARK: - init
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureUI()
@@ -33,11 +35,13 @@ final class AnimationSectionView: UIView {
   }
 
   // MARK: - configureUI
+
   private func configureUI() {
     addSubview(stateImageView)
   }
 
   // MARK: - configureLayout
+
   private func configureLayout() {
     stateImageView.snp.makeConstraints {
       $0.directionalEdges.equalToSuperview().inset(20)
@@ -45,8 +49,9 @@ final class AnimationSectionView: UIView {
   }
 
   // MARK: - 집중/휴식 상태에 따른 일러스트 변경
-  func updateStateImage(isRunning: Bool) {
-    if isRunning { // 공부 중
+
+  func updateStateImage(isStudying: Bool) {
+    if isStudying { // 공부 중
       stateImageView.image = UIImage(named: "focus")
     } else {
       stateImageView.image = UIImage(named: "rest")

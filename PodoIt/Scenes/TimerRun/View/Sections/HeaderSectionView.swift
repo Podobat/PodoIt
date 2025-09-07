@@ -10,6 +10,8 @@ import Then
 import UIKit
 
 final class HeaderSectionView: UIView {
+  // MARK: - Components
+
   private let hStackView = UIStackView().then {
     $0.axis = .horizontal
     $0.alignment = .center
@@ -30,6 +32,8 @@ final class HeaderSectionView: UIView {
     $0.setImage(UIImage(named: "alarm-clock"), for: .normal)
   }
   
+  // MARK: - init
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureUI()
@@ -41,18 +45,24 @@ final class HeaderSectionView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: - layoutSubviews
+
   override func layoutSubviews() {
     super.layoutSubviews()
     iconLabel.layoutIfNeeded()
     iconLabel.layer.cornerRadius = iconLabel.frame.width / 2
   }
   
+  // MARK: - configureUI
+
   private func configureUI() {
     addSubview(hStackView)
     [iconLabel, titleLabel].forEach { hStackView.addArrangedSubview($0) }
     addSubview(muteButton) // 터치영역 확장을 위해서 stackView에서 빼서 배치
   }
   
+  // MARK: - configureLayout
+
   private func configureLayout() {
     hStackView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(16)
@@ -71,6 +81,8 @@ final class HeaderSectionView: UIView {
     }
   }
   
+  // MARK: - configure(model: )
+
   func configure(model: TimerModel) {
     iconLabel.text = model.iconName
     titleLabel.attributedText = Typography.attributed(model.title, style: .bodyLg(weight: .semibold), color: .gray900)
