@@ -172,32 +172,29 @@ final class TimerRunViewModel {
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
   }
   
-  // MARK: - makeRestTimeText, makeTotalRestTimeText 중복 로직 리팩토링 예정
+  /// UI의 라벨에 바인딩할 "총 휴식중인 시간" 문자열 Driver 생성
+  private func makeTotalRestTimeText(tick: Observable<Int>) -> Driver<String> {
+    return tick.withUnretained(self)
+      .map { vm, _ in // now(현재) - stateStart(휴식 섹션 시작한 시간)
+        let now = Date()
+        let restIntervalTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart))
+        return TimerRunViewModel.formatMMSS(seconds: restIntervalTime)
+      }
+      .distinctUntilChanged()
+      .asDriver(onErrorJustReturn: "00:00")
+  }
 
   /// UI의 라벨에 바인딩할 "남은 휴식 시간" 문자열 Driver 생성
   private func makeRestTimeText(tigger: Observable<Void>) -> Driver<String> {
     return tigger.withUnretained(self)
       .map { vm, _ in // 300초 - 휴식시간, 0
         let now = Date()
-        let elapsedRestTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
+        let restIntervalTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         // 매 섹션마다 휴식시간 5분으로 초기화
         // 300초(기본 값) - 이번 세션에 휴식중인 시간 + 추가된 휴식 시간(restAddSeconds), (음수라면 0으로 max)
-        let remainingRestTime = max(vm.defaultRestSeconds - elapsedRestTime + vm.restAddSeconds, 0)
+        let remainingRestTime = max(vm.defaultRestSeconds - restIntervalTime + vm.restAddSeconds, 0)
         // TODO: 최대 휴식 시간을 30분으로 잡기. (로직이 생각이 전혀 안나서 못막은 상태.. 정 안되면 시간부터 내려가는 식으로..)
         return TimerRunViewModel.formatMMSS(seconds: remainingRestTime)
-      }
-      .distinctUntilChanged()
-      .asDriver(onErrorJustReturn: "00:00")
-  }
-  
-  /// UI의 라벨에 바인딩할 "총 휴식중인 시간" 문자열 Driver 생성
-  private func makeTotalRestTimeText(tick: Observable<Int>) -> Driver<String> {
-    return tick.withUnretained(self)
-      .map { vm, _ in // now(현재) - stateStart(휴식 섹션 시작한 시간)
-        let now = Date()
-        let elapsedRestTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart))
-        let totalRestTime = min(elapsedRestTime, 1800) // 쉬는 시간 최대 30분(1800초)
-        return TimerRunViewModel.formatMMSS(seconds: totalRestTime)
       }
       .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "00:00")
@@ -255,9 +252,9 @@ extension TimerRunViewModel {
   /// - 1초마다 바뀌는 현재의 공부 시간이 필요할때 사용
   private func totalStudyTime(now: Date = Date()) -> (Int) {
     // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
-    let runningTime = state.isStudying ? Int(now.timeIntervalSince(state.intervalStart)) : 0
+    let studyIntervalTime = state.isStudying ? Int(now.timeIntervalSince(state.intervalStart)) : 0
     // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
-    let totalStudyTime = state.totalStudySeconds + runningTime
+    let totalStudyTime = state.totalStudySeconds + studyIntervalTime
     return totalStudyTime
   }
 }
