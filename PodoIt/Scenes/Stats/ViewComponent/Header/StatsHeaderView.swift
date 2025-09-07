@@ -10,31 +10,37 @@ import Then
 import UIKit
 
 final class StatsHeaderView: UIView {
-  private enum Layout {
+  // MARK: - Metrics
+
+  private enum Metrics {
     static let horizontalPadding: CGFloat = 20
     static let verticalPadding: CGFloat = 16
+    static let titleImageSpacing: CGFloat = 4
+    static let titleMaxLength: Int = 8
   }
 
-  private let container = PaddedContainerView(horizontal: Layout.horizontalPadding, vertical: Layout.verticalPadding).then {
+  // MARK: - Properties
+
+  private let container = PaddedContainerView(horizontal: Metrics.horizontalPadding, vertical: Metrics.verticalPadding).then {
     $0.backgroundColor = .appWhite
   }
 
   let categoryButton = UIButton(type: .system).then {
-    // 타이틀
     $0.setTitle("전체", for: .normal)
     $0.titleLabel?.font = Typography.font(for: .headingMd)
     $0.setTitleColor(.appBlack, for: .normal)
-    // 버튼 style
     $0.backgroundColor = .appWhite
     // 버튼 이미지 설정
-    let image = UIImage(named: "chevron-down")?.withRenderingMode(.alwaysTemplate)
+    let image = UIImage.chevronDown.withRenderingMode(.alwaysTemplate)
     $0.setImage(image, for: .normal)
     $0.tintColor = .appBlack
-    // 텍스트 오른쪽, 이미지 왼쪽 기본 동작을 반대로
+    // 텍스트 오른쪽, 이미지 왼쪽
     $0.semanticContentAttribute = .forceRightToLeft
     // 텍스트와 이미지 간 간격
-    $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 0)
+    $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: Metrics.titleImageSpacing, bottom: 0, right: 0)
   }
+
+  // MARK: - Init
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -46,14 +52,16 @@ final class StatsHeaderView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
 
+  // MARK: - Methods
+
   private func configureUI() {
     setupView()
     setupConstraints()
   }
 
   private func setupView() {
-    [container].forEach { addSubview($0) }
-    [categoryButton].forEach { container.contentView.addSubview($0) }
+    addSubview(container)
+    container.contentView.addSubview(categoryButton)
   }
 
   private func setupConstraints() {
@@ -67,11 +75,17 @@ final class StatsHeaderView: UIView {
     }
   }
 
-  func updateCategory(_ category: StatsCategoryModel) {
+  // 카테고리 제목 생성
+  private func makeTitle(for category: StatsCategoryModel) -> String {
     if let icon = category.icon {
-      categoryButton.setTitle("\(icon) " + "\(category.name)".limited(to: 8, addEllipsis: true), for: .normal)
+      return "\(icon) " + category.name.limited(to: Metrics.titleMaxLength)
     } else {
-      categoryButton.setTitle(category.name, for: .normal)
+      return category.name
     }
+  }
+
+  // 카테고리 갱신
+  func updateCategory(_ category: StatsCategoryModel) {
+    categoryButton.setTitle(makeTitle(for: category), for: .normal)
   }
 }
