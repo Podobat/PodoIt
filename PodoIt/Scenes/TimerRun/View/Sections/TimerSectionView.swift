@@ -11,6 +11,7 @@ import UIKit
 
 final class TimerSectionView: UIView {
   // MARK: - Components
+
   private let vStackView = UIStackView().then {
     $0.axis = .vertical
     $0.alignment = .center
@@ -31,7 +32,7 @@ final class TimerSectionView: UIView {
     $0.font = Typography.font(for: .labelMd(weight: .medium)).monospacedDigits()
     $0.textColor = .gray900
   }
-  
+
   private var activeTimeContainerView = UIView()
 
   private(set) var activeTimerLabel = UILabel().then { // 공부,휴식 진행 시간 Label
@@ -42,6 +43,7 @@ final class TimerSectionView: UIView {
   }
 
   // MARK: - init
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureUI()
@@ -49,6 +51,7 @@ final class TimerSectionView: UIView {
   }
 
   // MARK: - layoutSubviews
+
   override func layoutSubviews() {
     super.layoutSubviews()
     layoutIfNeeded()
@@ -61,6 +64,7 @@ final class TimerSectionView: UIView {
   }
 
   // MARK: - configureUI
+
   private func configureUI() {
     backgroundColor = .appWhite
     addSubview(vStackView)
@@ -70,6 +74,7 @@ final class TimerSectionView: UIView {
   }
 
   // MARK: - configureLayout
+
   private func configureLayout() {
     vStackView.snp.makeConstraints {
       $0.top.bottom.equalToSuperview().inset(8)
@@ -102,10 +107,10 @@ final class TimerSectionView: UIView {
 
   // TODO: VM에서 상태 판정해서 enum으로 묶어서 case로 돌려주도록 리팩토링
   /// 공부 중. 목표시간 달성 시 UI 업데이트
-  func updateGoalTimeUI(goalTime: String, runningTime: String) {
+  func updateGoalTimeUI(goalTime: String, studyingTime: String) {
     sessionTimeLabel.text = goalTime // 조건 없이 계속해서 줄어드는 타이머 String값 바인딩
     activeTimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
-    activeTimerLabel.text = runningTime
+    activeTimerLabel.text = studyingTime
     if goalTime == "00:00" { // 공부 목표 시간에 달성했을 경우, 화면 업데이트
       sessionContainerView.backgroundColor = .primary50
       sessionIconImageView.image = UIImage(named: "circle-check")
@@ -120,16 +125,16 @@ final class TimerSectionView: UIView {
   }
 
   /// 휴식 중. 휴식시간이 끝나는것을 기준으로 UI 업데이트
-  func updateRestTimeUI(restTime: String, totalRestTime: String) {
+  func updateRestTimeUI(totalRestTime: String, restingTime: String) {
     sessionIconImageView.image = UIImage(named: "cup")
-    if restTime == "00:00" { // 휴식 시간이 끝났을 경우
+    if restingTime == "00:00" { // 휴식 시간이 끝났을 경우
       activeTimerLabel.text = "휴식 시간이 끝났어요"
       activeTimerLabel.font = Typography.font(for: .displayMd(weight: .semibold)).withSize(32).monospacedDigits()
       sessionContainerView.backgroundColor = .error.withAlphaComponent(0.08) // 투명도 8%
       sessionIconImageView.tintColor = .error
       sessionTimeLabel.textColor = .error
     } else { // 휴식 시간이 남아있을 경우
-      activeTimerLabel.text = restTime
+      activeTimerLabel.text = restingTime
       activeTimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
       sessionTimeLabel.text = totalRestTime
       sessionContainerView.backgroundColor = .green100

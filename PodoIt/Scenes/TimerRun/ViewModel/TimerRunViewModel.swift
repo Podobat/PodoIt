@@ -43,9 +43,9 @@ final class TimerRunViewModel {
   )
   
   // isRunningRelay가 값이 바뀔 때마다 이벤트 방출
-  private let isRunningRelay = BehaviorRelay<Bool>(value: true) // accept로 변경 가능하니 노출 x
-  var isRunningDriver: Driver<Bool> { // UI 바인딩용. 호출때마다 Relay를 Driver로 감싼 스트림 반환
-    isRunningRelay.asDriver()
+  private let isStudyingRelay = BehaviorRelay<Bool>(value: true) // accept로 변경 가능하니 노출 x
+  var isStudyingDriver: Driver<Bool> { // UI 바인딩용. 호출때마다 Relay를 Driver로 감싼 스트림 반환
+    isStudyingRelay.asDriver()
   }
 
   private(set) var goalTime: Int = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
@@ -71,10 +71,10 @@ final class TimerRunViewModel {
   // MARK: - Outputs (UI 바인딩용 Driver)
 
   lazy var goalTimeText: Driver<String> = makeGoalTimeText(tick: tick) // 공부 목표시간 (MM:SS)
-  lazy var runningTimeText: Driver<String> = makeRunningTimeText(tick: tick) // 공부중인 시간 (H:MM:SS)
+  lazy var studyingTimeText: Driver<String> = makeStudyingTimeText(tick: tick) // 공부중인 시간 (H:MM:SS)
 
   lazy var totalRestTimeText: Driver<String> = makeTotalRestTimeText(tick: tick) // 총 "휴식 중인 시간"
-  lazy var restTimeText: Driver<String> = makeRestTimeText(tigger: restTimeUpdateTrigger) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
+  lazy var restingTimeText: Driver<String> = makeRestingTimeText(tigger: restTimeUpdateTrigger) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
 
   lazy var progress: Driver<Float> = makeProgress(tick: tick) // progress 진행률 방출
   
@@ -110,7 +110,7 @@ final class TimerRunViewModel {
     addIntervalTime() // 현재 구간 기준으로 총 공부/휴식 시간 저장
     state.isStudying.toggle()
     state.intervalStart = Date() // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
-    isRunningRelay.accept(state.isStudying) // 변경된 상태 저장
+    isStudyingRelay.accept(state.isStudying) // 변경된 상태 저장
   }
   
   /// 정지
@@ -161,7 +161,7 @@ final class TimerRunViewModel {
   }
   
   /// UI의 라벨에 바인딩할 공부시간 문자열 Driver 생성
-  private func makeRunningTimeText(tick: Observable<Int>) -> Driver<String> {
+  private func makeStudyingTimeText(tick: Observable<Int>) -> Driver<String> {
     return tick.withUnretained(self)
       .map { vm, _ in
         let totalStudyTime = vm.totalStudyTime()
@@ -185,7 +185,7 @@ final class TimerRunViewModel {
   }
 
   /// UI의 라벨에 바인딩할 "남은 휴식 시간" 문자열 Driver 생성
-  private func makeRestTimeText(tigger: Observable<Void>) -> Driver<String> {
+  private func makeRestingTimeText(tigger: Observable<Void>) -> Driver<String> {
     return tigger.withUnretained(self)
       .map { vm, _ in // 300초 - 휴식시간, 0
         let now = Date()
@@ -193,7 +193,6 @@ final class TimerRunViewModel {
         // 매 섹션마다 휴식시간 5분으로 초기화
         // 300초(기본 값) - 이번 세션에 휴식중인 시간 + 추가된 휴식 시간(restAddSeconds), (음수라면 0으로 max)
         let remainingRestTime = max(vm.defaultRestSeconds - restIntervalTime + vm.restAddSeconds, 0)
-        // TODO: 최대 휴식 시간을 30분으로 잡기. (로직이 생각이 전혀 안나서 못막은 상태.. 정 안되면 시간부터 내려가는 식으로..)
         return TimerRunViewModel.formatMMSS(seconds: remainingRestTime)
       }
       .distinctUntilChanged()

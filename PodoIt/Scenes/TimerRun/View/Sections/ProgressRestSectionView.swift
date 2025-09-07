@@ -144,8 +144,8 @@ final class ProgressRestSectionView: UIView {
 
   // MARK: - isHidden Update
 
-  func updateIsHiddenView(isRunning: Bool) {
-    if isRunning { // 공부 중
+  func updateIsHiddenView(isStudying: Bool) {
+    if isStudying { // 공부 중
       progressView.isHidden = false
       restButtonsView.isHidden = true
     } else { // 휴식 중

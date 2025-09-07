@@ -50,8 +50,8 @@ final class AnimationSectionView: UIView {
 
   // MARK: - 집중/휴식 상태에 따른 일러스트 변경
 
-  func updateStateImage(isRunning: Bool) {
-    if isRunning { // 공부 중
+  func updateStateImage(isStudying: Bool) {
+    if isStudying { // 공부 중
       stateImageView.image = UIImage(named: "focus")
     } else {
       stateImageView.image = UIImage(named: "rest")

@@ -105,7 +105,7 @@ final class TimerRunViewController: UIViewController {
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonSectionView.startPauseTap
       .asDriver()
-      .throttle(.seconds(1)) // 0.5초 안에 여러번 눌러도 1번만 실행됨
+      .throttle(.seconds(1)) // 1초 안에 여러번 눌러도 1번만 실행됨
       .drive(with: self) { vc, _ in
         vc.viewModel.startAndPause()
       }
@@ -125,7 +125,6 @@ final class TimerRunViewController: UIViewController {
     // progressBar 진행
     viewModel.progress
       .asObservable()
-      .take(until: rx.methodInvoked(#selector(UIViewController.viewWillDisappear(_:))))
       .asDriver(onErrorJustReturn: 0.0)
       .drive(with: self) { vc, progress in
         if progress >= 0.9999 { // 반올림 생각해서
@@ -145,23 +144,23 @@ final class TimerRunViewController: UIViewController {
     // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
     // combineLatest: 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
     Driver.combineLatest(
-      viewModel.isRunningDriver, // 공부/휴식 중 상태 (Bool)
+      viewModel.isStudyingDriver, // 공부/휴식 중 상태 (Bool)
       viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
+      viewModel.studyingTimeText, // 공부중인 시간 (H:MM:SS)
       viewModel.totalRestTimeText, // 총 "휴식 중인 시간" (MM:SS)
-      viewModel.restTimeText, // "남은 휴식시간" (기본 5분. MM:SS)
-      viewModel.runningTimeText // 공부중인 시간 (H:MM:SS)
+      viewModel.restingTimeText // "남은 휴식시간" (기본 5분. MM:SS)
     )
     .drive(with: self) { vc, data in
-      let (isRunning, goalTime, totalRestTime, restTime, runningTime) = data
+      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime) = data
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
-      vc.buttonSectionView.updateStartPauseButtonImage(isRunning: isRunning)
-      vc.progressRestSectionView.updateIsHiddenView(isRunning: isRunning)
-      vc.animationSectionView.updateStateImage(isRunning: isRunning)
+      vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
+      vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
+      vc.animationSectionView.updateStateImage(isStudying: isStudying)
 
-      if isRunning { // 공부중
-        vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, runningTime: runningTime)
+      if isStudying { // 공부중
+        vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)
       } else { // 휴식중
-        vc.timerSectionView.updateRestTimeUI(restTime: restTime, totalRestTime: totalRestTime)
+        vc.timerSectionView.updateRestTimeUI(totalRestTime: totalRestTime, restingTime: restingTime)
       }
     }
     .disposed(by: disposeBag)
