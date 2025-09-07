@@ -47,11 +47,9 @@ final class TimerRunViewModel {
   var isRunningDriver: Driver<Bool> { // UI 바인딩용. 호출때마다 Relay를 Driver로 감싼 스트림 반환
     isRunningRelay.asDriver()
   }
-  
-  // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
-  private(set) var goalTime: Int = 0
+
+  private(set) var goalTime: Int = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
   private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
-  private let restTimeLimit = 1800 // 휴식시간 최대 1800초 제한
   var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   // 버튼/상태 변화시에 즉시 재계산을 위함
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
@@ -109,38 +107,16 @@ final class TimerRunViewModel {
   /// 시작/일시정지 버튼 토글
   func startAndPause() {
     // 여기에서 타이머 작동 로직
-    // isRunning: Bool의 상태값을 기준으로, start/pause 상태로 관리
-    
-    let now = Date()
-    // 이번 구간의 시간(현재 시간 - 현재 구간(공부/휴식))
-    let time = Int(now.timeIntervalSince(state.intervalStart))
-    
-    // 상태에 따라서 시간 누적
-    if state.isStudying {
-      state.totalStudySeconds += time // 공부 시간 누적
-      print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
-    } else {
-      state.totalRestSeconds += time // 휴식 시간 누적
-      print("현재까지 총 휴식 시간: \(state.totalRestSeconds)")
-    }
-    
+    addIntervalTime() // 현재 구간 기준으로 총 공부/휴식 시간 저장
     state.isStudying.toggle()
-    state.intervalStart = now // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
+    state.intervalStart = Date() // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
     isRunningRelay.accept(state.isStudying) // 변경된 상태 저장
   }
   
   /// 정지
   @MainActor
   func stop() {
-    let now = Date()
-    let lastTime = Int(now.timeIntervalSince(state.intervalStart))
-    
-    if state.isStudying {
-      state.totalStudySeconds += lastTime
-    } else {
-      // 혹시 필요할까 싶어서 총 휴식 시간도 누적계산
-      state.totalRestSeconds += lastTime
-    }
+    addIntervalTime()
     // 총 공부시간이 60초 이상일 경우에만 save()
     guard state.totalStudySeconds > 59 else { return }
     save()
@@ -260,7 +236,23 @@ final class TimerRunViewModel {
 }
 
 extension TimerRunViewModel {
-  // 최신의 총 공부 시간을 반환
+  /// 현재 구간(state.intervalStart 기준)의 경과 시간을 누적
+  /// - 총 공부/휴식 시간을 저장
+  private func addIntervalTime(now: Date = Date()) {
+    let intervalTime = Int(now.timeIntervalSince(state.intervalStart))
+    
+    // 상태에 따라서 시간 누적
+    if state.isStudying {
+      state.totalStudySeconds += intervalTime // 공부 시간 누적
+      print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
+    } else {
+      state.totalRestSeconds += intervalTime // 휴식 시간 누적
+      print("현재까지 총 휴식 시간: \(state.totalRestSeconds)")
+    }
+  }
+  
+  /// 최신의 총 공부 시간을 반환
+  /// - 1초마다 바뀌는 현재의 공부 시간이 필요할때 사용
   private func totalStudyTime(now: Date = Date()) -> (Int) {
     // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
     let runningTime = state.isStudying ? Int(now.timeIntervalSince(state.intervalStart)) : 0
