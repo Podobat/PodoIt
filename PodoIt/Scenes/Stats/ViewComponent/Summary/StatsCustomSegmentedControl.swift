@@ -182,7 +182,7 @@ final class StatsCustomSegmentedControl: UIView {
       segment.rx.controlEvent(.touchUpInside)
         .map { i }
         .throttle(.milliseconds(200), scheduler: MainScheduler.instance)
-        .subscribe(onNext: { [weak self] index in
+        .subscribe(onNext: { [weak self] _ in
           self?.setSelectedIndex(i, animated: true) // 선택 index 전달해서 선택 함수 실행
         })
         .disposed(by: disposeBag)
