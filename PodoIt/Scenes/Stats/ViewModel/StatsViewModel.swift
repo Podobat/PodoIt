@@ -10,168 +10,51 @@ import RxCocoa
 import RxSwift
 
 final class StatsViewModel {
-  let selectedDate = BehaviorRelay<Date>(value: Date()) // CalendarView.selectedDate 바인딩
-  let selectedSegmentIndex = BehaviorRelay<Int>(value: 0) // 0=일간, 1=월간 (StatsSummaryView.segmentIndexChanged 바인딩)
+  // MARK: - Inputs
 
-  // Outputs
+  let selectedDate = BehaviorRelay<Date>(value: Date()) // 캘린더에서 고른 날짜
+  let selectedSegmentIndex = BehaviorRelay<Int>(value: 0) // 탭바 일간/월간
+
+  // MARK: - Outputs
+
   let categories = BehaviorRelay<[StatsCategoryModel]>(value: [.all])
   let selectedCategory = BehaviorRelay<StatsCategoryModel>(value: .all)
-  let errorMessage = PublishRelay<String>()
+  private(set) lazy var summary: Driver<SummaryUI> = buildSummary()
 
-  lazy var summary: Driver<SummaryUI> = self.buildSummary()
+  // MARK: - Private
 
   private let repo: StatsRepository
-  private let disposeBag = DisposeBag()
+  private let bag = DisposeBag()
+  private static let empty = SummaryUI(items: [], totalText: "0분")
 
   init(repo: StatsRepository = SwiftDataManager.shared) {
     self.repo = repo
 
-    // 기존 알림 구독은 그대로 유지
     NotificationCenter.default.rx.notification(.statsDidChange)
-      .subscribe(onNext: { [weak self] _ in
-        self?.reloadCategories()
-      })
-      .disposed(by: disposeBag)
-
-    // 저장/변경 시 요약도 재계산
-    let refresh = NotificationCenter.default.rx
-      .notification(.statsDidChange)
-      .map { _ in () }
-      .startWith(()) // 최초 1회 트리거
-
-    // 카테고리/날짜/세그/리프레시 → READ → 집계
-    summary = Observable
-      .combineLatest(selectedCategory, selectedDate, selectedSegmentIndex, refresh)
-      .observe(on: MainScheduler.instance) // SwiftData 메인 스레드 안전
-      .map { [weak self] category, date, seg, _ -> SummaryUI in
-        guard let self else { return .init(items: [], totalText: "0분") }
-        let (start, end) = (seg == 0) ? self.dayRange(date) : self.monthRange(date)
-        do {
-          let rows = try self.repo.fetchStats(from: start, to: end, categoryName: category.name)
-          return self.aggregate(rows: rows, categoryName: category.name)
-        } catch {
-          self.errorMessage.accept("데이터를 불러오지 못했습니다.")
-          return .init(items: [], totalText: "0분")
-        }
-      }
-      .asDriver(onErrorJustReturn: .init(items: [], totalText: "0분"))
+      .observe(on: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] _ in self?.reloadCategories() })
+      .disposed(by: bag)
   }
 
-  // 화면 최초 로드 시 호출
-  func viewDidLoad() {
-    do {
-      let list = try repo.fetchDistinctCategories()
-      categories.accept(list.isEmpty ? [.all] : list)
-      // 초기 선택값은 항상 .all
-      selectedCategory.accept(.all)
-    } catch {
-      errorMessage.accept("카테고리를 불러오지 못했습니다.")
-    }
-  }
+  func viewDidLoad() { reloadCategories() }
+  func didSelect(category: StatsCategoryModel) { selectedCategory.accept(category) }
 
-  // 시트에서 항목 선택 시 호출
-  func didSelect(category: StatsCategoryModel) {
-    selectedCategory.accept(category)
-  }
+  // MARK: - Category
 
-  // 카테고리 갱신
   private func reloadCategories() {
-    do {
-      let list = try repo.fetchDistinctCategories()
-      categories.accept(list.isEmpty ? [.all] : list)
-      if !categories.value.contains(selectedCategory.value) {
-        selectedCategory.accept(.all)
-      }
-    } catch {
-      errorMessage.accept("카테고리를 불러오지 못했습니다.")
+    let list = (try? repo.fetchDistinctCategories()) ?? []
+    let current = list.isEmpty ? [.all] : list
+    categories.accept(current)
+
+    // 현재 선택된 카테고리가 사라졌으면 "전체"로 복구
+    if !current.contains(selectedCategory.value) {
+      selectedCategory.accept(.all)
     }
   }
 
-  // 집계 (전체=카테고리별, 특정=단일)
-  private func aggregate(rows: [StatsModel], categoryName: String) -> SummaryUI {
-    if categoryName == "전체" {
-      // 1) 기간 필터된 rows로 초 합계만 먼저 만든다
-      var bucket: [String: Int] = [:] // category -> total seconds
-      for r in rows {
-        bucket[r.category, default: 0] += parseHMS(r.time)
-      }
-
-      // 2) 각 카테고리의 "전역 최신" 아이콘으로 치환
-      var items: [StatsSummaryModel] = []
-      for (name, sec) in bucket {
-        let latestIcon = (try? repo.fetchLatestIcon(for: name)) ?? nil
-        let icon = latestIcon ?? ""
-        items.append(.init(icon: icon, title: name, stats: formatHM(sec)))
-      }
-
-      // 3) 정렬 + totalText
-      items.sort { parseHM($0.stats) > parseHM($1.stats) }
-      let total = bucket.values.reduce(0, +)
-      return .init(items: items, totalText: formatHM(total))
-    } else {
-      // 특정 카테고리
-      if rows.isEmpty { return .init(items: [], totalText: "0분") }
-
-      let total = rows.reduce(0) { $0 + parseHMS($1.time) }
-      // 전역 최신 아이콘으로 교체
-      let latestIcon = (try? repo.fetchLatestIcon(for: categoryName)) ?? nil
-      let icon = latestIcon ?? "🟣"
-
-      let item = StatsSummaryModel(icon: icon, title: categoryName, stats: formatHM(total))
-      return .init(items: [item], totalText: formatHM(total))
-    }
-  }
-
-  // 기간 헬퍼
-  private func dayRange(_ date: Date, cal: Calendar = .current) -> (Date, Date) {
-    let start = cal.startOfDay(for: date)
-    let end = cal.date(byAdding: .day, value: 1, to: start)!
-    return (start, end)
-  }
-
-  private func monthRange(_ date: Date, cal: Calendar = .current) -> (Date, Date) {
-    let comps = cal.dateComponents([.year, .month], from: date)
-    let start = cal.date(from: comps)!
-    let end = cal.date(byAdding: .month, value: 1, to: start)!
-    return (start, end)
-  }
-
-  // 포맷/파서
-  private func parseHMS(_ s: String) -> Int { // "h:mm:ss" → 초
-    let p = s.split(separator: ":").map { Int($0) ?? 0 }
-    guard p.count == 3 else { return 0 }
-    return p[0] * 3600 + p[1] * 60 + p[2]
-  }
-
-  private func formatHM(_ sec: Int) -> String {
-    let h = sec / 3600
-    let m = (sec % 3600) / 60
-
-    if h == 0 {
-      // 시간 없음 → 분만 출력
-      return "\(m)분"
-    } else {
-      // 시간 있음 → 분은 항상 2자리
-      return String(format: "%d시간 %02d분", h, m)
-    }
-  }
-
-  private func parseHM(_ s: String) -> Int { // "X시간 Y분" → 초 (정렬용)
-    var h = 0, m = 0
-    if let hr = s.range(of: "시간") {
-      h = Int(s[..<hr.lowerBound].trimmingCharacters(in: .whitespaces)) ?? 0
-      let after = s[hr.upperBound...]
-      if let mr = after.range(of: "분") {
-        m = Int(after[..<mr.lowerBound].trimmingCharacters(in: .whitespaces)) ?? 0
-      }
-    } else if let mr = s.range(of: "분") {
-      m = Int(s[..<mr.lowerBound].trimmingCharacters(in: .whitespaces)) ?? 0
-    }
-    return h * 3600 + m * 60
-  }
+  // MARK: - Summary
 
   private func buildSummary() -> Driver<SummaryUI> {
-    // 저장되면 즉시 재조회
     let refresh = NotificationCenter.default.rx
       .notification(.statsDidChange)
       .map { _ in () }
@@ -181,16 +64,102 @@ final class StatsViewModel {
       .combineLatest(selectedCategory, selectedDate, selectedSegmentIndex, refresh)
       .observe(on: MainScheduler.instance)
       .map { [weak self] category, date, seg, _ -> SummaryUI in
-        guard let self else { return .init(items: [], totalText: "0분") }
-        let (start, end) = (seg == 0) ? self.dayRange(date) : self.monthRange(date)
+        guard let self else { return Self.empty }
+        let period = self.makePeriod(date: date, segmentIndex: seg)
+
         do {
-          let rows = try self.repo.fetchStats(from: start, to: end, categoryName: category.name)
-          return self.aggregate(rows: rows, categoryName: category.name)
+          let rows = try self.repo.fetchStats(from: period.start, to: period.end, categoryName: category.name)
+          return self.makeSummary(from: rows, categoryName: category.name)
         } catch {
-          self.errorMessage.accept("데이터를 불러오지 못했습니다.")
-          return .init(items: [], totalText: "0분")
+          return Self.empty
         }
       }
-      .asDriver(onErrorJustReturn: .init(items: [], totalText: "0분"))
+      .asDriver(onErrorJustReturn: Self.empty)
+  }
+
+  // MARK: - Period
+
+  private struct Period { let start: Date; let end: Date }
+
+  private func makePeriod(date: Date, segmentIndex: Int, calendar: Calendar = .current) -> Period {
+    if segmentIndex == 0 { // 일간
+      let start = calendar.startOfDay(for: date)
+      let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start.addingTimeInterval(86400)
+      return Period(start: start, end: end)
+    } else { // 월간
+      let comps = calendar.dateComponents([.year, .month], from: date)
+      let monthStart = calendar.date(from: comps) ?? calendar.startOfDay(for: date)
+      let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) ?? monthStart.addingTimeInterval(86400)
+      return Period(start: monthStart, end: monthEnd)
+    }
+  }
+
+  // MARK: - Summary Stats
+
+  private func makeSummary(from rows: [StatsModel], categoryName: String) -> SummaryUI {
+    // 특정 카테고리
+    if categoryName != "전체" {
+      guard !rows.isEmpty else { return Self.empty }
+      let total = rows.reduce(0) { $0 + seconds(hms: $1.time) }
+      let icon = (try? repo.fetchLatestIcon(for: categoryName)) ?? "🟣"
+      let item = StatsSummaryModel(icon: icon, title: categoryName, stats: label(fromSeconds: total))
+      return SummaryUI(items: [item], totalText: label(fromSeconds: total))
+    }
+
+    // 전체: 카테고리별 합계
+    let grouped = Dictionary(grouping: rows, by: { $0.category })
+    var items: [StatsSummaryModel] = []
+    items.reserveCapacity(grouped.count)
+
+    for (name, list) in grouped {
+      let total = list.reduce(0) { $0 + seconds(hms: $1.time) }
+      let icon = (try? repo.fetchLatestIcon(for: name)) ?? ""
+      items.append(.init(icon: icon, title: name, stats: label(fromSeconds: total)))
+    }
+
+    items.sort { first, second in
+      let a = seconds(fromLabel: first.stats)
+      let b = seconds(fromLabel: second.stats)
+
+      if a != b {
+        return a > b // 시간 내림차순
+      }
+      return first.title.localizedStandardCompare(second.title) == .orderedAscending // 가나다순
+    }
+    let grandTotal = rows.reduce(0) { $0 + seconds(hms: $1.time) }
+    return SummaryUI(items: items, totalText: label(fromSeconds: grandTotal))
+  }
+
+  // MARK: - Time helpers
+
+  // "h:mm:ss" → 초
+  private func seconds(hms: String) -> Int {
+    let parts = hms.split(separator: ":").compactMap { Int($0) }
+    guard parts.count == 3 else { return 0 }
+    return parts[0] * 3600 + parts[1] * 60 + parts[2]
+  }
+
+  // 초 → "X시간 YY분" 또는 "M분"
+  private func label(fromSeconds s: Int) -> String {
+    let h = s / 3600
+    let m = (s % 3600) / 60
+    return h == 0 ? "\(m)분" : String(format: "%d시간 %02d분", h, m)
+  }
+
+  // "X시간 Y분" / "Y분" → 초
+  private func seconds(fromLabel text: String) -> Int {
+    if let hourRange = text.range(of: "시간") {
+      let h = Int(text[..<hourRange.lowerBound].trimmingCharacters(in: .whitespaces)) ?? 0
+      let after = text[hourRange.upperBound...]
+      let m = after
+        .split(separator: "분")
+        .first
+        .flatMap { Int($0.trimmingCharacters(in: .whitespaces)) } ?? 0
+      return h * 3600 + m * 60
+    } else if let minuteRange = text.range(of: "분") {
+      let m = Int(text[..<minuteRange.lowerBound].trimmingCharacters(in: .whitespaces)) ?? 0
+      return m * 60
+    }
+    return 0
   }
 }
