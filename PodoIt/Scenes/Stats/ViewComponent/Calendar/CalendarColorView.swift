@@ -12,7 +12,7 @@ import UIKit
 final class CalendarColorView: UIView {
   // MARK: - Metrics
 
-  private enum Layout {
+  private enum Metrics {
     static let horizontalPadding: CGFloat = 20
     static let verticalPadding: CGFloat = 8
     static let hStackSpacing: CGFloat = 12
@@ -21,13 +21,13 @@ final class CalendarColorView: UIView {
 
   // MARK: - Properties
 
-  private let container = PaddedContainerView(horizontal: Layout.horizontalPadding, vertical: Layout.verticalPadding).then {
+  private let container = PaddedContainerView(horizontal: Metrics.horizontalPadding, vertical: Metrics.verticalPadding).then {
     $0.backgroundColor = .appWhite
   }
 
   private lazy var hStack = UIStackView().then {
     $0.axis = .horizontal
-    $0.spacing = Layout.hStackSpacing
+    $0.spacing = Metrics.hStackSpacing
     $0.alignment = .center
     $0.distribution = .fill
   }
@@ -86,7 +86,7 @@ final class CalendarColorView: UIView {
     dividerView.snp.makeConstraints {
       $0.top.equalTo(container)
       $0.directionalHorizontalEdges.equalToSuperview()
-      $0.height.equalTo(Layout.dividerViewHeight)
+      $0.height.equalTo(Metrics.dividerViewHeight)
     }
 
     hStack.snp.makeConstraints {
@@ -99,7 +99,7 @@ final class CalendarColorView: UIView {
 final class CircleLabelView: UIView {
   // MARK: - Metrics
 
-  private enum Layout {
+  private enum Metrics {
     static let circleViewSize: CGFloat = 12
     static let stackSpacing: CGFloat = 4
     static let borderWidth: CGFloat = 1
@@ -128,11 +128,11 @@ final class CircleLabelView: UIView {
 
   private func setupCircle(color: UIColor, isSelected: Bool) {
     circleView.backgroundColor = color
-    circleView.layer.cornerRadius = Layout.circleViewSize / 2
+    circleView.layer.cornerRadius = Metrics.circleViewSize / 2
 
     if isSelected {
       circleView.layer.borderColor = UIColor.gray100.cgColor
-      circleView.layer.borderWidth = Layout.borderWidth
+      circleView.layer.borderWidth = Metrics.borderWidth
     }
   }
 
@@ -145,7 +145,7 @@ final class CircleLabelView: UIView {
   private func setupLayout() {
     let stack = UIStackView(arrangedSubviews: [circleView, label])
     stack.axis = .horizontal
-    stack.spacing = Layout.stackSpacing
+    stack.spacing = Metrics.stackSpacing
     stack.alignment = .center
 
     addSubview(stack)
@@ -153,6 +153,6 @@ final class CircleLabelView: UIView {
       $0.edges.equalToSuperview()
     }
 
-    circleView.snp.makeConstraints { $0.size.equalTo(Layout.circleViewSize) }
+    circleView.snp.makeConstraints { $0.size.equalTo(Metrics.circleViewSize) }
   }
 }
