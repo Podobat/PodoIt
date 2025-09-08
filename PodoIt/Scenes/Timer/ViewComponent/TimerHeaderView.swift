@@ -14,9 +14,16 @@ final class TimerHeaderView: UIView {
     static let horizontalPadding: CGFloat = 20
   }
 
-  private let dateLabel = UILabel.makeAttributed(
-    text: "8월 19일", style: .headingLg, color: .appBlack, alignment: .left
-  )
+  private let dateLabel: UILabel = {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ko_KR") // 한국어 로케일
+    formatter.dateFormat = "M월 d일"
+    let today = formatter.string(from: Date())
+
+    return UILabel.makeAttributed(
+      text: today, style: .headingLg, color: .appBlack, alignment: .left
+    )
+  }()
 
   private let dividerView = UIView().then {
     $0.backgroundColor = .gray100
