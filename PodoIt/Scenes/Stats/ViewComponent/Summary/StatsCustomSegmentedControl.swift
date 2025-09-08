@@ -101,7 +101,7 @@ final class SegmentHighlightLayer: CALayer {
     let radius = frame.height / 2
     cornerRadius = radius
     shadowPath = UIBezierPath(roundedRect: .init(origin: .zero, size: frame.size),
-                                cornerRadius: radius).cgPath
+                              cornerRadius: radius).cgPath
 
     if animated {
       CATransaction.begin()
@@ -111,7 +111,7 @@ final class SegmentHighlightLayer: CALayer {
       CATransaction.commit()
     } else {
       CATransaction.begin()
-      CATransaction.setDisableActions(true)  // 불필요한 암묵적 애니메이션 방지
+      CATransaction.setDisableActions(true) // 불필요한 암묵적 애니메이션 방지
       self.frame = frame
       CATransaction.commit()
     }
@@ -126,11 +126,12 @@ final class StatsCustomSegmentedControl: UIView {
   private let stackView = UIStackView()
   private var segments: [SegmentChipView] = []
   private let highlightLayer = SegmentHighlightLayer()
-  
+
   private var didLayoutOnce = false
 
   private(set) var selectedIndex: Int = 0
-  let tapIndexRelay = PublishRelay<Int>()
+  private let selectedIndexRelay = BehaviorRelay<Int>(value: 0)
+  var selectedIndexChanged: Observable<Int> { selectedIndexRelay.distinctUntilChanged() }
 
   private let disposeBag = DisposeBag()
 
@@ -182,8 +183,7 @@ final class StatsCustomSegmentedControl: UIView {
         .map { i }
         .throttle(.milliseconds(200), scheduler: MainScheduler.instance)
         .subscribe(onNext: { [weak self] index in
-          self?.setSelectedIndex(index, animated: true) // 선택 index 전달해서 선택 함수 실행
-          self?.tapIndexRelay.accept(index) // 외부로 선택 index 전달
+          self?.setSelectedIndex(i, animated: true) // 선택 index 전달해서 선택 함수 실행
         })
         .disposed(by: disposeBag)
     }
@@ -196,7 +196,7 @@ final class StatsCustomSegmentedControl: UIView {
     // highlightLayer 위치 업데이트
     highlightLayer.updateFrame(frame, animated: animated)
   }
-  
+
   // 이미 선택되어 있는 탭 불가
   private func updateInteractionStates() {
     for (i, chip) in segments.enumerated() {
@@ -216,5 +216,6 @@ final class StatsCustomSegmentedControl: UIView {
     // highlightLayer 위치 업데이트
     moveHighlight(for: segments[index], animated: animated)
     updateInteractionStates()
+    selectedIndexRelay.accept(index)
   }
 }
