@@ -14,16 +14,17 @@ final class TimerHeaderView: UIView {
     static let horizontalPadding: CGFloat = 20
   }
 
-  private let dateLabel: UILabel = {
+  private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "ko_KR") // 한국어 로케일
     formatter.dateFormat = "M월 d일"
-    let today = formatter.string(from: Date())
 
-    return UILabel.makeAttributed(
-      text: today, style: .headingLg, color: .appBlack, alignment: .left
-    )
+    return formatter
   }()
+
+  private let dateLabel = UILabel.makeAttributed(
+    text: "", style: .headingLg, color: .appBlack, alignment: .left
+  )
 
   private let dividerView = UIView().then {
     $0.backgroundColor = .gray100
@@ -41,6 +42,8 @@ final class TimerHeaderView: UIView {
     super.init(frame: frame)
     setupView()
     setupConstraints()
+    updateDate()
+    setupObservers()
   }
 
   @available(*, unavailable)
@@ -76,5 +79,54 @@ final class TimerHeaderView: UIView {
       $0.leading.equalToSuperview().offset(Layout.horizontalPadding)
       $0.bottom.equalToSuperview() // 전체 높이 계산
     }
+  }
+
+  // MARK: - Date Handling
+
+  private func updateDate() {
+    let today = TimerHeaderView.dateFormatter.string(from: Date())
+    dateLabel.attributedText = Typography.attributed(
+      today,
+      style: .headingLg,
+      color: .appBlack
+    )
+  }
+
+  private func setupObservers() {
+    // 자정 지나서 날짜 바뀔 때
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleDayChanged),
+      name: .NSCalendarDayChanged,
+      object: nil
+    )
+
+    // 시스템 시간대/시간 큰 변경
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleSignificantTimeChange),
+      name: UIApplication.significantTimeChangeNotification,
+      object: nil
+    )
+
+    // 앱 포그라운드 복귀 시(백그라운드 동안 날짜가 바뀌었을 수 있음)
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleWillEnterForeground),
+      name: UIApplication.willEnterForegroundNotification,
+      object: nil
+    )
+  }
+
+  @objc private func handleDayChanged() {
+    updateDate()
+  }
+
+  @objc private func handleSignificantTimeChange() {
+    updateDate()
+  }
+
+  @objc private func handleWillEnterForeground() {
+    updateDate()
   }
 }
