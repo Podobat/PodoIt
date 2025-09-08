@@ -55,7 +55,7 @@ final class TimerRunViewModel {
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
   
   // 휴식 시간 계산을 위한 변수
-  private var zeroMark: Int? // 남은 시간이 '처음 0이 된' 순간의 restIntervalTime (Bool이어도 상관없을듯)
+  private var zeroMark: Bool = false // 남은 시간이 '처음 0이 된' 순간 (true: 0, false: 0이 되기 전)
   private var addedMark: Int? // 0상태에서 추가 버튼이 눌린 순간의 restIntervalTime. (새 카운트 다운의 시작점)
   private var addSnapshot: Int = 0 // 0 도달 당시의 restAddSeconds 스냅샷
   
@@ -113,7 +113,7 @@ final class TimerRunViewModel {
     // 모든 계산을 restIntervalTime을 기준으로 해서 tick을 다 공통되게 흐르게함
     let restIntervalTime = state.isStudying ? 0 : Int(now.timeIntervalSince(state.intervalStart))
     
-    if zeroMark != nil { // 이미 0에 도달했다면
+    if zeroMark == true { // 이미 0에 도달했다면
       addedMark = restIntervalTime // 추가를 누른 시점의 tick을 저장. 이때부터 카운트다운해서 tick을 맞춤
     }
     
@@ -130,7 +130,7 @@ final class TimerRunViewModel {
     restAddSeconds = 0 // 추가한 휴가시간이 다음 휴식때 이어지지 않도록, 추가한 휴가시간 초기화
     
     // 상태 변화마다 값 원점으로 초기화
-    zeroMark = nil
+    zeroMark = false
     addedMark = nil
     addSnapshot = 0
   }
@@ -215,7 +215,7 @@ final class TimerRunViewModel {
         
         // MARK: 3) 0이후. 이미 값이 0이라면 처리
 
-        if let mark = vm.zeroMark { // 값이 있으면(이미 0인 상태)
+        if vm.zeroMark == true { // 값이 있으면(이미 0인 상태)
           // 아직 시간이 추가하지 않았다면 "00:00" 유지
           guard let addedTick = vm.addedMark else {
             return "00:00"
@@ -250,7 +250,7 @@ final class TimerRunViewModel {
         
         // MARK: 2) 0으로 막 진입. 스냅샷 준비. 값은 00:00 반환
 
-        vm.zeroMark = restIntervalTime // 값이 처음 0된 순간. 값을 추가 (값은 의미가 없기에, 나중에 Bool로 변경)
+        vm.zeroMark = true // 값이 처음 0된 순간. true 상태로 변경
         vm.addSnapshot = vm.restAddSeconds // 0진입 전 추가한 시간 누적량 스냅샷
         return "00:00"
       }
