@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import AudioToolbox
 import RxCocoa
 import SnapKit
 import Then
@@ -32,6 +33,10 @@ final class HeaderSectionView: UIView {
   private let muteButton = UIButton().then {
     $0.setImage(UIImage(named: "alarm-clock"), for: .normal)
   }
+  
+  // 00:00에서 중복 사운드 반복이 안되게 하는 플래그 값
+  private var playedGoalOnce = false
+  private var playedRestOnce = false
   
   // MARK: - init
 
@@ -82,11 +87,29 @@ final class HeaderSectionView: UIView {
     }
   }
   
-  func updateMuteImage(isMute: Bool) {
-    if isMute { // true. 음소거인 경우
-      muteButton.setImage(UIImage(named: "alarm-clock-off"), for: .normal)
-    } else { // false. 음소거가 아닌 경우
-      muteButton.setImage(UIImage(named: "alarm-clock"), for: .normal)
+  // MARK: - 사운드 발생 및 이미지 교체
+  func soundPlayAndUpdateImage(isMute: Bool, goalTime: String, restingTime: String) {
+    muteButton.setImage(UIImage(named: isMute ? "alarm-clock-off" : "alarm-clock"), for: .normal)
+    
+    // 음소거면 종료
+    guard !isMute else { return }
+    
+    // 목표시간이 "00:00"이 되면 사운드 1번 방출
+    if goalTime == "00:00" {
+      if playedGoalOnce == false {
+        AudioServicesPlaySystemSound(1013)
+        playedGoalOnce = true // 다시 00:00에서 벗어날 일이 없어서 true로 고정
+      }
+    }
+    
+    // 휴식시간이 "00:00"이 될 때 사운드 1번 방출
+    if restingTime == "00:00" {
+      if playedRestOnce == false {
+        AudioServicesPlaySystemSound(1013)
+        playedRestOnce = true // 00:00값이 유지될때 사운드 반복이 안되고 1회로 한정
+      }
+    } else {
+      playedRestOnce = false // 다음 1 -> 0으로 오는 상태를 위해 00:00에서 벗어나면 false로 초기화
     }
   }
   
