@@ -9,6 +9,7 @@ import SnapKit
 import SwiftData
 import Then
 import UIKit
+import UserNotifications
 
 final class TimerViewController: UIViewController, UICollectionViewDelegateFlowLayout { // 사이즈 계산을 위해서 채택
 
@@ -204,8 +205,27 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
   private func showNotifPreprompt() {
     let presenter = navigationController ?? self
-    PodoAlertController.presentNotificationPreprompt(from: presenter) {
-      // TODO:
+    PodoAlertController.presentNotificationPreprompt(from: presenter) { [weak self] in
+      // 커스텀 알럿이 닫힌 뒤 잠깐 기다렸다가 시스템 프롬프트 띄우기
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+        self?.requestSystemNotificationAuthorization()
+      }
+    }
+  }
+
+  // 시스템 알림 권한 프롬프트
+  private func requestSystemNotificationAuthorization() {
+    let center = UNUserNotificationCenter.current()
+    center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+      if let error { print("권한 요청 오류:", error) }
+
+      DispatchQueue.main.async {
+        if granted {
+          print("알림 권한 허용")
+        } else {
+          print("알림 권한 거부")
+        }
+      }
     }
   }
 
