@@ -126,6 +126,7 @@ final class TimerSectionView: UIView {
 
   /// 휴식 중. 휴식시간이 끝나는것을 기준으로 UI 업데이트
   func updateRestTimeUI(totalRestTime: String, restingTime: String) {
+    statusTimeLabel.text = totalRestTime
     statusIconImageView.image = UIImage(named: "cup")
     if restingTime == "00:00" { // 휴식 시간이 끝났을 경우
       TimerLabel.text = "휴식 시간이 끝났어요"
@@ -136,7 +137,6 @@ final class TimerSectionView: UIView {
     } else { // 휴식 시간이 남아있을 경우
       TimerLabel.text = restingTime
       TimerLabel.font = Typography.font(for: .displayLg(weight: .bold)).monospacedDigits()
-      statusTimeLabel.text = totalRestTime
       statusContainerView.backgroundColor = .green100
       statusIconImageView.tintColor = .green600
       statusTimeLabel.textColor = .green600
