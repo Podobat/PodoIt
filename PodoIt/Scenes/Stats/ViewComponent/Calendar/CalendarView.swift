@@ -15,7 +15,7 @@ import UIKit
 final class CalendarView: UIView {
   // MARK: - Metrics
 
-  private enum Layout {
+  private enum Metrics {
     static let headerVerticalPadding: CGFloat = 15
     static let buttonHorizontalPadding: CGFloat = 40
     static let buttonSize: CGFloat = 44
@@ -107,37 +107,37 @@ final class CalendarView: UIView {
 
   private func setupConstraints() {
     titleLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(Layout.headerVerticalPadding)
+      $0.top.equalToSuperview().offset(Metrics.headerVerticalPadding)
       $0.centerX.equalToSuperview()
     }
 
     previousButton.snp.makeConstraints {
-      $0.size.equalTo(Layout.buttonSize)
-      $0.leading.equalToSuperview().inset(Layout.buttonHorizontalPadding)
+      $0.size.equalTo(Metrics.buttonSize)
+      $0.leading.equalToSuperview().inset(Metrics.buttonHorizontalPadding)
       $0.centerY.equalTo(titleLabel.snp.centerY)
     }
 
     nextButton.snp.makeConstraints {
-      $0.size.equalTo(Layout.buttonSize)
-      $0.trailing.equalToSuperview().inset(Layout.buttonHorizontalPadding)
+      $0.size.equalTo(Metrics.buttonSize)
+      $0.trailing.equalToSuperview().inset(Metrics.buttonHorizontalPadding)
       $0.centerY.equalTo(titleLabel.snp.centerY)
     }
 
     weekStackView.snp.makeConstraints {
-      $0.top.equalTo(titleLabel.snp.bottom).offset(Layout.headerVerticalPadding)
-      $0.directionalHorizontalEdges.equalToSuperview().inset(Layout.calendarPadding)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(Metrics.headerVerticalPadding)
+      $0.directionalHorizontalEdges.equalToSuperview().inset(Metrics.calendarPadding)
     }
 
     collectionView.snp.makeConstraints {
-      $0.top.equalTo(weekStackView.snp.bottom).offset(Layout.weekStackViewBottomPadding)
-      $0.directionalHorizontalEdges.equalToSuperview().inset(Layout.calendarPadding)
+      $0.top.equalTo(weekStackView.snp.bottom).offset(Metrics.weekStackViewBottomPadding)
+      $0.directionalHorizontalEdges.equalToSuperview().inset(Metrics.calendarPadding)
       collectionViewHeightConstraint = $0.height.equalTo(0).constraint
       $0.bottom.equalToSuperview().priority(.low)
     }
   }
 
   private func configureWeekLabel() {
-    let dayOfTheWeek = ["일", "월", "화", "수", "목", "금", "토"]
+    let dayOfTheWeek = calendar.shortWeekdaySymbols
     for day in dayOfTheWeek {
       let label = UILabel()
       label.text = day
@@ -302,12 +302,14 @@ extension CalendarView {
 extension CalendarView {
   private func bind() {
     previousButton.rx.tap
+      .throttle(.milliseconds(200), scheduler: MainScheduler.instance)
       .subscribe(onNext: { [weak self] in
         self?.minusMonth()
       })
       .disposed(by: disposeBag)
 
     nextButton.rx.tap
+      .throttle(.milliseconds(200), scheduler: MainScheduler.instance)
       .subscribe(onNext: { [weak self] in
         self?.plusMonth()
       })
