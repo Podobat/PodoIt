@@ -112,6 +112,7 @@ final class TimerRunViewModel {
     state.isStudying.toggle()
     state.intervalStart = Date() // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
     isStudyingRelay.accept(state.isStudying) // 변경된 상태 저장
+    restAddSeconds = 0 // 추가한 휴가시간이 다음 휴식때 이어지지 않도록, 추가한 휴가시간 초기화
   }
   
   /// 정지
