@@ -121,6 +121,14 @@ final class TimerRunViewController: UIViewController {
         })
       }
       .disposed(by: disposeBag)
+    
+    // muteButton tap하여 음소거 true/false
+    headerSectionView.muteButtonTap
+      .asDriver()
+      .drive(with: self) { vc, _ in
+        // if해서 값들 00:00될때 되도록
+        vc.viewModel.toggleMute()
+      }
 
     // progressBar 진행
     viewModel.progress
@@ -148,14 +156,16 @@ final class TimerRunViewController: UIViewController {
       viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
       viewModel.studyingTimeText, // 공부중인 시간 (H:MM:SS)
       viewModel.totalRestTimeText, // 총 "휴식 중인 시간" (MM:SS)
-      viewModel.restingTimeText // "남은 휴식시간" (기본 5분. MM:SS)
+      viewModel.restingTimeText, // "남은 휴식시간" (기본 5분. MM:SS)
+      viewModel.isMuteDriver // 음소거(mute)의 Bool 상태
     )
     .drive(with: self) { vc, data in
-      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime) = data
+      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime, isMute) = data
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
       vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
       vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
       vc.animationSectionView.updateStateImage(isStudying: isStudying)
+      vc.headerSectionView.updateMuteImage(isMute: isMute)
 
       if isStudying { // 공부중
         vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)

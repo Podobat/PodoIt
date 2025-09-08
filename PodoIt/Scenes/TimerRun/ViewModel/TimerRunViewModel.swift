@@ -8,6 +8,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import AudioToolbox
 
 enum RestAddCase {
   case one
@@ -47,10 +48,16 @@ final class TimerRunViewModel {
   var isStudyingDriver: Driver<Bool> { // UI 바인딩용. 호출때마다 Relay를 Driver로 감싼 스트림 반환
     isStudyingRelay.asDriver()
   }
+  
+  // 사운드 음소거. 값이 바뀔 때마다 이벤트 방출
+  private let isMute = BehaviorRelay<Bool>(value: false)
+  var isMuteDriver: Driver<Bool> {
+    isMute.asDriver()
+  }
 
   private(set) var goalTime: Int = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
   private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
-  var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
+  private var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   // 버튼/상태 변화시에 즉시 재계산을 위함
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
   
@@ -103,6 +110,12 @@ final class TimerRunViewModel {
   }
   
   // MARK: - Actions
+  
+  /// 타이머 음소거
+  func toggleMute() {
+    let newValue = !isMute.value // 값 toggle
+    isMute.accept(newValue) // 버튼 UI 변경을 위한 Bool값 스트림
+  }
   
   /// 휴식 시간 추가 (+1/+5/+10) 후 즉시 라벨 갱신
   func addRestTime(seconds: Int) {
