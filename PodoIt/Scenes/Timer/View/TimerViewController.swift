@@ -21,6 +21,13 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   private var timers: [TimerModel] = []
   private let maxTimers: Int = 5
 
+  // 알림 커스텀 알럿
+  private let notifPrepromptKey = "notif.preprompt.shown"
+  private var hasShownNotifPreprompt: Bool {
+    get { UserDefaults.standard.bool(forKey: notifPrepromptKey) }
+    set { UserDefaults.standard.set(newValue, forKey: notifPrepromptKey) }
+  }
+
   // init 추가
   init(repository: TimerRepository) {
     self.repository = repository
@@ -146,6 +153,12 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     updateAddButtonState()
   }
 
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    // 커스텀 알럿 1번만 표시
+    maybeShowNotifPrepromptIfNeeded()
+  }
+
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     // 항상 버튼이 위에 오도록
@@ -163,6 +176,37 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     let editVC = TimerEditViewController(viewModel: vm)
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
+  }
+
+  // MARK: - Notification Preprompt
+
+  private func maybeShowNotifPrepromptIfNeeded() {
+    // 이미 보여줬으면 스킵
+    guard hasShownNotifPreprompt == false else { return }
+
+    // 권한이 결정된 상태면 스킵
+    UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
+      guard let self else { return }
+      guard settings.authorizationStatus == .notDetermined else { return }
+
+      // 프레임 그려진 뒤 지연
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        guard let self else { return }
+        // 다른 모달이 떠 있으면 보류
+        let presenter = self.navigationController ?? self
+        guard presenter.presentedViewController == nil else { return }
+        self.showNotifPreprompt()
+        // 취소해도 다시 안 뜨게
+        self.hasShownNotifPreprompt = true
+      }
+    }
+  }
+
+  private func showNotifPreprompt() {
+    let presenter = navigationController ?? self
+    PodoAlertController.presentNotificationPreprompt(from: presenter) {
+      // TODO:
+    }
   }
 
   // MARK: - UI Setup
