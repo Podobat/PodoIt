@@ -14,21 +14,37 @@ import UIKit
 // MARK: - SegmentChipView
 
 private class SegmentChipView: UIControl {
+  // MARK: - Metrics
+
+  private enum Metrics {
+    static let verticalPadding: CGFloat = 4
+    static let horizontalPadding: CGFloat = 23
+  }
+
+  // MARK: - Properties
+
   private let label = UILabel().then {
-    $0.font = Typography.font(for: .labelLg(weight: .semibold)) // 폰트 설정
+    $0.font = Typography.font(for: .labelLg(weight: .semibold))
     $0.textAlignment = .center
   }
+
+  // MARK: - Init
 
   init(text: String) {
     super.init(frame: .zero)
     label.text = text
     addSubview(label)
     label.snp.makeConstraints {
-      $0.edges.equalToSuperview().inset(UIEdgeInsets(top: 4, left: 23, bottom: 4, right: 23)) // Padding 설정
+      $0.edges.equalToSuperview().inset(
+        UIEdgeInsets(
+          top: Metrics.verticalPadding,
+          left: Metrics.horizontalPadding,
+          bottom: Metrics.verticalPadding,
+          right: Metrics.horizontalPadding
+        )
+      ) // Padding 설정
     }
-    setSelected(false, animated: false)
-    // UIControl 이벤트 기본 활성화
-    isUserInteractionEnabled = true
+    chipSelected(false, animated: false)
   }
 
   @available(*, unavailable)
@@ -36,8 +52,10 @@ private class SegmentChipView: UIControl {
     fatalError()
   }
 
+  // MARK: - Methods
+
   // 선택 설정
-  func setSelected(_ selected: Bool, animated: Bool) {
+  func chipSelected(_ selected: Bool, animated: Bool) {
     let changes = {
       self.label.textColor = selected ? .gray900 : .gray500 // 색상 설정
       self.label.transform = selected ? .identity : CGAffineTransform(scaleX: 0.875, y: 0.875) // 텍스트 크기 수동 계산 labelMd/labelLg -> 14/16 = 0.875
@@ -53,6 +71,8 @@ private class SegmentChipView: UIControl {
 // MARK: - SegmentHighlightLayer
 
 final class SegmentHighlightLayer: CALayer {
+  // MARK: - Init
+
   override init() {
     super.init()
     setupLayer()
@@ -67,6 +87,8 @@ final class SegmentHighlightLayer: CALayer {
     fatalError()
   }
 
+  // MARK: - Methods
+
   private func setupLayer() {
     backgroundColor = UIColor.appWhite.cgColor // Chip 색상
     shadowColor = UIColor.appBlack.cgColor // Shadow 색상
@@ -78,18 +100,20 @@ final class SegmentHighlightLayer: CALayer {
   func updateFrame(_ frame: CGRect, animated: Bool) {
     let radius = frame.height / 2
     cornerRadius = radius
-
-    let shadowPath = UIBezierPath(roundedRect: CGRect(origin: .zero, size: frame.size), cornerRadius: radius).cgPath
-    self.shadowPath = shadowPath
+    shadowPath = UIBezierPath(roundedRect: .init(origin: .zero, size: frame.size),
+                              cornerRadius: radius).cgPath
 
     if animated {
       CATransaction.begin()
       CATransaction.setAnimationDuration(0.25)
-      CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeInEaseOut))
+      CATransaction.setAnimationTimingFunction(.init(name: .easeInEaseOut))
       self.frame = frame
       CATransaction.commit()
     } else {
+      CATransaction.begin()
+      CATransaction.setDisableActions(true) // 불필요한 암묵적 애니메이션 방지
       self.frame = frame
+      CATransaction.commit()
     }
   }
 }
@@ -97,14 +121,21 @@ final class SegmentHighlightLayer: CALayer {
 // MARK: - CustomSegmentedControl
 
 final class StatsCustomSegmentedControl: UIView {
+  // MARK: - Properties
+
   private let stackView = UIStackView()
   private var segments: [SegmentChipView] = []
   private let highlightLayer = SegmentHighlightLayer()
 
+  private var didLayoutOnce = false
+
   private(set) var selectedIndex: Int = 0
-  let tapIndexRelay = PublishRelay<Int>()
+  private let selectedIndexRelay = BehaviorRelay<Int>(value: 0)
+  var selectedIndexChanged: Observable<Int> { selectedIndexRelay.distinctUntilChanged() }
 
   private let disposeBag = DisposeBag()
+
+  // MARK: - Init
 
   init(items: [String]) {
     super.init(frame: .zero)
@@ -118,10 +149,14 @@ final class StatsCustomSegmentedControl: UIView {
     fatalError()
   }
 
+  // MARK: - Methods
+
   override func layoutSubviews() {
     super.layoutSubviews()
     layer.cornerRadius = bounds.height / 2
+    guard !didLayoutOnce else { return }
     // stackView가 layout 계산 완료 후 실행
+    didLayoutOnce = true
     stackView.layoutIfNeeded()
     setSelectedIndex(selectedIndex, animated: false)
   }
@@ -146,11 +181,26 @@ final class StatsCustomSegmentedControl: UIView {
       // Rx로 터치 시 index 이벤트 전달
       segment.rx.controlEvent(.touchUpInside)
         .map { i }
-        .subscribe(onNext: { [weak self] index in
-          self?.setSelectedIndex(index, animated: true) // 선택 index 전달해서 선택 함수 실행
-          self?.tapIndexRelay.accept(index) // 외부로 선택 index 전달
+        .throttle(.milliseconds(200), scheduler: MainScheduler.instance)
+        .subscribe(onNext: { [weak self] _ in
+          self?.setSelectedIndex(i, animated: true) // 선택 index 전달해서 선택 함수 실행
         })
         .disposed(by: disposeBag)
+    }
+  }
+
+  // 선택된 segment 위로 highlightLayer 이동
+  private func moveHighlight(for segment: SegmentChipView, animated: Bool) {
+    // segment 좌표를 self 좌표계로 변환
+    guard let frame = segment.superview?.convert(segment.frame, to: self) else { return }
+    // highlightLayer 위치 업데이트
+    highlightLayer.updateFrame(frame, animated: animated)
+  }
+
+  // 이미 선택되어 있는 탭 불가
+  private func updateInteractionStates() {
+    for (i, chip) in segments.enumerated() {
+      chip.isUserInteractionEnabled = (i != selectedIndex)
     }
   }
 
@@ -158,20 +208,14 @@ final class StatsCustomSegmentedControl: UIView {
   func setSelectedIndex(_ index: Int, animated: Bool) {
     guard index >= 0, index < segments.count else { return } // 유효한 index인지 체크
     // 이전 선택 해제
-    segments[selectedIndex].setSelected(false, animated: animated)
+    segments[selectedIndex].chipSelected(false, animated: animated)
     // 새 선택 적용
-    segments[index].setSelected(true, animated: animated)
+    segments[index].chipSelected(true, animated: animated)
     // 현재 선택 index 갱신
     selectedIndex = index
     // highlightLayer 위치 업데이트
-    updateHighlightLayerFrame(for: segments[index], animated: animated)
-  }
-
-  // 선택된 segment 위로 highlightLayer 이동
-  private func updateHighlightLayerFrame(for segment: SegmentChipView, animated: Bool) {
-    // segment 좌표를 self 좌표계로 변환
-    guard let frame = segment.superview?.convert(segment.frame, to: self) else { return }
-    // highlightLayer 위치 업데이트
-    highlightLayer.updateFrame(frame, animated: animated)
+    moveHighlight(for: segments[index], animated: animated)
+    updateInteractionStates()
+    selectedIndexRelay.accept(index)
   }
 }

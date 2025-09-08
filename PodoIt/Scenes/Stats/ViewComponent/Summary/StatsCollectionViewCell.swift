@@ -5,6 +5,8 @@
 //  Created by 김이든 on 8/26/25.
 //
 
+import SnapKit
+import Then
 import UIKit
 
 final class StatsCollectionViewCell: UICollectionViewCell {
@@ -73,16 +75,18 @@ final class StatsCollectionViewCell: UICollectionViewCell {
 
   // MARK: - Configure
 
-  func configure(icon: String, title: String, stats: String) {
-    iconLabel.text = icon
-    titleLabel.text = title
-    timeLabel.text = stats
-  }
-
+  // 셀 재사용
   override func prepareForReuse() {
     super.prepareForReuse()
     iconLabel.text = nil
     titleLabel.text = nil
     timeLabel.text = nil
+  }
+
+  // 셀 갱신
+  func configure(icon: String, title: String, stats: String) {
+    iconLabel.text = icon
+    titleLabel.text = title
+    timeLabel.text = stats
   }
 }

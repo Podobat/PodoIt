@@ -14,12 +14,15 @@ import UIKit
 final class StatsSummaryView: UIView {
   // MARK: - Metrics
 
-  private enum Layout {
+  private enum Metrics {
     static let horizontalPadding: CGFloat = 20
     static let verticalPadding: CGFloat = 16
     static let summaryPadding: CGFloat = 16
+    static let summaryVStackSpacing: CGFloat = 16
     static let totalTimeContainerPadding: CGFloat = 16
     static let totalTimeStackViewSpacing: CGFloat = 8
+    static let rowHeight: CGFloat = 36
+    static let emptyViewHeight: CGFloat = 106
   }
 
   // MARK: - Properties
@@ -27,24 +30,24 @@ final class StatsSummaryView: UIView {
   private let disposeBag = DisposeBag()
 
   // 세그 선택 인덱스(0=일간, 1=월간) 외부로 전달
-  var segmentIndexChanged: Observable<Int> { segmentedControl.tapIndexRelay.asObservable() }
+  var segmentIndexChanged: Observable<Int> { segmentedControl.selectedIndexChanged }
 
-  private let container = PaddedContainerView(horizontal: Layout.horizontalPadding, vertical: Layout.verticalPadding).then {
+  private let container = PaddedContainerView(horizontal: Metrics.horizontalPadding, vertical: Metrics.verticalPadding).then {
     $0.backgroundColor = .gray100
   }
 
-  private let summaryContainer = PaddedContainerView(horizontal: Layout.summaryPadding, vertical: Layout.summaryPadding).then {
+  private let summaryContainer = PaddedContainerView(horizontal: Metrics.summaryPadding, vertical: Metrics.summaryPadding).then {
     $0.backgroundColor = .appWhite
     $0.layer.cornerRadius = 16
   }
 
   private let segmentedControl = StatsCustomSegmentedControl(items: ["일간", "월간"])
-  
+
   private let emptyView = UIView().then {
     $0.backgroundColor = .appWhite
     $0.isHidden = true
   }
-  
+
   private let emptyLabel = UILabel().then {
     $0.textAlignment = .center
     $0.numberOfLines = 0
@@ -69,7 +72,7 @@ final class StatsSummaryView: UIView {
 
   private lazy var totalTimeStackView = UIStackView(arrangedSubviews: [totalTimeTotalLabel, totalTimeLabel, totalTimeFocusLabel]).then {
     $0.axis = .horizontal
-    $0.spacing = Layout.totalTimeStackViewSpacing
+    $0.spacing = Metrics.totalTimeStackViewSpacing
     $0.alignment = .center
   }
 
@@ -78,14 +81,14 @@ final class StatsSummaryView: UIView {
     // 레이아웃 항목 구성
     let itemSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
-      heightDimension: .absolute(36) // 셀 높이 고정
+      heightDimension: .absolute(Metrics.rowHeight) // 셀 높이 고정
     )
     let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
     // 그룹 구성
     let groupSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1.0),
-      heightDimension: .estimated(36) // 예상 높이 설정
+      heightDimension: .estimated(Metrics.rowHeight) // 예상 높이 설정
     )
     let group = NSCollectionLayoutGroup.horizontal(
       layoutSize: groupSize,
@@ -119,7 +122,7 @@ final class StatsSummaryView: UIView {
   private lazy var vStack = UIStackView(arrangedSubviews: [segmentedControl, emptyView, totalTimeStackView, collectionView]).then {
     $0.axis = .vertical
     $0.alignment = .center
-    $0.spacing = 16
+    $0.spacing = Metrics.summaryVStackSpacing
   }
 
   // MARK: - Init
@@ -127,8 +130,6 @@ final class StatsSummaryView: UIView {
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureUI()
-    bind()
-//    collectionViewSetup()
   }
 
   @available(*, unavailable)
@@ -160,9 +161,9 @@ final class StatsSummaryView: UIView {
   }
 
   private func setupView() {
-    [container].forEach { addSubview($0) }
-    [summaryContainer].forEach { container.contentView.addSubview($0) }
-    [vStack].forEach { summaryContainer.contentView.addSubview($0) }
+    addSubview(container)
+    container.contentView.addSubview(summaryContainer)
+    summaryContainer.contentView.addSubview(vStack)
     emptyView.addSubview(emptyLabel)
   }
 
@@ -184,12 +185,12 @@ final class StatsSummaryView: UIView {
       collectionViewHeightConstraint = $0.height.equalTo(0).constraint
       $0.directionalHorizontalEdges.equalToSuperview()
     }
-    
+
     emptyView.snp.makeConstraints {
-      $0.height.equalTo(106)
+      $0.height.equalTo(Metrics.emptyViewHeight)
       $0.directionalHorizontalEdges.equalToSuperview()
     }
-    
+
     emptyLabel.snp.makeConstraints {
       $0.center.equalToSuperview()
     }
@@ -217,7 +218,7 @@ final class StatsSummaryView: UIView {
 
   // 셀 높이 계산 함수
   private func updateCollectionViewHeight(itemCount: Int) {
-    let cellHeight: CGFloat = 36
+    let cellHeight: CGFloat = Metrics.rowHeight
     collectionViewHeightConstraint?.update(offset: CGFloat(itemCount) * cellHeight)
     layoutIfNeeded()
   }
@@ -254,15 +255,5 @@ final class StatsSummaryView: UIView {
         emptyLabel.font = Typography.font(for: .bodyLg(weight: .semibold))
       }
     }
-  }
-
-  // MARK: - Bind
-
-  private func bind() {
-    segmentedControl.tapIndexRelay
-      .subscribe(onNext: { index in
-        print("index: \(index)")
-      })
-      .disposed(by: disposeBag)
   }
 }

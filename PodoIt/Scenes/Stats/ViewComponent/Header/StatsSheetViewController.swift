@@ -11,7 +11,7 @@ import UIKit
 final class CategorySheetViewController: UIViewController {
   // MARK: - Metrics
 
-  private enum Layout {
+  private enum Metrics {
     static let rowHeight: CGFloat = 56
     static let cellVInset: CGFloat = 16
     static let cellHInset: CGFloat = 20
@@ -25,7 +25,8 @@ final class CategorySheetViewController: UIViewController {
   private let onSelect: (StatsCategoryModel) -> Void // 선택 결과 전달
   private var selectedCategory: StatsCategoryModel // 현재 선택된 카테고리
   private let categories: [StatsCategoryModel]
-  private let checkImage = UIImage(named: "check")?.withRenderingMode(.alwaysTemplate) // tintColor 적용을 위해 Template로 렌더링
+
+  private let checkImage = UIImage.check.withRenderingMode(.alwaysTemplate)
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.backgroundColor = .appWhite
@@ -34,7 +35,7 @@ final class CategorySheetViewController: UIViewController {
     $0.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     $0.separatorStyle = .none
     $0.rowHeight = UITableView.automaticDimension
-    $0.estimatedRowHeight = Layout.rowHeight
+    $0.estimatedRowHeight = Metrics.rowHeight
   }
 
   // MARK: - Init
@@ -44,19 +45,12 @@ final class CategorySheetViewController: UIViewController {
     selectedCategory: StatsCategoryModel = .all,
     onSelect: @escaping (StatsCategoryModel) -> Void
   ) {
-    // name 기준으로 중복 제거(순서 보존)
-    var seen = Set<String>()
-    let deduped: [StatsCategoryModel] = categories.filter { item in
-      let inserted = seen.insert(item.name).inserted
-      return inserted
-    }
+    // "전체"를 맨 앞에 추가, 이미 있다면 중복 방지
+    var list = categories
+    list.removeAll(where: { $0.name == "전체" })
+    list.insert(.all, at: 0)
 
-    // "전체" 항목은 항상 첫 번째에 위치
-    var unique = deduped
-    unique.removeAll(where: { $0.name == "전체" }) // 중복 방지
-    unique.insert(.all, at: 0)
-
-    self.categories = unique
+    self.categories = list
     self.selectedCategory = selectedCategory
     self.onSelect = onSelect
     super.init(nibName: nil, bundle: nil)
@@ -89,7 +83,7 @@ final class CategorySheetViewController: UIViewController {
 
   private func configureLayout() {
     tableView.snp.makeConstraints {
-      $0.edges.equalTo(view.safeAreaLayoutGuide).inset(UIEdgeInsets(top: Layout.sheetTopInset, left: 0, bottom: 0, right: 0))
+      $0.edges.equalTo(view.safeAreaLayoutGuide).inset(UIEdgeInsets(top: Metrics.sheetTopInset, left: 0, bottom: 0, right: 0))
     }
   }
 
@@ -106,14 +100,14 @@ final class CategorySheetViewController: UIViewController {
       let contentHeight = self.tableView.contentSize.height
 
       // safeArea 반영
-      let totalHeight = contentHeight + Layout.sheetTopInset
+      let totalHeight = contentHeight + Metrics.sheetTopInset
 
-      return min(max(totalHeight, Layout.minDetent), ctx.maximumDetentValue) // 시스템이 허용하는 최대 높이와 비교, 화면의 최대 높이를 넘어가지 않도록 조절
+      return min(max(totalHeight, Metrics.minDetent), ctx.maximumDetentValue) // 시스템이 허용하는 최대 높이와 비교, 화면의 최대 높이를 넘어가지 않도록 조절
     }
 
     sheet.detents = [fit]
     sheet.prefersGrabberVisible = true
-    sheet.preferredCornerRadius = Layout.sheetCornerRadius
+    sheet.preferredCornerRadius = Metrics.sheetCornerRadius
   }
 }
 
@@ -155,7 +149,7 @@ extension CategorySheetViewController: UITableViewDataSource {
 
     // 전체는 아이콘 없이 텍스트만
     if let icon = category.icon {
-      config.text = "\(icon)  " + "\(category.name)".limited(to: 15, addEllipsis: true)
+      config.text = "\(icon)  " + "\(category.name)".limited(to: 15)
     } else {
       config.text = category.name
     }
@@ -166,10 +160,10 @@ extension CategorySheetViewController: UITableViewDataSource {
       color: .gray900
     )
     config.directionalLayoutMargins = NSDirectionalEdgeInsets(
-      top: Layout.cellVInset,
-      leading: Layout.cellHInset,
-      bottom: Layout.cellVInset,
-      trailing: Layout.cellHInset
+      top: Metrics.cellVInset,
+      leading: Metrics.cellHInset,
+      bottom: Metrics.cellVInset,
+      trailing: Metrics.cellHInset
     )
 
     let imageView = UIImageView(image: checkImage)
