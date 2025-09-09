@@ -48,7 +48,6 @@ final class TimerRunViewModel {
     isStudyingRelay.asDriver()
   }
   
-
   var isMuteDriver: Driver<Bool> {
     AudioSettings.shared.isMute.asDriver()
   }
@@ -325,5 +324,34 @@ extension TimerRunViewModel {
     // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
     let totalStudyTime = state.totalStudySeconds + studyIntervalTime
     return totalStudyTime
+  }
+  
+  /// 목표시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingStudySeconds() -> Int {
+    let total = totalStudyTime()
+    return max(goalTime - total, 0)
+  }
+  
+  /// 남은 휴식 시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingRestSeconds(now: Date = Date()) -> Int {
+    let restIntervalTime = state.isStudying ? 0 : Int(now.timeIntervalSince(state.intervalStart))
+    
+    // 위의 makeRestingTimeText로직과 동일
+    // 0 이후 추가 시간 카운트다운
+    if zeroMark {
+      // 값 추가 안하면 0초로 유지
+      guard let addedTick = addedMark else { return 0 }
+      
+      let addRun = max(restIntervalTime - addedTick, 0) // 추가 이후 경과 시간
+      let addSum = max(restAddSeconds - addSnapshot, 0) // 추가된 총 휴식시간
+      return max(addSum - addRun, 0)
+    }
+    
+    // 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과한 시간
+    let base = max(defaultRestSeconds + restAddSeconds - restIntervalTime, 0)
+    if base > 0 { return base }
+    
+    // 막 0에 진입한 순간
+    return 0
   }
 }
