@@ -38,6 +38,7 @@ final class SettingViewModel {
     ]
   }
   
+  // 눌리면 토글 바꿔서 accept
   func updateIsMute(isOn: Bool) {
     audio.isMute.accept(!isOn)
   }
