@@ -104,17 +104,17 @@ final class TimerRunViewController: UIViewController {
 
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonSectionView.startPauseTap
-      .asDriver()
+      .asSignal()
       .throttle(.seconds(1)) // 1초 안에 여러번 눌러도 1번만 실행됨
-      .drive(with: self) { vc, _ in
+      .emit(with: self) { vc, _ in
         vc.viewModel.startAndPause()
       }
       .disposed(by: disposeBag)
 
     // stop 버튼 tap하여 중지
     buttonSectionView.stopButtonTap
-      .asDriver()
-      .drive(with: self) { vc, _ in
+      .asSignal()
+      .emit(with: self) { vc, _ in
         PodoAlertController.presentStopTimerAlert(from: vc, onConfirm: {
           vc.viewModel.stop()
           vc.navigationController?.popViewController(animated: true)
@@ -124,8 +124,8 @@ final class TimerRunViewController: UIViewController {
 
     // muteButton tap하여 음소거 true/false
     headerSectionView.muteButtonTap
-      .asDriver()
-      .drive(with: self) { vc, _ in
+      .asSignal()
+      .emit(with: self) { vc, _ in
         vc.viewModel.toggleMute()
       }
       .disposed(by: disposeBag)
