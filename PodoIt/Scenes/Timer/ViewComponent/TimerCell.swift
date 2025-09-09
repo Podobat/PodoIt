@@ -21,7 +21,7 @@ final class TimerCell: UICollectionViewCell {
   // MARK: - Metrics
 
   private enum Metrics {
-    static let cornerRadius: CGFloat = 12
+    static let cornerRadius: CGFloat = 16
     static let emojiFrame: CGFloat = 28
     static let emojiFont: CGFloat = 18
     static let playOuterSize: CGFloat = 56
