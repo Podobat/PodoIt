@@ -128,12 +128,15 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
       timers = try repository.fetchAll()
       collectionView.reloadData()
       updateUI()
+      // 헤더 총 집중 시간 업데이트
+      updateHeaderTotalFocusTime()
     } catch {
       print("❌ fetch 실패: \(error)")
       // 사용자에게 에러 알림 표시
       timers = []
       collectionView.reloadData()
       updateUI()
+      updateHeaderTotalFocusTime()
     }
   }
 
@@ -150,6 +153,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     navigationItem.largeTitleDisplayMode = .never
     configureUI()
     addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+    setupNotificationObservers()
     // 초기 상태 반영
     updateAddButtonState()
   }
@@ -294,6 +298,101 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     editVC.hidesBottomBarWhenPushed = true
     navigationController?.pushViewController(editVC, animated: true)
   }
+
+  // MARK: - Helper Methods
+
+  // 특정 타이머의 오늘 집중 시간을 조회 -> 포맷팅된 문자열로 반환
+  private func getTodayFocusTime(for timerTitle: String) -> String {
+    do {
+      let today = Date()
+      let totalSeconds = try getTodayFocusSeconds(for: timerTitle, on: today)
+      return formatTime(seconds: totalSeconds)
+    } catch {
+      print("오늘 집중 시간 조회 실패: \(error)")
+      return "00:00:00"
+    }
+  }
+
+  // 특정 타이머의 오늘 집중 시간을 초 단위로 조회
+  private func getTodayFocusSeconds(for timerTitle: String, on date: Date) throws -> Int {
+    let calendar = Calendar.current
+    let startOfDay = calendar.startOfDay(for: date)
+    let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+    // 오늘 날짜의 해당 타이머 통계 데이터 조회
+    let stats = try SwiftDataManager.shared.fetchStats(
+      from: startOfDay,
+      to: endOfDay,
+      categoryName: timerTitle
+    )
+
+    // 모든 통계 데이터의 시간을 초로 변환하여 합산
+    var totalSeconds = 0
+    for stat in stats {
+      totalSeconds += parseTimeToSeconds(stat.time)
+    }
+
+    return totalSeconds
+  }
+
+  // HH:MM:SS 형식의 시간 문자열 -> 초로 변환
+  private func parseTimeToSeconds(_ timeString: String) -> Int {
+    let components = timeString.split(separator: ":").compactMap { Int($0) }
+    guard components.count == 3 else { return 0 }
+
+    let hours = components[0]
+    let minutes = components[1]
+    let seconds = components[2]
+
+    return hours * 3600 + minutes * 60 + seconds
+  }
+
+  // HH:MM:SS 형식으로 포맷팅
+  private func formatTime(seconds: Int) -> String {
+    let hours = seconds / 3600
+    let minutes = (seconds % 3600) / 60
+    let secs = seconds % 60
+    return String(format: "%02d:%02d:%02d", hours, minutes, secs)
+  }
+
+  // 오늘 전체 카테고리의 총 집중 시간을 계산하고 헤더에 반영
+  private func updateHeaderTotalFocusTime(date: Date = Date()) {
+    let calendar = Calendar.current
+    let startOfDay = calendar.startOfDay(for: date)
+    let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+    do {
+      // 전체로 조회해서 오늘의 모든 기록 가져오기
+      let allStats = try SwiftDataManager.shared.fetchStats(from: startOfDay, to: endOfDay, categoryName: "전체")
+      let totalSeconds = allStats.reduce(0) { acc, stat in acc + parseTimeToSeconds(stat.time) }
+      let formatted = formatTime(seconds: totalSeconds)
+      headerView.updateTotalTime(formatted)
+    } catch {
+      // 실패 시 00:00:00 표시 유지
+      headerView.updateTotalTime("00:00:00")
+    }
+  }
+
+  // 통계 데이터 변경 알림을 구독하여 UI 업데이트
+  private func setupNotificationObservers() {
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleStatsDidChange),
+      name: .statsDidChange,
+      object: nil
+    )
+  }
+
+  @objc private func handleStatsDidChange() {
+    // 통계 데이터가 변경되면 컬렉션 뷰를 새로고침해서 집중 시간 업데이트
+    DispatchQueue.main.async { [weak self] in
+      self?.collectionView.reloadData()
+      self?.updateHeaderTotalFocusTime()
+    }
+  }
+
+  deinit {
+    NotificationCenter.default.removeObserver(self)
+  }
 }
 
 // MARK: - UICollectionViewDataSource
@@ -312,7 +411,10 @@ extension TimerViewController: UICollectionViewDataSource {
     }
 
     let model = timers[indexPath.item]
-    cell.configure(with: model)
+
+    // 오늘 집중 시간 조회
+    let todayFocusTime = getTodayFocusTime(for: model.title)
+    cell.configure(with: model, today: todayFocusTime)
 
     // 셀 → VC로 버튼 탭 이벤트 전달
     cell.onPlayTapped = { [weak self] in

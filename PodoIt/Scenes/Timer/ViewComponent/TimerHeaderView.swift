@@ -129,4 +129,14 @@ final class TimerHeaderView: UIView {
   @objc private func handleWillEnterForeground() {
     updateDate()
   }
+
+  // MARK: - Public
+
+  func updateTotalTime(_ text: String) {
+    timeLabel.attributedText = Typography.attributed(
+      text,
+      style: .displayMd(weight: .bold),
+      color: .appBlack
+    )
+  }
 }
