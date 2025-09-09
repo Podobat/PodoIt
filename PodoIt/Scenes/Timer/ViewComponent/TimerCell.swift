@@ -115,7 +115,9 @@ final class TimerCell: UICollectionViewCell {
 
   override init(frame: CGRect) {
     super.init(frame: frame)
+    backgroundColor = .clear
     setupUI()
+    setupShadow()
   }
 
   @available(*, unavailable)
@@ -177,6 +179,24 @@ final class TimerCell: UICollectionViewCell {
       $0.centerY.equalToSuperview()
       $0.size.equalTo(Metrics.playOuterSize)
     }
+  }
+
+  private func setupShadow() {
+    layer.masksToBounds = false
+    layer.shadowColor = UIColor.black.cgColor
+    layer.shadowOpacity = 0.04
+    layer.shadowRadius = 24
+    layer.shadowOffset = CGSize(width: 0, height: 2)
+
+    // 고정형 카드면 켜기
+    layer.shouldRasterize = true
+    layer.rasterizationScale = UIScreen.main.scale
+
+    // 초기 path
+    layer.shadowPath = UIBezierPath(
+      roundedRect: contentView.bounds,
+      cornerRadius: Metrics.cornerRadius
+    ).cgPath
   }
 
   private func resetLabels() {
