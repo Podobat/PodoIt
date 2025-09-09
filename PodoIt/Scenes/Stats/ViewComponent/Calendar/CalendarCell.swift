@@ -7,6 +7,49 @@
 
 import UIKit
 
+enum FocusBucket: Int {
+  case zero = 0 // 0분
+  case under1h // ~1시간
+  case h1to2 // 1~2시간
+  case h2to3 // 2~3시간
+  case over3h // 3시간+
+
+  static func bucket(for seconds: Int) -> FocusBucket {
+    switch seconds {
+    case 0: return .zero
+    case 1 ..< (60 * 60): return .under1h
+    case (60 * 60) ..< (120 * 60): return .h1to2
+    case (120 * 60) ..< (180 * 60): return .h2to3
+    default: return .over3h
+    }
+  }
+
+  var dayTextColor: UIColor {
+    switch self {
+    case .zero, .under1h: return .appBlack
+    case .h1to2, .h2to3, .over3h: return .appWhite
+    }
+  }
+
+  var fillColor: UIColor {
+    switch self {
+    case .zero: return .clear
+    case .under1h: return .primary100
+    case .h1to2: return .primary300
+    case .h2to3: return .primary500
+    case .over3h: return .primary700
+    }
+  }
+
+  var selectedBorder: UIColor {
+    switch self {
+    case .zero: return .primary500
+    case .under1h, .h1to2, .h2to3: return .primary700
+    case .over3h: return .primary900
+    }
+  }
+}
+
 final class CalendarCell: UICollectionViewCell {
   static let identifier = "CalendarCell"
 
