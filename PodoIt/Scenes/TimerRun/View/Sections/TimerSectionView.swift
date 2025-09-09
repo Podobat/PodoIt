@@ -5,7 +5,6 @@
 //  Created by 서광용 on 8/28/25.
 //
 
-import AudioToolbox
 import SnapKit
 import Then
 import UIKit
@@ -145,30 +144,6 @@ final class TimerSectionView: UIView {
       statusContainerView.backgroundColor = .green100
       statusIconImageView.tintColor = .green600
       statusTimeLabel.textColor = .green600
-    }
-  }
-
-  func soundPlay(isMute: Bool, goalTime: String, restingTime: String) {
-    // 목표시간이 "00:00"이 되면 사운드 1번 방출
-    if goalTime == "00:00" {
-      if playedGoalOnce == false {
-        if !isMute {
-          AudioServicesPlaySystemSound(1013)
-        }
-        playedGoalOnce = true // 다시 00:00에서 벗어날 일이 없어서 true로 고정
-      }
-    }
-
-    // 휴식시간이 "00:00"이 될 때 사운드 1번 방출
-    if restingTime == "00:00" {
-      if playedRestOnce == false {
-        if !isMute {
-          AudioServicesPlaySystemSound(1013)
-        }
-        playedRestOnce = true // 00:00값이 유지될때 사운드 반복이 안되고 1회로 한정
-      }
-    } else {
-      playedRestOnce = false // 다음 1 -> 0으로 오는 상태를 위해 00:00에서 벗어나면 false로 초기화
     }
   }
 }

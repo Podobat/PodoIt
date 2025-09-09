@@ -166,7 +166,6 @@ final class TimerRunViewController: UIViewController {
       vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
       vc.animationSectionView.updateStateImage(isStudying: isStudying)
       vc.headerSectionView.updateMuteIcon(isMute: isMute)
-      vc.timerSectionView.soundPlay(isMute: isMute, goalTime: goalTime, restingTime: restingTime)
 
       if isStudying { // 공부중
         vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)
