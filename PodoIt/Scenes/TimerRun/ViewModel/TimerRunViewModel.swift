@@ -133,6 +133,7 @@ final class TimerRunViewModel {
   /// 시작/일시정지 버튼 토글
   func startAndPause() {
     // 여기에서 타이머 작동 로직
+    NotificationScheduler.scheduleEnd(id: NotificationID.goalTimeEnd, title: <#T##String#>, body: <#T##String#>, date: <#T##Date#>)
     addIntervalTime() // 현재 구간 기준으로 총 공부/휴식 시간 저장
     state.isStudying.toggle()
     state.intervalStart = Date() // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
@@ -354,4 +355,34 @@ extension TimerRunViewModel {
     // 막 0에 진입한 순간
     return 0
   }
+  
+  /// 목표시간 Notification 예약
+  private func scheduleGoalEndNotification() {
+    NotificationScheduler
+      .scheduleEnd(
+        id: NotificationID.goalTimeEnd,
+        title: NotificationTitle.goalTimeEnd ,
+        body: NotificationBody.goalTimeEnd,
+        date: Date().addingTimeInterval(TimeInterval(remainingStudySeconds())), // 지금시각 + 남은 초remainingStudySeconds(초) = 울릴 시간 구함
+        isMuted: AudioSettings.shared.isMute.value
+      )
+  }
+  
+  /// 휴식시간 Notification 예약
+  private func scheduleRestEndNotification() {
+    NotificationScheduler
+      .scheduleEnd(
+        id: NotificationID.restingTimeEnd,
+        title: NotificationTitle.restingTimeEnd ,
+        body: NotificationBody.restingTimeEnd,
+        date: Date().addingTimeInterval(TimeInterval(remainingRestSeconds())),
+        isMuted: AudioSettings.shared.isMute.value
+      )
+  }
+  
+  /// 목표시간 Notification 예약 취소
+  private func cancelGoalEndNotification() { NotificationScheduler.cancel(id: NotificationID.goalTimeEnd) }
+  
+  /// 휴식 Notification 예약 취소
+  private func cancelRestEndNotification() { NotificationScheduler.cancel(id: NotificationID.restingTimeEnd) }
 }
