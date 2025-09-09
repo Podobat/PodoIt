@@ -48,10 +48,9 @@ final class TimerRunViewModel {
     isStudyingRelay.asDriver()
   }
   
-  // 사운드 음소거. 값이 바뀔 때마다 이벤트 방출
-  private let isMute = BehaviorRelay<Bool>(value: false)
+
   var isMuteDriver: Driver<Bool> {
-    isMute.asDriver()
+    AudioSettings.shared.isMute.asDriver()
   }
 
   private(set) var goalTime: Int = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
@@ -112,8 +111,8 @@ final class TimerRunViewModel {
   
   /// 타이머 음소거
   func toggleMute() {
-    let newValue = !isMute.value // 값 toggle
-    isMute.accept(newValue) // 버튼 UI 변경을 위한 Bool값 스트림
+    let newValue = !AudioSettings.shared.isMute.value // 값 toggle
+    AudioSettings.shared.isMute.accept(newValue) // 버튼 UI 변경을 위한 Bool값 스트림
   }
   
   /// 휴식 시간 추가 (+1/+5/+10) 후 즉시 라벨 갱신
