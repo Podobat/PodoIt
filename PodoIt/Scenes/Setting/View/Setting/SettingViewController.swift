@@ -5,6 +5,8 @@
 //  Created by 노가현 on 8/20/25.
 //
 
+import RxCocoa
+import RxSwift
 import SafariServices
 import SnapKit
 import UIKit
@@ -12,6 +14,7 @@ import UIKit
 final class SettingViewController: UIViewController {
   private let viewModel = SettingViewModel()
   private let myAppID = 6752013483
+  private let disposeBag = DisposeBag()
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.backgroundColor = .appWhite
@@ -35,6 +38,7 @@ final class SettingViewController: UIViewController {
     super.viewDidLoad()
     configureUI()
     configureLayout()
+    bind()
   }
 
   // 오토레이아웃 제약 조건 반영 후, frame 계산이 끝난 후에 호출
@@ -70,6 +74,28 @@ final class SettingViewController: UIViewController {
     )
     view.frame.size.height = size.height
     assign(view)
+  }
+
+  // MARK: - Rx
+
+  private func bind() {
+    viewModel.isMuteDriver
+      .drive(with: self) { vc, isMute in
+        let isOn = !isMute
+
+        // notification 셀을 찾아서 row에 담기
+        if let row = vc.viewModel.items.firstIndex(where: {
+          if case .notification = $0 { return true } else { return false } // 찾으면 true
+        }) {
+          let indexPath = IndexPath(row: row, section: 0)
+          if let cell = vc.tableView.cellForRow(at: indexPath) as? SettingViewCell {
+            cell.toggleSwitch.isOn = isOn // .notifictaion의 toggleSwitch안에 isOn값을 최신화
+          }
+          // viewModel도 isOn값 최신화
+          vc.viewModel.items[row] = .notification(isOn: isOn)
+        }
+      }
+      .disposed(by: disposeBag)
   }
 }
 
