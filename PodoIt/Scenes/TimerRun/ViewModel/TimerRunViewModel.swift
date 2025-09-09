@@ -53,7 +53,7 @@ final class TimerRunViewModel {
   }
 
   private(set) var goalTime: Int = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
-  private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
+  private var defaultRestSeconds: Int = 10 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
   private var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   // 버튼/상태 변화시에 즉시 재계산을 위함
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
@@ -102,8 +102,11 @@ final class TimerRunViewModel {
     guard let entity = try repo.fetch(by: timerID) else {
       throw RepositoryError.entityNotFound
     }
-    self.timer = entity
-    self.goalTime = entity.goalTime * 60 // Int값을 초 단위로 변경
+    timer = entity
+    goalTime = entity.goalTime * 60 // Int값을 초 단위로 변경
+    if state.isStudying {
+      scheduleGoalEndNotification() // 공부 목표 시간 알림 예약
+    }
   }
   
   // MARK: - Actions
@@ -112,6 +115,15 @@ final class TimerRunViewModel {
   func toggleMute() {
     let newValue = !AudioSettings.shared.isMute.value // 값 toggle
     AudioSettings.shared.isMute.accept(newValue) // 버튼 UI 변경을 위한 Bool값 스트림
+    
+    // 음소거 시, 현재 상태에 따라 알림 재예약
+    if state.isStudying { // 공부 중
+      cancelGoalEndNotification()
+      scheduleGoalEndNotification()
+    } else { // 휴식 중
+      cancelRestEndNotification()
+      scheduleRestEndNotification()
+    }
   }
   
   /// 휴식 시간 추가 (+1/+5/+10) 후 즉시 라벨 갱신
@@ -128,12 +140,14 @@ final class TimerRunViewModel {
     }
     
     restUpdateRelay.accept(()) // Void라서 넣지 않고 신호만 보냄. 즉시 갱신
+    if state.isStudying == false { // 휴식 중
+      scheduleRestEndNotification() // 휴식시간이 늘어나니 다시 시간 재계산 후 예약
+    }
   }
 
   /// 시작/일시정지 버튼 토글
   func startAndPause() {
     // 여기에서 타이머 작동 로직
-    NotificationScheduler.scheduleEnd(id: NotificationID.goalTimeEnd, title: <#T##String#>, body: <#T##String#>, date: <#T##Date#>)
     addIntervalTime() // 현재 구간 기준으로 총 공부/휴식 시간 저장
     state.isStudying.toggle()
     state.intervalStart = Date() // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
@@ -144,12 +158,25 @@ final class TimerRunViewModel {
     zeroMark = false
     addedMark = nil
     addSnapshot = 0
+    
+    // 상태 전환때마다 알림 재예약
+    if state.isStudying { // 휴식 -> 공부로 변경: 휴식 취소하고, 공부 알림 예약
+      cancelRestEndNotification()
+      scheduleGoalEndNotification()
+    } else { // 공부 -> 휴식으로 변경: 공부 취소하고, 휴식 알리 ㅁ예약
+      cancelGoalEndNotification()
+      scheduleRestEndNotification()
+    }
   }
   
   /// 정지
   @MainActor
   func stop() {
     addIntervalTime()
+    // 세션 종료: 모든 알림을 캔슬
+    cancelGoalEndNotification()
+    cancelRestEndNotification()
+    
     // 총 공부시간이 60초 이상일 경우에만 save()
     guard state.totalStudySeconds > 59 else { return }
     save()
@@ -158,7 +185,7 @@ final class TimerRunViewModel {
   /// SwiftData의 StatsModel에 데이터 저장
   @MainActor
   private func save() {
-    guard let timer = self.timer else {
+    guard let timer = timer else {
       print("세이브 실패. 타이머 데이터가 없습니다.")
       return
     }
@@ -358,24 +385,26 @@ extension TimerRunViewModel {
   
   /// 목표시간 Notification 예약
   private func scheduleGoalEndNotification() {
+    let sec = remainingStudySeconds()
     NotificationScheduler
       .scheduleEnd(
         id: NotificationID.goalTimeEnd,
-        title: NotificationTitle.goalTimeEnd ,
+        title: NotificationTitle.goalTimeEnd,
         body: NotificationBody.goalTimeEnd,
-        date: Date().addingTimeInterval(TimeInterval(remainingStudySeconds())), // 지금시각 + 남은 초remainingStudySeconds(초) = 울릴 시간 구함
+        date: Date().addingTimeInterval(TimeInterval(sec)), // 지금시각 + 남은 초remainingStudySeconds(초) = 울릴 시간 구함
         isMuted: AudioSettings.shared.isMute.value
       )
   }
   
   /// 휴식시간 Notification 예약
   private func scheduleRestEndNotification() {
+    let sec = remainingRestSeconds()
     NotificationScheduler
       .scheduleEnd(
         id: NotificationID.restingTimeEnd,
-        title: NotificationTitle.restingTimeEnd ,
+        title: NotificationTitle.restingTimeEnd,
         body: NotificationBody.restingTimeEnd,
-        date: Date().addingTimeInterval(TimeInterval(remainingRestSeconds())),
+        date: Date().addingTimeInterval(TimeInterval(sec)),
         isMuted: AudioSettings.shared.isMute.value
       )
   }
