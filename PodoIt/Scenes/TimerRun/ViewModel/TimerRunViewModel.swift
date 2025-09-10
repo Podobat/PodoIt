@@ -35,11 +35,11 @@ final class TimerRunViewModel {
   private let disposeBag = DisposeBag()
   
   private(set) var state = TimerSessionState(
-    studySessionStart: Date(),
+    studySessionStart: Date(), // UD에서도 사용 안하면 삭제
     intervalStart: Date(),
     isStudying: true,
     totalStudySeconds: 0,
-    totalRestSeconds: 0 // UserDefaults 써서 앱 껐다 켜졌을때 시간 계산에 사용됨. 그 전에는 사용 x
+    totalRestSeconds: 0 // UD에서도 사용 안하면 삭제
   )
   
   // isRunningRelay가 값이 바뀔 때마다 이벤트 방출
