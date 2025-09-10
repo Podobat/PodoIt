@@ -135,7 +135,11 @@ final class TimerRunViewModel {
   
   /// UserDefaults에 데이터 불러오기
   
+  
   /// UserDefaults 데이터 삭제
+  private func deleteSessionUDSnapshot() {
+    UserDefaults.standard.removeObject(forKey: udSnapshotKey)
+  }
   
   // MARK: - Actions
   
