@@ -47,7 +47,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     static let sectionSpacing: CGFloat = 16
     static let dividerHeight: CGFloat = 1
     static let emptyTopOffset: CGFloat = 240
-    static let addButtonBottomOffset: CGFloat = -20
+    static let addButtonBottomOffset: CGFloat = -16
     static let addButtonHeight: CGFloat = 48
     static let minimumLineSpacing: CGFloat = 12
     static let sectionInset = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
