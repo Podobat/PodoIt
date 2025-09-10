@@ -13,13 +13,13 @@ enum NotificationID {
 }
 
 enum NotificationTitle {
-  static let goalTimeEnd = "목표한 공부시간을 끝냈습니다."
-  static let restingTimeEnd = "휴식 시간이 끝났습니다."
+  static let goalTimeEnd = "목표 시간 달성!"
+  static let restingTimeEnd = "충전 완료!"
 }
 
 enum NotificationBody {
-  static let goalTimeEnd = "추카해용"
-  static let restingTimeEnd = "공부하쉐요"
+  static let goalTimeEnd = "수고했어요, 잠깐 쉬고 눈과 어깨를 풀어주세요."
+  static let restingTimeEnd = "이제 다시 집중해볼까요? 또 다른 성취가 기다려요."
 }
 
 enum NotificationScheduler {
