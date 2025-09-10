@@ -74,6 +74,14 @@ final class StatsViewController: UIViewController {
     bind()
     viewModel.viewDidLoad()
   }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    todayButton.layer.shadowPath = UIBezierPath(
+      roundedRect: todayButton.bounds,
+      cornerRadius: 18
+    ).cgPath
+  }
 
   // MARK: - Private Methods
 
