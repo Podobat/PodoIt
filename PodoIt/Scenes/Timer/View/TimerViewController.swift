@@ -276,6 +276,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
       $0.centerX.equalToSuperview()
       $0.height.equalTo(Layout.addButtonHeight)
     }
+    collectionView.contentInset.bottom = Layout.addButtonHeight + 16
   }
 
   // MARK: - UICollectionViewDelegateFlowLayout
