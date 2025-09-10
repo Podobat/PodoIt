@@ -57,6 +57,9 @@ final class StatsViewController: UIViewController {
     $0.layer.borderWidth = 1
     $0.layer.borderColor = UIColor.primary200.cgColor
     $0.layer.cornerRadius = 18
+    $0.layer.shadowColor = UIColor.appBlack.cgColor
+    $0.layer.shadowOpacity = 0.08
+    $0.layer.shadowRadius = 12
     // 버튼 전체 패딩
     $0.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 16)
     // 이미지-텍스트 간격
