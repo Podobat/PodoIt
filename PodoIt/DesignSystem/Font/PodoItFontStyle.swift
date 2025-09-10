@@ -31,15 +31,15 @@ enum Typography {
   static func spec(for style: Style) -> Spec {
     switch style {
     case .displayLg(let w):
-      return .init(size: 48, lineHeight: 64, weight: w)
+      return .init(size: 48, lineHeight: 56, weight: w)
     case .displayMd(let w):
       return .init(size: 32, lineHeight: 40, weight: w)
-    case .headingLg:
-      return .init(size: 18, lineHeight: 28, weight: .bold)
-    case .headingMd:
-      return .init(size: 16, lineHeight: 24, weight: .semibold)
-    case .headingXl(let w):
+    case .headingXl(let w): // Heading-Lg (주석이 디자인 시스템)
       return .init(size: 20, lineHeight: 32, weight: w)
+    case .headingLg: // Heading-Md
+      return .init(size: 18, lineHeight: 28, weight: .bold)
+    case .headingMd: // Heading-Sm
+      return .init(size: 16, lineHeight: 24, weight: .semibold)
     case .bodyLg(let w):
       return .init(size: 16, lineHeight: 24, weight: w)
     case .bodyMd(let w):

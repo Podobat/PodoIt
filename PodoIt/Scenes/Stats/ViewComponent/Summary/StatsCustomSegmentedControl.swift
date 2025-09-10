@@ -22,11 +22,10 @@ private class SegmentChipView: UIControl {
   }
 
   // MARK: - Properties
-
-  private let label = UILabel().then {
-    $0.font = Typography.font(for: .labelLg(weight: .semibold))
-    $0.textAlignment = .center
-  }
+  
+  private let label = UILabel.makeAttributed(
+    text: "", style: .labelLg(weight: .semibold), color: .appBlack, alignment: .center
+  )
 
   // MARK: - Init
 
@@ -57,7 +56,13 @@ private class SegmentChipView: UIControl {
   // 선택 설정
   func chipSelected(_ selected: Bool, animated: Bool) {
     let changes = {
-      self.label.textColor = selected ? .gray900 : .gray500 // 색상 설정
+      if let text = self.label.attributedText?.string {
+        self.label.attributedText = Typography.attributed(
+          text,
+          style: .labelLg(weight: .semibold),
+          color: selected ? .gray900 : .gray500
+        )
+      } // 색상 설정
       self.label.transform = selected ? .identity : CGAffineTransform(scaleX: 0.875, y: 0.875) // 텍스트 크기 수동 계산 labelMd/labelLg -> 14/16 = 0.875
     }
     if animated {

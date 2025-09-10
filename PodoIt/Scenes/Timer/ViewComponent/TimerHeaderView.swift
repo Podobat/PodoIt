@@ -84,12 +84,16 @@ final class TimerHeaderView: UIView {
   // MARK: - Date Handling
 
   private func updateDate() {
-    let today = TimerHeaderView.dateFormatter.string(from: Date())
-    dateLabel.attributedText = Typography.attributed(
-      today,
-      style: .headingLg,
-      color: .appBlack
-    )
+      let today = TimerHeaderView.dateFormatter.string(from: Date())
+      let attributed = Typography.attributed(
+          today,
+          style: .headingLg,
+          color: .appBlack
+      )
+
+      DispatchQueue.main.async {
+          self.dateLabel.attributedText = attributed
+      }
   }
 
   private func setupObservers() {
