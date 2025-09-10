@@ -46,10 +46,7 @@ final class PodoAlertController: UIViewController {
 
   static func presentStopTimerAlert(
     from presenter: UIViewController,
-    title: String = """
-    아직 목표 시간을 채우지 않았어요.
-    그래도 종료할까요?
-    """,
+    title: String = "이번 집중 세션을 종료하시겠습니까?",
     message: String = "1분 이상 집중한 시간은 그대로 기록돼요.",
     cancelTitle: String = "계속하기",
     confirmTitle: String = "그만두기",

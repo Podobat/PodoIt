@@ -42,6 +42,10 @@ final class TimerSectionView: UIView {
     $0.textAlignment = .center
   }
 
+  // 00:00에서 중복 사운드 반복이 안되게 하는 플래그 값
+  private var playedGoalOnce = false
+  private var playedRestOnce = false
+
   // MARK: - init
 
   override init(frame: CGRect) {

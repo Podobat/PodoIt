@@ -5,6 +5,8 @@
 //  Created by 노가현 on 8/20/25.
 //
 
+import RxCocoa
+import RxSwift
 import SafariServices
 import SnapKit
 import UIKit
@@ -12,6 +14,7 @@ import UIKit
 final class SettingViewController: UIViewController {
   private let viewModel = SettingViewModel()
   private let myAppID = 6752013483
+  private let disposeBag = DisposeBag()
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
     $0.backgroundColor = .appWhite
@@ -35,6 +38,7 @@ final class SettingViewController: UIViewController {
     super.viewDidLoad()
     configureUI()
     configureLayout()
+    bind()
   }
 
   // 오토레이아웃 제약 조건 반영 후, frame 계산이 끝난 후에 호출
@@ -70,6 +74,28 @@ final class SettingViewController: UIViewController {
     )
     view.frame.size.height = size.height
     assign(view)
+  }
+
+  // MARK: - Rx
+
+  private func bind() {
+    viewModel.isMuteDriver
+      .drive(with: self) { vc, isMute in
+        let isOn = !isMute
+
+        // notification 셀을 찾아서 row에 담기
+        if let row = vc.viewModel.items.firstIndex(where: {
+          if case .notification = $0 { return true } else { return false } // 찾으면 true
+        }) {
+          let indexPath = IndexPath(row: row, section: 0)
+          if let cell = vc.tableView.cellForRow(at: indexPath) as? SettingViewCell {
+            cell.toggleSwitch.isOn = isOn // .notifictaion의 toggleSwitch안에 isOn값을 최신화
+          }
+          // viewModel도 isOn값 최신화
+          vc.viewModel.items[row] = .notification(isOn: isOn)
+        }
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -122,6 +148,26 @@ extension SettingViewController: UITableViewDataSource {
     guard let cell = tableView.dequeueReusableCell(withIdentifier: SettingViewCell.id, for: indexPath) as? SettingViewCell else { return UITableViewCell() }
     let item = viewModel.items[indexPath.row]
     cell.configure(item)
+
+    switch item {
+    case .notification:
+      cell.toggleSwitch.rx.isOn // ControlProperty<Bool> 타입
+        // 위의 타입이 ControlProperty<Bool>이면, configure에서 isOn = isOn으로 초기값을 세팅해도 이벤트가 들어감
+        // 그걸 방지하기 위해 .changed를 사용해서 ControlEvent<Bool> 타입으로 변경
+        // 사용자가 직접 토글을 켜거나 끌 때만 값이 방출됨.
+        .changed
+      // until: cell.rx.meth..여기서 메서드가 1번이라도 호출되면 구독을 자동으로 종료시킴
+      // prepareForReuse가 셀 재사용 직전에 테이블 뷰가 호출
+      // 즉, 이 셀 인스턴스가 재사용 되기 직전까지만 토글 이벤트를 받는다는 의미.
+        .take(until: cell.rx.methodInvoked(#selector(UITableViewCell.prepareForReuse)))
+        .bind(with: self) { vc, isOn in
+          vc.viewModel.updateIsMute(isOn: isOn)
+        }
+        .disposed(by: disposeBag)
+    default:
+      break
+    }
+
     return cell
   }
 }
