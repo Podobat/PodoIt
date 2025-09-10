@@ -38,6 +38,7 @@ final class MainTabBarController: UITabBarController {
     selectedIndex = 0 // psuh전 탭을 TimerVC로 강제. 이래야 TimerRunVC에서 pop해도 TimerVC로 pop 실행됨
     if let nav = viewControllers?.first as? UINavigationController {
       let timerRunVC = TimerRunViewController(timerID: id, repo: repository)
+      timerRunVC.hidesBottomBarWhenPushed = true
       nav.pushViewController(timerRunVC, animated: false)
       self.initialTimerID = nil // 매번 저 화면으로 push할게 아니기에 1번만 하고 nil
     }

@@ -49,6 +49,7 @@ final class TimerRunViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    self.hidesBottomBarWhenPushed = true
     configureUI()
     configureLayout()
     loadData()

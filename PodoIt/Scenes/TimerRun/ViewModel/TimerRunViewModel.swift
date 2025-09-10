@@ -250,6 +250,9 @@ final class TimerRunViewModel {
     cancelGoalEndNotification()
     cancelRestEndNotification()
     
+    // UD 스냅샷을 삭제(초기화)해서 다음 세션에 문제 없도록
+    deleteSessionUDSnapshot()
+    
     // 총 공부시간이 60초 이상일 경우에만 save()
     guard state.totalStudySeconds > 59 else { return }
     save()
@@ -274,8 +277,6 @@ final class TimerRunViewModel {
       타이머 이름: \(timer.title)
       총 공부 시간: \(TimerRunViewModel.formatHMMSS(seconds: state.totalStudySeconds))
       """)
-      // 세션이 정상적으로 종료되었을 경우: UD 스냅샷을 삭제(초기화)해서 다음 세션에 문제 없도록
-      deleteSessionUDSnapshot()
     } catch {
       print("데이터 저장 실패: \(RepositoryError.saveFailed)")
     }
