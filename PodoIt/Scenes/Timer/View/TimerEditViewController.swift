@@ -656,24 +656,25 @@ final class TimerEditViewController: UIViewController {
 
     guard !title.isEmpty else {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      setNameFieldError(true, animated: true)
+      nameTextField.becomeFirstResponder()
       return
     }
 
     // 중복 제목
     if viewModel.hasDuplicateTitle(title) {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      setNameFieldError(true, animated: true)
+      nameTextField.becomeFirstResponder()
       showToast("중복된 이름이 있어요.", icon: UIImage(named: "bang"), above: saveButton)
       return
     }
 
     setNameFieldError(false, animated: true)
 
-    let minutes: Int
-    if TimerEditViewController.isTestMode {
-      minutes = max(1, Int(ceil(Double(selectedTime) / 60.0)))
-    } else {
-      minutes = selectedTime
-    }
+    let minutes: Int = TimerEditViewController.isTestMode
+      ? max(1, Int(ceil(Double(selectedTime) / 60.0)))
+      : selectedTime
 
     do {
       try viewModel.save(title: title, iconName: icon, goalMinutes: minutes)
