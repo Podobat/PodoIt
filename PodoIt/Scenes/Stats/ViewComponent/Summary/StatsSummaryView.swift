@@ -51,10 +51,12 @@ final class StatsSummaryView: UIView {
   private let emptyLabel = UILabel().then {
     $0.textAlignment = .center
     $0.numberOfLines = 0
-    $0.text = "이 날에는 기록된\n집중 시간이 없어요."
-    $0.font = Typography.font(for: .bodyLg(weight: .regular))
-    $0.textColor = .gray400
     $0.lineBreakMode = .byWordWrapping
+    $0.attributedText = Typography.attributed(
+      "이 날에는 기록된\n집중 시간이 없어요.",
+      style: .bodyLg(weight: .regular),
+      color: .gray400
+    )
   }
 
   private let totalTimeTotalLabel = UILabel.makeAttributed(
@@ -63,7 +65,7 @@ final class StatsSummaryView: UIView {
 
   // 총 집중 시간 텍스트
   private let totalTimeLabel = UILabel.makeAttributed(
-    text: "2시간 50분", style: .headingLg, color: .primary600, alignment: .left
+    text: "2시간 50분", style: .headingXl(weight: .bold), color: .primary600, alignment: .left
   )
 
   private let totalTimeFocusLabel = UILabel.makeAttributed(
@@ -247,13 +249,22 @@ final class StatsSummaryView: UIView {
     if !hasData {
       if isDaily {
         // 일간
-        emptyLabel.text = "이 날에는 기록된\n집중 시간이 없어요."
-        emptyLabel.font = Typography.font(for: .bodyLg(weight: .regular))
+        emptyLabel.attributedText = Typography.attributed(
+          "이 날에는 기록된\n집중 시간이 없어요.",
+          style: .bodyLg(weight: .regular),
+          color: .gray400
+        )
       } else {
         // 월간
-        emptyLabel.text = "이 달에는 기록된\n집중 시간이 없어요."
-        emptyLabel.font = Typography.font(for: .bodyLg(weight: .semibold))
+        emptyLabel.attributedText = Typography.attributed(
+          "이 달에는 기록된\n집중 시간이 없어요.",
+          style: .bodyLg(weight: .semibold),
+          color: .gray400
+        )
       }
     }
+    emptyLabel.textAlignment = .center
+    
+    vStack.spacing = hasData ? Metrics.summaryVStackSpacing : 0
   }
 }
