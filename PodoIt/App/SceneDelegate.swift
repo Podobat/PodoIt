@@ -20,7 +20,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     // Repository 인스턴스를 생성해서 전달
     let repository = SwiftDataManager.shared
-    let rootVC = MainTabBarController(repository: repository)
+    let savedID = TimerRunViewModel.fetchSavedTimerID() // UD에 저장된 UUID값 fetch
+    let rootVC = MainTabBarController(repository: repository, initialTimerID: savedID)
     window.rootViewController = rootVC
     window.makeKeyAndVisible()
 

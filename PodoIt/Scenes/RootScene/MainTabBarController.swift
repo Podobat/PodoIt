@@ -11,10 +11,12 @@ import UIKit
 final class MainTabBarController: UITabBarController {
   // Repository 보관
   private let repository: TimerRepository
+  private var initialTimerID: UUID?
 
   // 지정 이니셜라이저 추가
-  init(repository: TimerRepository) {
+  init(repository: TimerRepository, initialTimerID: UUID? = nil) {
     self.repository = repository
+    self.initialTimerID = initialTimerID
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -27,6 +29,19 @@ final class MainTabBarController: UITabBarController {
     super.viewDidLoad()
     setupAppearance() // 탭바 (컬러/폰트) 설정
     setupViewControllers() // 탭별 화면 연결
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    guard let id = initialTimerID else { return }
+    // 타이머 탭 선택
+    selectedIndex = 0 // psuh전 탭을 TimerVC로 강제. 이래야 TimerRunVC에서 pop해도 TimerVC로 pop 실행됨
+    if let nav = viewControllers?.first as? UINavigationController {
+      let timerRunVC = TimerRunViewController(timerID: id, repo: repository)
+      timerRunVC.hidesBottomBarWhenPushed = true
+      nav.pushViewController(timerRunVC, animated: false)
+      self.initialTimerID = nil // 매번 저 화면으로 push할게 아니기에 1번만 하고 nil
+    }
   }
 
   private func setupAppearance() {

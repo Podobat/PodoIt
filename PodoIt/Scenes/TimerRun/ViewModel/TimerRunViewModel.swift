@@ -28,18 +28,18 @@ final class TimerRunViewModel {
 
   private let timerID: UUID
   private let repo: TimerRepository
+  private static let udSnapshotKey = "timer_key"
   
   // MARK: - State
 
   private(set) var timer: TimerModel?
   private let disposeBag = DisposeBag()
   
+  // FIXME: 사용하지 않을 것 같은 값들 주석. 끝내고도 사용 안하면 삭제 예정
   private(set) var state = TimerSessionState(
-    studySessionStart: Date(),
     intervalStart: Date(),
     isStudying: true,
     totalStudySeconds: 0,
-    totalRestSeconds: 0 // UserDefaults 써서 앱 껐다 켜졌을때 시간 계산에 사용됨. 그 전에는 사용 x
   )
   
   // isRunningRelay가 값이 바뀔 때마다 이벤트 방출
@@ -107,6 +107,75 @@ final class TimerRunViewModel {
     if state.isStudying {
       scheduleGoalEndNotification() // 공부 목표 시간 알림 예약
     }
+    // 앱 진입 후 바로 스냅샷 저장
+    saveSessionUDSnapshot()
+  }
+  
+  // MARK: - UserDefaults 저장/불러오기/삭제
+  
+  /// UserDefaults에 데이터 저장
+  private func saveSessionUDSnapshot() {
+    let snapshot = TimerSessionUDSnapshot(
+      timerID: self.timerID,
+      isStudying: state.isStudying,
+      intervalStart: state.intervalStart,
+      totalStudySeconds: state.totalStudySeconds,
+      restAddSeconds: self.restAddSeconds,
+      zeroMark: self.zeroMark,
+      addedMark: self.addedMark,
+      addSnapshot: self.addSnapshot
+    )
+    
+    if let data = try? JSONEncoder().encode(snapshot) {
+      UserDefaults.standard.set(data, forKey: Self.udSnapshotKey) // Self는 현재 타입을 의미해서 TimerRunViewModel.ud..와 동일
+    }
+  }
+  
+  /// UserDefaults에 데이터 불러오기
+  private func fetchSessionUDSnapshot() {
+    guard let savedData = UserDefaults.standard.object(forKey: Self.udSnapshotKey) as? Data else { return } // UD 가져옴
+    guard let snapshotData = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: savedData) else { return } // UD 디코딩
+    
+    // 주입받은 timerID가 스냅샷의 ID와 다르게 되면 무시하도록. (안전을 위해)
+    guard snapshotData.timerID == self.timerID else { return }
+    
+    // 상태 복원
+    self.state.isStudying = snapshotData.isStudying
+    self.state.intervalStart = snapshotData.intervalStart
+    self.state.totalStudySeconds = snapshotData.totalStudySeconds
+    
+    self.restAddSeconds = snapshotData.restAddSeconds
+    self.zeroMark = snapshotData.zeroMark
+    self.addedMark = snapshotData.addedMark
+    self.addSnapshot = snapshotData.addSnapshot
+    
+    self.isStudyingRelay.accept(snapshotData.isStudying) // 공부중인지 UI가 알아야 바뀌니까 accept
+    // TODO: 이거 startAndPause의 알림 재예약과 로직이 동일하니, 하나의 메서드로 분리하자
+    // 상태 전환때마다 알림 재예약
+    if state.isStudying { // 휴식 -> 공부로 변경: 휴식 취소하고, 공부 알림 예약
+      cancelRestEndNotification()
+      scheduleGoalEndNotification()
+    } else { // 공부 -> 휴식으로 변경: 공부 취소하고, 휴식 알리 ㅁ예약
+      cancelGoalEndNotification()
+      scheduleRestEndNotification()
+    }
+  }
+  
+  /// UserDefaults 데이터 삭제
+  private func deleteSessionUDSnapshot() {
+    UserDefaults.standard.removeObject(forKey: Self.udSnapshotKey)
+  }
+  
+  // MARK: 앱 라이프 사이클에 따른 UD Snapshot
+  
+  /// 앱이 백그라운드로 갈 때 호출해서 데이터 저장
+  func saveUDOnBackground() {
+    saveSessionUDSnapshot()
+  }
+  
+  /// 외부에서 fetch하기 위한 메서드
+  func loadUDSaved() {
+    fetchSessionUDSnapshot()
   }
   
   // MARK: - Actions
@@ -143,6 +212,8 @@ final class TimerRunViewModel {
     if state.isStudying == false { // 휴식 중
       scheduleRestEndNotification() // 휴식시간이 늘어나니 다시 시간 재계산 후 예약
     }
+    // 휴식 시간이 늘어날 때마다 스냅샷 저장
+    saveSessionUDSnapshot()
   }
 
   /// 시작/일시정지 버튼 토글
@@ -167,6 +238,8 @@ final class TimerRunViewModel {
       cancelGoalEndNotification()
       scheduleRestEndNotification()
     }
+    // 상태 전환 후 스냅샷 저장
+    saveSessionUDSnapshot()
   }
   
   /// 정지
@@ -176,6 +249,9 @@ final class TimerRunViewModel {
     // 세션 종료: 모든 알림을 캔슬
     cancelGoalEndNotification()
     cancelRestEndNotification()
+    
+    // UD 스냅샷을 삭제(초기화)해서 다음 세션에 문제 없도록
+    deleteSessionUDSnapshot()
     
     // 총 공부시간이 60초 이상일 경우에만 save()
     guard state.totalStudySeconds > 59 else { return }
@@ -338,9 +414,6 @@ extension TimerRunViewModel {
     if state.isStudying {
       state.totalStudySeconds += intervalTime // 공부 시간 누적
       print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
-    } else {
-      state.totalRestSeconds += intervalTime // 휴식 시간 누적
-      print("현재까지 총 휴식 시간: \(state.totalRestSeconds)")
     }
   }
   
@@ -414,4 +487,11 @@ extension TimerRunViewModel {
   
   /// 휴식 Notification 예약 취소
   private func cancelRestEndNotification() { NotificationScheduler.cancel(id: NotificationID.restingTimeEnd) }
+  
+  /// SceneDelegate에서 의존성때문에 인스턴스 생성을 못하니, 타입 메서드로 선언해서 가져다사용
+  static func fetchSavedTimerID() -> UUID? {
+    guard let data = UserDefaults.standard.object(forKey: self.udSnapshotKey) as? Data,
+          let snapshot = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: data) else { return nil }
+    return snapshot.timerID
+  }
 }

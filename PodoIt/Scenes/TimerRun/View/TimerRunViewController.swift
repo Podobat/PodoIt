@@ -49,6 +49,7 @@ final class TimerRunViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    self.hidesBottomBarWhenPushed = true
     configureUI()
     configureLayout()
     loadData()
@@ -59,6 +60,7 @@ final class TimerRunViewController: UIViewController {
 
   private func loadData() {
     do {
+      viewModel.loadUDSaved() // UD 데이터 불러오기 (없으면 내부 return)
       try viewModel.load()
       if let timer = viewModel.timer {
         configureAll(timer: timer)
@@ -149,6 +151,12 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
+    viewModel.isMuteDriver // 음소거(mute)의 Bool 상태 (아래는 tick 모음이라 계속 호출되서 분리)
+      .drive(with: self) { vc, isMute in
+        vc.headerSectionView.updateMuteIcon(isMute: isMute)
+      }
+      .disposed(by: disposeBag)
+
     // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
     // combineLatest: 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
     Driver.combineLatest(
@@ -156,16 +164,14 @@ final class TimerRunViewController: UIViewController {
       viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
       viewModel.studyingTimeText, // 공부중인 시간 (H:MM:SS)
       viewModel.totalRestTimeText, // 총 "휴식 중인 시간" (MM:SS)
-      viewModel.restingTimeText, // "남은 휴식시간" (기본 5분. MM:SS)
-      viewModel.isMuteDriver // 음소거(mute)의 Bool 상태
+      viewModel.restingTimeText // "남은 휴식시간" (기본 5분. MM:SS)
     )
     .drive(with: self) { vc, data in
-      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime, isMute) = data
+      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime) = data
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
       vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
       vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
       vc.animationSectionView.updateStateImage(isStudying: isStudying)
-      vc.headerSectionView.updateMuteIcon(isMute: isMute)
 
       if isStudying { // 공부중
         vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)
