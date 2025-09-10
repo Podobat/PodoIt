@@ -59,6 +59,7 @@ final class TimerRunViewController: UIViewController {
 
   private func loadData() {
     do {
+      viewModel.loadUDSaved() // UD 데이터 불러오기 (없으면 내부 return)
       try viewModel.load()
       if let timer = viewModel.timer {
         configureAll(timer: timer)

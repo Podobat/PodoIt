@@ -166,6 +166,18 @@ final class TimerRunViewModel {
     UserDefaults.standard.removeObject(forKey: udSnapshotKey)
   }
   
+  // MARK: 앱 라이프 사이클에 따른 UD Snapshot
+  
+  /// 앱이 백그라운드로 갈 때 호출해서 데이터 저장
+  func saveUDOnBackground() {
+    saveSessionUDSnapshot()
+  }
+  
+  /// 외부에서 fetch하기 위한 메서드
+  func loadUDSaved() {
+    fetchSessionUDSnapshot()
+  }
+  
   // MARK: - Actions
   
   /// 타이머 음소거
