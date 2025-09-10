@@ -115,6 +115,18 @@ final class StatsViewController: UIViewController {
       )
     })
     .disposed(by: disposeBag)
+    
+    // 1) 먼저 monthHeatMap을 구독해서 내부 combineLatest가 활성화되게 함
+    viewModel.monthHeatMap
+      .drive(onNext: { [weak self] heat in
+        self?.calendarView.applyHeat(heat)
+      })
+      .disposed(by: disposeBag)
+
+    // 2) 그 다음 visibleMonthRange에 바인딩 (이 타이밍의 첫 이벤트를 놓치지 않음)
+    calendarView.visibleMonth
+      .bind(to: viewModel.visibleMonthRange)
+      .disposed(by: disposeBag)
   }
 
   // MARK: - CategorySheet Presentation
