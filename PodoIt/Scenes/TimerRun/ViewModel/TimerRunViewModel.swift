@@ -37,11 +37,9 @@ final class TimerRunViewModel {
   
   // FIXME: 사용하지 않을 것 같은 값들 주석. 끝내고도 사용 안하면 삭제 예정
   private(set) var state = TimerSessionState(
-//    studySessionStart: Date(), // UD에서도 사용 안하면 삭제
     intervalStart: Date(),
     isStudying: true,
     totalStudySeconds: 0,
-//    totalRestSeconds: 0 // UD에서도 사용 안하면 삭제
   )
   
   // isRunningRelay가 값이 바뀔 때마다 이벤트 방출
@@ -115,26 +113,51 @@ final class TimerRunViewModel {
   
   /// UserDefaults에 데이터 저장
   private func saveSessionUDSnapshot() {
-    let now = Date()
-    // 남은 휴식시간 remainingRestSeconds으로 계산하여 반환
-    let remainTime = state.isStudying ? 0 : remainingRestSeconds()
-    
-    let snapShot = TimerSessionUDSnapshot(
+    let snapshot = TimerSessionUDSnapshot(
       timerID: self.timerID,
       isStudying: state.isStudying,
       intervalStart: state.intervalStart,
       totalStudySeconds: state.totalStudySeconds,
-      restRemainingSeconds: remainTime,
-      savedAt: now
+      restAddSeconds: self.restAddSeconds,
+      zeroMark: self.zeroMark,
+      addedMark: self.addedMark,
+      addSnapshot: self.addSnapshot
     )
     
-    if let data = try? JSONEncoder().encode(snapShot) {
+    if let data = try? JSONEncoder().encode(snapshot) {
       UserDefaults.standard.set(data, forKey: udSnapshotKey)
     }
   }
   
   /// UserDefaults에 데이터 불러오기
-  
+  private func fetchSessionUDSnapshot() {
+    guard let savedData = UserDefaults.standard.object(forKey: udSnapshotKey) as? Data else { return } // UD 가져옴
+    guard let snapshotData = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: savedData) else { return } // UD 디코딩
+    
+    // 주입받은 timerID가 스냅샷의 ID와 다르게 되면 무시하도록. (안전을 위해)
+    guard snapshotData.timerID == self.timerID else { return }
+    
+    // 상태 복원
+    self.state.isStudying = snapshotData.isStudying
+    self.state.intervalStart = snapshotData.intervalStart
+    self.state.totalStudySeconds = snapshotData.totalStudySeconds
+    
+    self.restAddSeconds = snapshotData.restAddSeconds
+    self.zeroMark = snapshotData.zeroMark
+    self.addedMark = snapshotData.addedMark
+    self.addSnapshot = snapshotData.addSnapshot
+    
+    self.isStudyingRelay.accept(snapshotData.isStudying) // 공부중인지 UI가 알아야 바뀌니까 accept
+    // TODO: 이거 startAndPause의 알림 재예약과 로직이 동일하니, 하나의 메서드로 분리하자
+    // 상태 전환때마다 알림 재예약
+    if state.isStudying { // 휴식 -> 공부로 변경: 휴식 취소하고, 공부 알림 예약
+      cancelRestEndNotification()
+      scheduleGoalEndNotification()
+    } else { // 공부 -> 휴식으로 변경: 공부 취소하고, 휴식 알리 ㅁ예약
+      cancelGoalEndNotification()
+      scheduleRestEndNotification()
+    }
+  }
   
   /// UserDefaults 데이터 삭제
   private func deleteSessionUDSnapshot() {
