@@ -14,12 +14,17 @@ final class StatsViewModel {
 
   let selectedDate = BehaviorRelay<Date>(value: Date()) // 캘린더에서 고른 날짜
   let selectedSegmentIndex = BehaviorRelay<Int>(value: 0) // 탭바 일간/월간
+  let selectedCategory = BehaviorRelay<StatsCategoryModel>(value: .all)
+  // 달 범위 입력 (VC가 CalendarView.visibleMonth를 바인딩)
+  let visibleMonthRange = BehaviorRelay<(start: Date, end: Date)>(value: (.distantPast, .distantPast))
+
 
   // MARK: - Outputs
 
   let categories = BehaviorRelay<[StatsCategoryModel]>(value: [.all])
-  let selectedCategory = BehaviorRelay<StatsCategoryModel>(value: .all)
   private(set) lazy var summary: Driver<SummaryUI> = buildSummary()
+  // 달의 일별 집중 분 출력
+  private(set) lazy var monthHeatMap: Driver<[Int: Int]> = makeMonthHeatMap()
 
   // MARK: - Private
 
@@ -161,5 +166,38 @@ final class StatsViewModel {
       return m * 60
     }
     return 0
+  }
+  
+  // MARK: - MonthHeatMap
+  
+  private func makeMonthHeatMap() -> Driver<[Int: Int]> {
+    let refresh = NotificationCenter.default.rx
+      .notification(.statsDidChange)
+      .map { _ in () }
+      .startWith(()) // 최초 1회
+
+    return Observable
+      .combineLatest(selectedCategory.asObservable(),
+                     visibleMonthRange.asObservable(),
+                     refresh)
+      .observe(on: MainScheduler.instance)
+      .map { [weak self] category, month, _ -> [Int: Int] in
+        guard let self = self else { return [:] }
+
+        // 저장소에서 해당 달/카테고리의 기록 로드
+        let rows = (try? self.repo.fetchStats(from: month.start, to: month.end, categoryName: category.name)) ?? []
+
+        // 일(day)별 총 "분"으로 누적
+        var minutesByDay: [Int: Int] = [:]
+        let cal = Calendar.current
+        for r in rows {
+          let parts = r.time.split(separator: ":").compactMap { Int($0) } // "h:mm:ss"
+          let sec = (parts.count == 3) ? (parts[0]*3600 + parts[1]*60 + parts[2]) : 0
+          let day = cal.component(.day, from: r.date)
+          minutesByDay[day, default: 0] += sec / 60
+        }
+        return minutesByDay
+      }
+      .asDriver(onErrorJustReturn: [:])
   }
 }

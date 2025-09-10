@@ -26,9 +26,10 @@ final class StatsHeaderView: UIView {
   }
 
   let categoryButton = UIButton(type: .system).then {
-    $0.setTitle("전체", for: .normal)
-    $0.titleLabel?.font = Typography.font(for: .headingMd)
-    $0.setTitleColor(.appBlack, for: .normal)
+    $0.setAttributedTitle(
+      Typography.attributed("전체", style: .headingLg, color: .appBlack),
+      for: .normal
+    )
     $0.backgroundColor = .appWhite
     // 버튼 이미지 설정
     let image = UIImage.chevronDown.withRenderingMode(.alwaysTemplate)
@@ -86,6 +87,10 @@ final class StatsHeaderView: UIView {
 
   // 카테고리 갱신
   func updateCategory(_ category: StatsCategoryModel) {
-    categoryButton.setTitle(makeTitle(for: category), for: .normal)
+    let title = makeTitle(for: category)
+    categoryButton.setAttributedTitle(
+      Typography.attributed(title, style: .headingLg, color: .appBlack),
+      for: .normal
+    )
   }
 }

@@ -137,11 +137,14 @@ final class CircleLabelView: UIView {
   }
 
   private func setupLabel(text: String) {
-    label.text = text
-    label.font = Typography.font(for: .captionLg(weight: .regular))
-    label.textColor = .gray500
+    let attr = Typography.attributed(
+      text,
+      style: .captionLg(weight: .regular),
+      color: .gray500
+    )
+    label.attributedText = attr
   }
-
+  
   private func setupLayout() {
     let stack = UIStackView(arrangedSubviews: [circleView, label])
     stack.axis = .horizontal
