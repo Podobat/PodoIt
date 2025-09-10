@@ -28,6 +28,7 @@ final class TimerRunViewModel {
 
   private let timerID: UUID
   private let repo: TimerRepository
+  private let udSnapshotKey = "timer_key"
   
   // MARK: - State
 
@@ -109,6 +110,32 @@ final class TimerRunViewModel {
       scheduleGoalEndNotification() // 공부 목표 시간 알림 예약
     }
   }
+  
+  // MARK: - UserDefaults 저장/불러오기/삭제
+  
+  /// UserDefaults에 데이터 저장
+  private func saveSessionUDSnapshot() {
+    let now = Date()
+    // 남은 휴식시간 remainingRestSeconds으로 계산하여 반환
+    let remainTime = state.isStudying ? 0 : remainingRestSeconds()
+    
+    let snapShot = TimerSessionUDSnapshot(
+      timerID: self.timerID,
+      isStudying: state.isStudying,
+      intervalStart: state.intervalStart,
+      totalStudySeconds: state.totalStudySeconds,
+      restRemainingSeconds: remainTime,
+      savedAt: now
+    )
+    
+    if let data = try? JSONEncoder().encode(snapShot) {
+      UserDefaults.standard.set(data, forKey: udSnapshotKey)
+    }
+  }
+  
+  /// UserDefaults에 데이터 불러오기
+  
+  /// UserDefaults 데이터 삭제
   
   // MARK: - Actions
   
