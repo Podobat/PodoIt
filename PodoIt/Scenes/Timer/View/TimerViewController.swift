@@ -255,7 +255,8 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
     backgroundContainerView.snp.makeConstraints {
       $0.top.equalTo(headerView.snp.bottom).offset(20)
-      $0.leading.trailing.bottom.equalToSuperview()
+      $0.leading.trailing.equalToSuperview()
+      $0.bottom.equalTo(view.safeAreaLayoutGuide)
     }
 
     collectionView.snp.makeConstraints {
@@ -266,7 +267,8 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
     emptyStateView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.top.equalTo(backgroundContainerView.snp.top).offset(Layout.emptyTopOffset)
+      $0.centerY.equalTo(backgroundContainerView.snp.centerY)
+      $0.leading.trailing.equalToSuperview().inset(Layout.sectionInset.left)
     }
 
     addButton.snp.makeConstraints {
