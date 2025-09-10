@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import RxCocoa
 import SnapKit
 import Then
 import UIKit
@@ -81,10 +82,21 @@ final class HeaderSectionView: UIView {
     }
   }
   
+  // MARK: - 음소거 상태에 따라 이미지 교체
+  func updateMuteIcon(isMute: Bool) {
+    muteButton.setImage(UIImage(named: isMute ? "alarm-clock-off" : "alarm-clock"), for: .normal)
+  }
+  
   // MARK: - configure(model: )
 
   func configure(model: TimerModel) {
     iconLabel.text = model.iconName
     titleLabel.attributedText = Typography.attributed(model.title, style: .bodyLg(weight: .semibold), color: .gray900)
+  }
+}
+
+extension HeaderSectionView {
+  var muteButtonTap: ControlEvent<Void> {
+    return muteButton.rx.tap
   }
 }

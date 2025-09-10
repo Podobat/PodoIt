@@ -47,10 +47,14 @@ final class TimerRunViewModel {
   var isStudyingDriver: Driver<Bool> { // UI 바인딩용. 호출때마다 Relay를 Driver로 감싼 스트림 반환
     isStudyingRelay.asDriver()
   }
+  
+  var isMuteDriver: Driver<Bool> {
+    AudioSettings.shared.isMute.asDriver()
+  }
 
   private(set) var goalTime: Int = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
   private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
-  var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
+  private var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   // 버튼/상태 변화시에 즉시 재계산을 위함
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
   
@@ -98,11 +102,29 @@ final class TimerRunViewModel {
     guard let entity = try repo.fetch(by: timerID) else {
       throw RepositoryError.entityNotFound
     }
-    self.timer = entity
-    self.goalTime = entity.goalTime * 60 // Int값을 초 단위로 변경
+    timer = entity
+    goalTime = entity.goalTime * 60 // Int값을 초 단위로 변경
+    if state.isStudying {
+      scheduleGoalEndNotification() // 공부 목표 시간 알림 예약
+    }
   }
   
   // MARK: - Actions
+  
+  /// 타이머 음소거
+  func toggleMute() {
+    let newValue = !AudioSettings.shared.isMute.value // 값 toggle
+    AudioSettings.shared.isMute.accept(newValue) // 버튼 UI 변경을 위한 Bool값 스트림
+    
+    // 음소거 시, 현재 상태에 따라 알림 재예약
+    if state.isStudying { // 공부 중
+      cancelGoalEndNotification()
+      scheduleGoalEndNotification()
+    } else { // 휴식 중
+      cancelRestEndNotification()
+      scheduleRestEndNotification()
+    }
+  }
   
   /// 휴식 시간 추가 (+1/+5/+10) 후 즉시 라벨 갱신
   func addRestTime(seconds: Int) {
@@ -118,6 +140,9 @@ final class TimerRunViewModel {
     }
     
     restUpdateRelay.accept(()) // Void라서 넣지 않고 신호만 보냄. 즉시 갱신
+    if state.isStudying == false { // 휴식 중
+      scheduleRestEndNotification() // 휴식시간이 늘어나니 다시 시간 재계산 후 예약
+    }
   }
 
   /// 시작/일시정지 버튼 토글
@@ -133,12 +158,25 @@ final class TimerRunViewModel {
     zeroMark = false
     addedMark = nil
     addSnapshot = 0
+    
+    // 상태 전환때마다 알림 재예약
+    if state.isStudying { // 휴식 -> 공부로 변경: 휴식 취소하고, 공부 알림 예약
+      cancelRestEndNotification()
+      scheduleGoalEndNotification()
+    } else { // 공부 -> 휴식으로 변경: 공부 취소하고, 휴식 알리 ㅁ예약
+      cancelGoalEndNotification()
+      scheduleRestEndNotification()
+    }
   }
   
   /// 정지
   @MainActor
   func stop() {
     addIntervalTime()
+    // 세션 종료: 모든 알림을 캔슬
+    cancelGoalEndNotification()
+    cancelRestEndNotification()
+    
     // 총 공부시간이 60초 이상일 경우에만 save()
     guard state.totalStudySeconds > 59 else { return }
     save()
@@ -147,7 +185,7 @@ final class TimerRunViewModel {
   /// SwiftData의 StatsModel에 데이터 저장
   @MainActor
   private func save() {
-    guard let timer = self.timer else {
+    guard let timer = timer else {
       print("세이브 실패. 타이머 데이터가 없습니다.")
       return
     }
@@ -315,4 +353,65 @@ extension TimerRunViewModel {
     let totalStudyTime = state.totalStudySeconds + studyIntervalTime
     return totalStudyTime
   }
+  
+  /// 목표시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingStudySeconds() -> Int {
+    let total = totalStudyTime()
+    return max(goalTime - total, 0)
+  }
+  
+  /// 남은 휴식 시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingRestSeconds(now: Date = Date()) -> Int {
+    let restIntervalTime = state.isStudying ? 0 : Int(now.timeIntervalSince(state.intervalStart))
+    
+    // 위의 makeRestingTimeText로직과 동일
+    // 0 이후 추가 시간 카운트다운
+    if zeroMark {
+      // 값 추가 안하면 0초로 유지
+      guard let addedTick = addedMark else { return 0 }
+      
+      let addRun = max(restIntervalTime - addedTick, 0) // 추가 이후 경과 시간
+      let addSum = max(restAddSeconds - addSnapshot, 0) // 추가된 총 휴식시간
+      return max(addSum - addRun, 0)
+    }
+    
+    // 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과한 시간
+    let base = max(defaultRestSeconds + restAddSeconds - restIntervalTime, 0)
+    if base > 0 { return base }
+    
+    // 막 0에 진입한 순간
+    return 0
+  }
+  
+  /// 목표시간 Notification 예약
+  private func scheduleGoalEndNotification() {
+    let sec = remainingStudySeconds()
+    NotificationScheduler
+      .scheduleEnd(
+        id: NotificationID.goalTimeEnd,
+        title: NotificationTitle.goalTimeEnd,
+        body: NotificationBody.goalTimeEnd,
+        date: Date().addingTimeInterval(TimeInterval(sec)), // 지금시각 + 남은 초remainingStudySeconds(초) = 울릴 시간 구함
+        isMuted: AudioSettings.shared.isMute.value
+      )
+  }
+  
+  /// 휴식시간 Notification 예약
+  private func scheduleRestEndNotification() {
+    let sec = remainingRestSeconds()
+    NotificationScheduler
+      .scheduleEnd(
+        id: NotificationID.restingTimeEnd,
+        title: NotificationTitle.restingTimeEnd,
+        body: NotificationBody.restingTimeEnd,
+        date: Date().addingTimeInterval(TimeInterval(sec)),
+        isMuted: AudioSettings.shared.isMute.value
+      )
+  }
+  
+  /// 목표시간 Notification 예약 취소
+  private func cancelGoalEndNotification() { NotificationScheduler.cancel(id: NotificationID.goalTimeEnd) }
+  
+  /// 휴식 Notification 예약 취소
+  private func cancelRestEndNotification() { NotificationScheduler.cancel(id: NotificationID.restingTimeEnd) }
 }

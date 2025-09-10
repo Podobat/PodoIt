@@ -104,21 +104,29 @@ final class TimerRunViewController: UIViewController {
 
     // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonSectionView.startPauseTap
-      .asDriver()
+      .asSignal()
       .throttle(.seconds(1)) // 1초 안에 여러번 눌러도 1번만 실행됨
-      .drive(with: self) { vc, _ in
+      .emit(with: self) { vc, _ in
         vc.viewModel.startAndPause()
       }
       .disposed(by: disposeBag)
 
     // stop 버튼 tap하여 중지
     buttonSectionView.stopButtonTap
-      .asDriver()
-      .drive(with: self) { vc, _ in
+      .asSignal()
+      .emit(with: self) { vc, _ in
         PodoAlertController.presentStopTimerAlert(from: vc, onConfirm: {
           vc.viewModel.stop()
           vc.navigationController?.popViewController(animated: true)
         })
+      }
+      .disposed(by: disposeBag)
+
+    // muteButton tap하여 음소거 true/false
+    headerSectionView.muteButtonTap
+      .asSignal()
+      .emit(with: self) { vc, _ in
+        vc.viewModel.toggleMute()
       }
       .disposed(by: disposeBag)
 
@@ -148,14 +156,16 @@ final class TimerRunViewController: UIViewController {
       viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
       viewModel.studyingTimeText, // 공부중인 시간 (H:MM:SS)
       viewModel.totalRestTimeText, // 총 "휴식 중인 시간" (MM:SS)
-      viewModel.restingTimeText // "남은 휴식시간" (기본 5분. MM:SS)
+      viewModel.restingTimeText, // "남은 휴식시간" (기본 5분. MM:SS)
+      viewModel.isMuteDriver // 음소거(mute)의 Bool 상태
     )
     .drive(with: self) { vc, data in
-      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime) = data
+      let (isStudying, goalTime, studyingTime, totalRestTime, restingTime, isMute) = data
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
       vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
       vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
       vc.animationSectionView.updateStateImage(isStudying: isStudying)
+      vc.headerSectionView.updateMuteIcon(isMute: isMute)
 
       if isStudying { // 공부중
         vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)

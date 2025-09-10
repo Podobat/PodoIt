@@ -12,7 +12,7 @@ final class SettingViewCell: UITableViewCell {
   static let id = "SettingViewCell"
   
   private let itemLabel = UILabel()
-  private let toggleSwitch = UISwitch()
+  private(set) var toggleSwitch = UISwitch()
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
