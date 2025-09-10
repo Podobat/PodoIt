@@ -7,9 +7,9 @@
 import Foundation
 
 struct TimerSessionState {
-  var studySessionStart: Date // 공부 시작한 시간 기록
+//  var studySessionStart: Date // 공부 시작한 시간 기록
   var intervalStart: Date // 현재 구간(공부/휴식)이 시작된 시간 기록
   var isStudying: Bool // 공부 중(true)/휴식 중(false)
   var totalStudySeconds: Int // 지금까지 누적된 총 공부 시간(초)
-  var totalRestSeconds: Int // 지금까지 누적된 총 휴식 시간(초)
+//  var totalRestSeconds: Int // 지금까지 누적된 총 휴식 시간(초)
 }

@@ -34,12 +34,13 @@ final class TimerRunViewModel {
   private(set) var timer: TimerModel?
   private let disposeBag = DisposeBag()
   
+  // FIXME: 사용하지 않을 것 같은 값들 주석. 끝내고도 사용 안하면 삭제 예정
   private(set) var state = TimerSessionState(
-    studySessionStart: Date(), // UD에서도 사용 안하면 삭제
+//    studySessionStart: Date(), // UD에서도 사용 안하면 삭제
     intervalStart: Date(),
     isStudying: true,
     totalStudySeconds: 0,
-    totalRestSeconds: 0 // UD에서도 사용 안하면 삭제
+//    totalRestSeconds: 0 // UD에서도 사용 안하면 삭제
   )
   
   // isRunningRelay가 값이 바뀔 때마다 이벤트 방출
@@ -338,9 +339,6 @@ extension TimerRunViewModel {
     if state.isStudying {
       state.totalStudySeconds += intervalTime // 공부 시간 누적
       print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
-    } else {
-      state.totalRestSeconds += intervalTime // 휴식 시간 누적
-      print("현재까지 총 휴식 시간: \(state.totalRestSeconds)")
     }
   }
   
