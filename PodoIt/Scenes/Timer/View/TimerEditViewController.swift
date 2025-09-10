@@ -273,6 +273,8 @@ final class TimerEditViewController: UIViewController {
 
     applyCollapsedUI(animated: false)
     updateCollapsedLabelText()
+
+    updateSaveButtonStyle()
   }
 
   private func setupEditMode() {
@@ -310,6 +312,7 @@ final class TimerEditViewController: UIViewController {
         setEmojiOnButton(editing.iconName)
       }
     }
+    updateSaveButtonStyle()
   }
 
   private func setupGestures() {
@@ -633,6 +636,32 @@ final class TimerEditViewController: UIViewController {
     setNameFieldError(text.isEmpty)
   }
 
+  // 폼 유효성 검사 : 제목 공백/중복 체크
+  private func isFormValid() -> Bool {
+    let title = (nameTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    return !title.isEmpty
+  }
+
+  // 저장 버튼 스타일 동기화
+  private func updateSaveButtonStyle() {
+    let valid = isFormValid()
+    saveButton.isEnabled = valid
+
+    if valid {
+      saveButton.backgroundColor = Palette.Primary.p600
+      saveButton.setAttributedTitle(
+        Typography.attributed("저장하기", style: .labelLg(weight: .semibold), color: .appWhite),
+        for: .normal
+      )
+    } else {
+      saveButton.backgroundColor = Palette.Gray.g200
+      saveButton.setAttributedTitle(
+        Typography.attributed("저장하기", style: .labelLg(weight: .semibold), color: Palette.Gray.g400),
+        for: .normal
+      )
+    }
+  }
+
   // MARK: - Actions
 
   @objc private func dismissKeyboards() {
@@ -658,6 +687,7 @@ final class TimerEditViewController: UIViewController {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
       setNameFieldError(true, animated: true)
       nameTextField.becomeFirstResponder()
+      updateSaveButtonStyle()
       return
     }
 
@@ -667,6 +697,7 @@ final class TimerEditViewController: UIViewController {
       setNameFieldError(true, animated: true)
       nameTextField.becomeFirstResponder()
       showToast("중복된 이름이 있어요.", icon: UIImage(named: "bang"), above: saveButton)
+      updateSaveButtonStyle()
       return
     }
 
@@ -738,6 +769,8 @@ final class TimerEditViewController: UIViewController {
     UIImpactFeedbackGenerator(style: .soft).impactOccurred()
     sender.text = ""
     sender.resignFirstResponder()
+
+    updateSaveButtonStyle()
   }
 
   private func setEmojiOnButton(_ emoji: String) {
@@ -770,6 +803,7 @@ final class TimerEditViewController: UIViewController {
     emojiButton.tintColor = Palette.Primary.p600
     dashedCircleView.isHidden = false
     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    updateSaveButtonStyle()
   }
 
   // 이름 편집 중 실시간 검증 (지우면 빨간 스트로크)
@@ -781,6 +815,7 @@ final class TimerEditViewController: UIViewController {
       return
     }
     validateNameField()
+    updateSaveButtonStyle()
   }
 }
 
@@ -841,6 +876,7 @@ extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate 
     pickerView.reloadComponent(0)
     updateUnitLabelPosition()
     if !isPickerExpanded { updateCollapsedLabelText() }
+    updateSaveButtonStyle()
   }
 
   func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
