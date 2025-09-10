@@ -107,6 +107,8 @@ final class TimerRunViewModel {
     if state.isStudying {
       scheduleGoalEndNotification() // 공부 목표 시간 알림 예약
     }
+    // 앱 진입 후 바로 스냅샷 저장
+    saveSessionUDSnapshot()
   }
   
   // MARK: - UserDefaults 저장/불러오기/삭제
@@ -198,6 +200,8 @@ final class TimerRunViewModel {
     if state.isStudying == false { // 휴식 중
       scheduleRestEndNotification() // 휴식시간이 늘어나니 다시 시간 재계산 후 예약
     }
+    // 휴식 시간이 늘어날 때마다 스냅샷 저장
+    saveSessionUDSnapshot()
   }
 
   /// 시작/일시정지 버튼 토글
@@ -222,6 +226,8 @@ final class TimerRunViewModel {
       cancelGoalEndNotification()
       scheduleRestEndNotification()
     }
+    // 상태 전환 후 스냅샷 저장
+    saveSessionUDSnapshot()
   }
   
   /// 정지
@@ -256,6 +262,8 @@ final class TimerRunViewModel {
       타이머 이름: \(timer.title)
       총 공부 시간: \(TimerRunViewModel.formatHMMSS(seconds: state.totalStudySeconds))
       """)
+      // 세션이 정상적으로 종료되었을 경우: UD 스냅샷을 삭제(초기화)해서 다음 세션에 문제 없도록
+      deleteSessionUDSnapshot()
     } catch {
       print("데이터 저장 실패: \(RepositoryError.saveFailed)")
     }
