@@ -18,7 +18,7 @@ enum NotificationTitle {
 }
 
 enum NotificationBody {
-  static let goalTimeEnd = "수고했어요, 잠깐 쉬고 눈과 어깨를 풀어주세요."
+  static let goalTimeEnd = "수고했어요, 잠깐 쉬면서 눈과 어깨를 풀어주세요."
   static let restingTimeEnd = "이제 다시 집중해볼까요? 또 다른 성취가 기다려요."
 }
 
