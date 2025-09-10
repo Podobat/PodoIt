@@ -47,7 +47,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     static let sectionSpacing: CGFloat = 16
     static let dividerHeight: CGFloat = 1
     static let emptyTopOffset: CGFloat = 240
-    static let addButtonBottomOffset: CGFloat = -20
+    static let addButtonBottomOffset: CGFloat = -16
     static let addButtonHeight: CGFloat = 48
     static let minimumLineSpacing: CGFloat = 12
     static let sectionInset = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
@@ -255,7 +255,8 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
     backgroundContainerView.snp.makeConstraints {
       $0.top.equalTo(headerView.snp.bottom).offset(20)
-      $0.leading.trailing.bottom.equalToSuperview()
+      $0.leading.trailing.equalToSuperview()
+      $0.bottom.equalTo(view.safeAreaLayoutGuide)
     }
 
     collectionView.snp.makeConstraints {
@@ -266,7 +267,8 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
 
     emptyStateView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.top.equalTo(backgroundContainerView.snp.top).offset(Layout.emptyTopOffset)
+      $0.centerY.equalTo(backgroundContainerView.snp.centerY)
+      $0.leading.trailing.equalToSuperview().inset(Layout.sectionInset.left)
     }
 
     addButton.snp.makeConstraints {
@@ -274,6 +276,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
       $0.centerX.equalToSuperview()
       $0.height.equalTo(Layout.addButtonHeight)
     }
+    collectionView.contentInset.bottom = Layout.addButtonHeight + 16
   }
 
   // MARK: - UICollectionViewDelegateFlowLayout

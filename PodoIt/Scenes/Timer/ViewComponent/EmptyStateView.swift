@@ -23,6 +23,12 @@ final class EmptyStateView: UIView {
     $0.numberOfLines = 0
   }
 
+  private lazy var stackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel]).then {
+    $0.axis = .vertical
+    $0.spacing = 14
+    $0.alignment = .center
+  }
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupView()
@@ -36,6 +42,7 @@ final class EmptyStateView: UIView {
 
   private func setupView() {
     [titleLabel, descriptionLabel].forEach { addSubview($0) }
+    addSubview(stackView)
   }
 
   private func setupConstraints() {
@@ -46,6 +53,12 @@ final class EmptyStateView: UIView {
     descriptionLabel.snp.makeConstraints {
       $0.top.equalTo(titleLabel.snp.bottom).offset(14)
       $0.leading.trailing.bottom.equalToSuperview()
+    }
+
+    stackView.snp.makeConstraints {
+      $0.centerX.centerY.equalToSuperview()
+      $0.centerY.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(20)
     }
   }
 }
