@@ -83,6 +83,15 @@ final class CalendarCell: UICollectionViewCell {
     $0.isHidden = true
   }
 
+  private let todayShapeLayer: CAShapeLayer = {
+    let layer = CAShapeLayer()
+    layer.fillColor = UIColor.primary700.cgColor // 안쪽 색
+    layer.strokeColor = UIColor.appWhite.cgColor // 테두리 색
+    layer.lineWidth = 1.0 / UIScreen.main.scale // center stroke
+    layer.contentsScale = UIScreen.main.scale
+    return layer
+  }()
+
   override var isSelected: Bool {
     didSet {
       selectionView.isHidden = !isSelected
@@ -126,20 +135,12 @@ final class CalendarCell: UICollectionViewCell {
       let offset = ((dayLabel.frame.minY - selectionView.frame.minY) / 2)
       $0.top.equalTo(selectionView.snp.top).offset(offset)
     }
-    
-    // 기존 shapeLayer 제거
-    todayMarkerView.layer.sublayers?.removeAll(where: { $0 is CAShapeLayer })
 
-    let todayMarkerPath = UIBezierPath(ovalIn: todayMarkerView.bounds)
-
-    let shape = CAShapeLayer()
-    shape.path = todayMarkerPath.cgPath
-    shape.fillColor = UIColor.primary700.cgColor       // 안쪽 색
-    shape.strokeColor = UIColor.appWhite.cgColor       // 테두리 색
-    shape.lineWidth = 1                                // center stroke
-    shape.contentsScale = UIScreen.main.scale          // 1px
-
-    todayMarkerView.layer.addSublayer(shape)
+    // 오늘 마커 path 갱신
+    CATransaction.begin()
+    CATransaction.setDisableActions(true) // 애니메이션 방지
+    todayShapeLayer.path = UIBezierPath(ovalIn: todayMarkerView.bounds).cgPath
+    CATransaction.commit()
   }
 
   override func prepareForReuse() {
@@ -179,6 +180,8 @@ final class CalendarCell: UICollectionViewCell {
       $0.width.height.equalToSuperview().multipliedBy(0.1)
       $0.top.equalTo(selectionView.snp.top).offset(6)
     }
+
+    todayMarkerView.layer.addSublayer(todayShapeLayer)
   }
 
   // day: "1"…"31" (빈칸은 ""), isToday: 오늘, focusMinutes: 해당 날짜 총 집중 시간(분)
