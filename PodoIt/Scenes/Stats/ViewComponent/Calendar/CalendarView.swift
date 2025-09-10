@@ -20,6 +20,7 @@ final class CalendarView: UIView {
     static let buttonHorizontalPadding: CGFloat = 40
     static let buttonSize: CGFloat = 44
     static let calendarPadding: CGFloat = 16
+    static let weekStackViewTopPadding: CGFloat = 23
     static let weekStackViewBottomPadding: CGFloat = 4
   }
 
@@ -30,13 +31,18 @@ final class CalendarView: UIView {
   private let selectedDateRelay = BehaviorRelay<Date>(value: Date())
   var selectedDate: Observable<Date> { selectedDateRelay.asObservable() }
 
-  private var lastSelectedDate: Date? = Date() // 앱 시작 시 오늘을 기본 선택으로
+  // 현재 보이는 달 범위 방송 (달 시작 ~ 다음달 시작)
+  private let visibleMonthRelay = BehaviorRelay<(start: Date, end: Date)>(value: (Date(), Date()))
+  var visibleMonth: Observable<(start: Date, end: Date)> { visibleMonthRelay.asObservable() }
 
-  private lazy var titleLabel = UILabel().then {
-    $0.text = "2003년 01월"
-    $0.font = Typography.font(for: .labelLg(weight: .semibold))
-    $0.textColor = .gray900
-  }
+  // heat 데이터: 키 = 일(day, 1~31), 값 = 총 분
+  private var heatMinutesByDay: [Int: Int] = [:]
+
+  private var lastSelectedDate: Date? = Date() // 앱 시작 시 오늘을 기본 선택으로
+  
+  private lazy var titleLabel = UILabel.makeAttributed(
+    text: "", style: .labelLg(weight: .semibold), color: .gray900
+  )
 
   private let previousButton = UIButton().then {
     let image = UIImage(named: "chevron-left")?.withRenderingMode(.alwaysTemplate)
@@ -124,7 +130,7 @@ final class CalendarView: UIView {
     }
 
     weekStackView.snp.makeConstraints {
-      $0.top.equalTo(titleLabel.snp.bottom).offset(Metrics.headerVerticalPadding)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(Metrics.weekStackViewTopPadding)
       $0.directionalHorizontalEdges.equalToSuperview().inset(Metrics.calendarPadding)
     }
 
@@ -132,7 +138,7 @@ final class CalendarView: UIView {
       $0.top.equalTo(weekStackView.snp.bottom).offset(Metrics.weekStackViewBottomPadding)
       $0.directionalHorizontalEdges.equalToSuperview().inset(Metrics.calendarPadding)
       collectionViewHeightConstraint = $0.height.equalTo(0).constraint
-      $0.bottom.equalToSuperview().priority(.low)
+      $0.bottom.equalToSuperview().inset(8).priority(.low)
     }
   }
 
@@ -140,9 +146,12 @@ final class CalendarView: UIView {
     let dayOfTheWeek = calendar.shortWeekdaySymbols
     for day in dayOfTheWeek {
       let label = UILabel()
-      label.text = day
-      label.textColor = .gray300
-      label.font = Typography.font(for: .captionLg(weight: .semibold))
+      let attr = Typography.attributed(
+        day,
+        style: .captionLg(weight: .semibold),
+        color: .gray300
+      )
+      label.attributedText = attr
       label.textAlignment = .center
       weekStackView.addArrangedSubview(label)
     }
@@ -152,6 +161,34 @@ final class CalendarView: UIView {
     collectionView.layoutIfNeeded()
     let contentHeight = collectionView.collectionViewLayout.collectionViewContentSize.height
     collectionViewHeightConstraint?.update(offset: contentHeight)
+  }
+
+  // 선택 복구 유틸
+  private func indexPath(for date: Date) -> IndexPath? {
+    let comps = calendar.dateComponents([.year, .month, .day], from: date)
+    let current = calendar.dateComponents([.year, .month], from: calendarDate)
+    guard comps.year == current.year,
+          comps.month == current.month,
+          let day = comps.day else { return nil }
+
+    let start = startDayOfTheWeek()
+    return IndexPath(item: start + (day - 1), section: 0)
+  }
+
+  private func restoreSelection() {
+    guard let last = lastSelectedDate,
+          let ip = indexPath(for: last) else { return }
+
+    collectionView.selectItem(at: ip, animated: false, scrollPosition: [])
+    (collectionView.cellForItem(at: ip) as? CalendarCell)?.isSelected = true
+  }
+
+  // 히트맵 주입 시 선택 복구 호출
+  func applyHeat(_ minutesByDay: [Int: Int]) {
+    heatMinutesByDay = minutesByDay
+    collectionView.reloadData()
+    collectionView.layoutIfNeeded()
+    restoreSelection()
   }
 }
 
@@ -163,9 +200,14 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
   }
 
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CalendarCell.identifier, for: indexPath) as? CalendarCell else { return UICollectionViewCell() }
-    let day = days[indexPath.item]
-    cell.update(day: day.day, isToday: day.isToday)
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: CalendarCell.identifier,
+      for: indexPath
+    ) as? CalendarCell else { return UICollectionViewCell() }
+
+    let info = days[indexPath.item]
+    let minutes = Int(info.day).flatMap { heatMinutesByDay[$0] } ?? 0  // ⬅️ 추가
+    cell.update(day: info.day, isToday: info.isToday, focusMinutes: minutes) // ⬅️ 변경
     return cell
   }
 
@@ -209,7 +251,7 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
 
 extension CalendarView {
   private func configureCalendar() {
-    dateFormatter.dateFormat = "yyyy년 MM월"
+    dateFormatter.dateFormat = "yyyy년 M월"
     today()
   }
 
@@ -224,11 +266,16 @@ extension CalendarView {
   private func updateCalendar() {
     updateTitle()
     updateDays()
+    updateVisibleMonthBroadcast()
   }
 
   private func updateTitle() {
     let date = dateFormatter.string(from: calendarDate)
-    titleLabel.text = date
+    titleLabel.attributedText = Typography.attributed(
+      date,
+      style: .labelLg(weight: .semibold),
+      color: .gray900
+    )
   }
 
   private func updateDays() {
@@ -294,6 +341,18 @@ extension CalendarView {
     // 오늘 날짜 한 번 방출 (초기 상태 전달)
     selectedDateRelay.accept(Date())
     lastSelectedDate = Date()
+  }
+  
+  private func monthRange(for date: Date) -> (start: Date, end: Date) {
+    let comps = calendar.dateComponents([.year, .month], from: date)
+    let start = calendar.date(from: comps) ?? calendar.startOfDay(for: date)
+    let end = calendar.date(byAdding: .month, value: 1, to: start) ?? start.addingTimeInterval(86400)
+    return (start, end)
+  }
+
+  private func updateVisibleMonthBroadcast() {
+    let r = monthRange(for: calendarDate)
+    visibleMonthRelay.accept((r.start, r.end))
   }
 }
 
