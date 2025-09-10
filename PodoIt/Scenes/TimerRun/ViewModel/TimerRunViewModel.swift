@@ -28,7 +28,7 @@ final class TimerRunViewModel {
 
   private let timerID: UUID
   private let repo: TimerRepository
-  private let udSnapshotKey = "timer_key"
+  private static let udSnapshotKey = "timer_key"
   
   // MARK: - State
 
@@ -127,13 +127,13 @@ final class TimerRunViewModel {
     )
     
     if let data = try? JSONEncoder().encode(snapshot) {
-      UserDefaults.standard.set(data, forKey: udSnapshotKey)
+      UserDefaults.standard.set(data, forKey: Self.udSnapshotKey) // Self는 현재 타입을 의미해서 TimerRunViewModel.ud..와 동일
     }
   }
   
   /// UserDefaults에 데이터 불러오기
   private func fetchSessionUDSnapshot() {
-    guard let savedData = UserDefaults.standard.object(forKey: udSnapshotKey) as? Data else { return } // UD 가져옴
+    guard let savedData = UserDefaults.standard.object(forKey: Self.udSnapshotKey) as? Data else { return } // UD 가져옴
     guard let snapshotData = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: savedData) else { return } // UD 디코딩
     
     // 주입받은 timerID가 스냅샷의 ID와 다르게 되면 무시하도록. (안전을 위해)
@@ -163,7 +163,7 @@ final class TimerRunViewModel {
   
   /// UserDefaults 데이터 삭제
   private func deleteSessionUDSnapshot() {
-    UserDefaults.standard.removeObject(forKey: udSnapshotKey)
+    UserDefaults.standard.removeObject(forKey: Self.udSnapshotKey)
   }
   
   // MARK: 앱 라이프 사이클에 따른 UD Snapshot
@@ -486,4 +486,11 @@ extension TimerRunViewModel {
   
   /// 휴식 Notification 예약 취소
   private func cancelRestEndNotification() { NotificationScheduler.cancel(id: NotificationID.restingTimeEnd) }
+  
+  /// SceneDelegate에서 의존성때문에 인스턴스 생성을 못하니, 타입 메서드로 선언해서 가져다사용
+  static func fetchSavedTimerID() -> UUID? {
+    guard let data = UserDefaults.standard.object(forKey: self.udSnapshotKey) as? Data,
+          let snapshot = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: data) else { return nil }
+    return snapshot.timerID
+  }
 }
