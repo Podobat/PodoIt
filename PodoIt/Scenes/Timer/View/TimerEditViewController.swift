@@ -320,7 +320,7 @@ final class TimerEditViewController: UIViewController {
     emojiButton.addGestureRecognizer(longPressGesture)
 
     // 화면 탭으로 이모지 키보드 닫기
-    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissEmojiKeyboard))
+    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboards))
     tapGesture.cancelsTouchesInView = false
     view.addGestureRecognizer(tapGesture)
   }
@@ -634,6 +634,10 @@ final class TimerEditViewController: UIViewController {
   }
 
   // MARK: - Actions
+
+  @objc private func dismissKeyboards() {
+    view.endEditing(true)
+  }
 
   @objc private func backButtonTapped() {
     navigationController?.popViewController(animated: true)
