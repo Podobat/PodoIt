@@ -12,6 +12,13 @@ import Then
 import UIKit
 
 final class StatsViewController: UIViewController {
+  // MARK: - Metrics
+
+  private enum Metrics {
+    static let addButtonBottomOffset: CGFloat = -16
+    static let addButtonHeight: CGFloat = 36
+  }
+
   // MARK: - Properties
 
   private let viewModel = StatsViewModel()
@@ -33,6 +40,32 @@ final class StatsViewController: UIViewController {
     $0.spacing = 0
   }
 
+  private let todayButton = UIButton(type: .system).then {
+    $0.setAttributedTitle(
+      Typography.attributed("오늘 날짜", style: .labelMd(weight: .semibold), color: .primary600),
+      for: .normal
+    )
+    $0.backgroundColor = .primary100
+    // 버튼 이미지 설정
+    let image = UIImage(named: "rotate-ccw")?
+      .withConfiguration(
+        UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+      )
+      .withRenderingMode(.alwaysTemplate)
+    $0.setImage(image, for: .normal)
+    $0.tintColor = .primary600
+    $0.layer.borderWidth = 1
+    $0.layer.borderColor = UIColor.primary200.cgColor
+    $0.layer.cornerRadius = 18
+    $0.layer.shadowColor = UIColor.appBlack.cgColor
+    $0.layer.shadowOpacity = 0.08
+    $0.layer.shadowRadius = 12
+    // 버튼 전체 패딩
+    $0.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 16)
+    // 이미지-텍스트 간격
+    $0.titleEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: -4)
+  }
+
   // MARK: - Lifecycle
 
   override func viewDidLoad() {
@@ -40,6 +73,14 @@ final class StatsViewController: UIViewController {
     configureUI()
     bind()
     viewModel.viewDidLoad()
+  }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    todayButton.layer.shadowPath = UIBezierPath(
+      roundedRect: todayButton.bounds,
+      cornerRadius: 18
+    ).cgPath
   }
 
   // MARK: - Private Methods
@@ -52,7 +93,7 @@ final class StatsViewController: UIViewController {
   }
 
   private func setupViews() {
-    [headerView, scrollView].forEach { view.addSubview($0) }
+    [headerView, scrollView, todayButton].forEach { view.addSubview($0) }
     scrollView.addSubview(contentStackView)
     [calendarView, calendarColorView, summaryView].forEach { contentStackView.addArrangedSubview($0) }
     calendarView.layer.zPosition = 1
@@ -70,8 +111,15 @@ final class StatsViewController: UIViewController {
     }
 
     contentStackView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+      $0.top.equalToSuperview()
+      $0.directionalHorizontalEdges.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-48)
       $0.width.equalTo(scrollView.snp.width)
+    }
+
+    todayButton.snp.makeConstraints {
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(Metrics.addButtonBottomOffset)
+      $0.centerX.equalToSuperview()
     }
   }
 
@@ -115,7 +163,7 @@ final class StatsViewController: UIViewController {
       )
     })
     .disposed(by: disposeBag)
-    
+
     // 1) 먼저 monthHeatMap을 구독해서 내부 combineLatest가 활성화되게 함
     viewModel.monthHeatMap
       .drive(onNext: { [weak self] heat in
@@ -126,6 +174,13 @@ final class StatsViewController: UIViewController {
     // 2) 그 다음 visibleMonthRange에 바인딩 (이 타이밍의 첫 이벤트를 놓치지 않음)
     calendarView.visibleMonth
       .bind(to: viewModel.visibleMonthRange)
+      .disposed(by: disposeBag)
+
+    todayButton.rx.tap
+      .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
+      .subscribe(onNext: { [weak self] in
+        self?.calendarView.goToToday()
+      })
       .disposed(by: disposeBag)
   }
 

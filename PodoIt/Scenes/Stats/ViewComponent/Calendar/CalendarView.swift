@@ -39,7 +39,7 @@ final class CalendarView: UIView {
   private var heatMinutesByDay: [Int: Int] = [:]
 
   private var lastSelectedDate: Date? = Date() // 앱 시작 시 오늘을 기본 선택으로
-  
+
   private lazy var titleLabel = UILabel.makeAttributed(
     text: "", style: .labelLg(weight: .semibold), color: .gray900
   )
@@ -206,8 +206,8 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
     ) as? CalendarCell else { return UICollectionViewCell() }
 
     let info = days[indexPath.item]
-    let minutes = Int(info.day).flatMap { heatMinutesByDay[$0] } ?? 0  // ⬅️ 추가
-    cell.update(day: info.day, isToday: info.isToday, focusMinutes: minutes) // ⬅️ 변경
+    let minutes = Int(info.day).flatMap { heatMinutesByDay[$0] } ?? 0
+    cell.update(day: info.day, isToday: info.isToday, focusMinutes: minutes)
     return cell
   }
 
@@ -341,8 +341,10 @@ extension CalendarView {
     // 오늘 날짜 한 번 방출 (초기 상태 전달)
     selectedDateRelay.accept(Date())
     lastSelectedDate = Date()
+
+    restoreSelection()
   }
-  
+
   private func monthRange(for date: Date) -> (start: Date, end: Date) {
     let comps = calendar.dateComponents([.year, .month], from: date)
     let start = calendar.date(from: comps) ?? calendar.startOfDay(for: date)
@@ -353,6 +355,10 @@ extension CalendarView {
   private func updateVisibleMonthBroadcast() {
     let r = monthRange(for: calendarDate)
     visibleMonthRelay.accept((r.start, r.end))
+  }
+
+  func goToToday() {
+    today()
   }
 }
 
