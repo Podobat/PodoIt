@@ -44,7 +44,7 @@ final class StatsSummaryView: UIView {
   private let segmentedControl = StatsCustomSegmentedControl(items: ["일간", "월간"])
 
   private let emptyView = UIView().then {
-    $0.backgroundColor = .appWhite
+    $0.backgroundColor = .clear
     $0.isHidden = true
   }
 

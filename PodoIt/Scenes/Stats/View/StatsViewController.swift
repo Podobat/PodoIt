@@ -17,6 +17,8 @@ final class StatsViewController: UIViewController {
   private enum Metrics {
     static let addButtonBottomOffset: CGFloat = -16
     static let addButtonHeight: CGFloat = 36
+    static let todayHiddenBottomOffset: CGFloat = 0
+    static let todayVisibleBottomOffset: CGFloat = -48
   }
 
   // MARK: - Properties
@@ -29,6 +31,8 @@ final class StatsViewController: UIViewController {
   private let calendarView = CalendarView()
   private let calendarColorView = CalendarColorView()
   private let summaryView = StatsSummaryView()
+
+  private var contentStackBottomConstraint: Constraint?
 
   private let scrollView = UIScrollView().then {
     $0.backgroundColor = .gray100
@@ -74,7 +78,7 @@ final class StatsViewController: UIViewController {
     bind()
     viewModel.viewDidLoad()
   }
-  
+
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     todayButton.layer.shadowPath = UIBezierPath(
@@ -113,7 +117,8 @@ final class StatsViewController: UIViewController {
     contentStackView.snp.makeConstraints {
       $0.top.equalToSuperview()
       $0.directionalHorizontalEdges.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-48)
+      contentStackBottomConstraint = $0.bottom.equalToSuperview()
+        .offset(Metrics.todayHiddenBottomOffset).constraint
       $0.width.equalTo(scrollView.snp.width)
     }
 
@@ -180,6 +185,19 @@ final class StatsViewController: UIViewController {
       .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
       .subscribe(onNext: { [weak self] in
         self?.calendarView.goToToday()
+        self?.scrollToTop(animated: true)
+      })
+      .disposed(by: disposeBag)
+
+    // 오늘 날짜 선택시 버튼 히든 처리
+    viewModel.isTodaySelected
+      .drive(onNext: { [weak self] isToday in
+        self?.todayButton.isHidden = isToday
+        self?.contentStackBottomConstraint?.update(
+          offset: isToday ? Metrics.todayHiddenBottomOffset
+            : Metrics.todayVisibleBottomOffset
+        )
+        self?.view.layoutIfNeeded()
       })
       .disposed(by: disposeBag)
   }
@@ -195,5 +213,10 @@ final class StatsViewController: UIViewController {
       }
     )
     present(sheet, animated: true)
+  }
+  
+  private func scrollToTop(animated: Bool = false) {
+    let y = -scrollView.adjustedContentInset.top
+    scrollView.setContentOffset(CGPoint(x: 0, y: y), animated: animated)
   }
 }
