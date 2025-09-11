@@ -25,6 +25,7 @@ final class StatsViewModel {
   private(set) lazy var summary: Driver<SummaryUI> = buildSummary()
   // 달의 일별 집중 분 출력
   private(set) lazy var monthHeatMap: Driver<[Int: Int]> = makeMonthHeatMap()
+  let isTodaySelected: Driver<Bool>
 
   // MARK: - Private
 
@@ -34,6 +35,11 @@ final class StatsViewModel {
 
   init(repo: StatsRepository = SwiftDataManager.shared) {
     self.repo = repo
+    
+    self.isTodaySelected = selectedDate
+      .asDriver()
+      .map { Calendar.current.isDateInToday($0) }
+      .distinctUntilChanged()
 
     NotificationCenter.default.rx.notification(.statsDidChange)
       .observe(on: MainScheduler.instance)
