@@ -10,11 +10,22 @@
 ---
 
 ## 📋 프로젝트
-- **앱 이름**: 포도잇 (Podoit)
+- **앱 이름**: **포도잇 (Podoit)**
 - **프로젝트 기간**: 2025.08.14(화) ~
 - **Figma**: [포도잇, Podoit](https://www.figma.com/design/NX3vLL4i9cbhPr6657Xeqx/%ED%8F%AC%EB%8F%84%EC%9E%87?node-id=126-379&p=f&t=feq8LsVgittc9Qwr-0)
 - **MVP 발표 자료**: [MVP 발표자료](https://www.figma.com/slides/Ot24DdlBBOkWfrq1lhPXO8/Podoit?node-id=0-1&p=f&t=JZBcddCwh1RaENuy-0)
-<!-- - **앱스토어 주소**:  -->
+- **앱스토어 주소**: [포도잇, Podoit](https://apps.apple.com/kr/app/%ED%8F%AC%EB%8F%84%EC%9E%87/id6752013483)
+
+---
+
+## 앱 스크린
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6fe8d61c-761e-4762-a89c-aacb27849aa0" width="200" />
+  <img src="https://github.com/user-attachments/assets/5221f458-0656-4369-9940-9165b49a6675" width="200" />
+  <img src="https://github.com/user-attachments/assets/1604ff4e-e526-41ba-8669-2ea656711c27" width="200" />
+  <img src="https://github.com/user-attachments/assets/3818495f-e0d5-47d0-851a-e35cc50df9b9" width="200" />
+</p>
 
 ---
 
@@ -22,7 +33,7 @@
 
 | 이름  | 역할  | 담당기능 |
 | :----: | :----: | :---- |
-| **🐶 서광용** | iOS 개발 | 타이머 실행, 앱 스토어/구글폼 이동  |
+| **🐶 서광용** | iOS 개발 | 타이머 실행, 설정(앱 스토어/구글폼 이동)  |
 | **🐤 노가현** | iOS 개발 | 타이머 목록, 타이머 편집 |
 | **🦊 김이든** | iOS 개발 | 타이머 기록 일간/월간 통계 |
 | **🐱 고채원** | 디자이너 | UX/UI 디자인, 브랜딩  |
@@ -55,6 +66,7 @@
 ```
 🍇 PodoIt
 ├─ 📁 App             # 앱 실행 및 라이프사이클 관련 (AppDelegate, SceneDelegate 등)
+├─ 📁 AppSettings     # 앱 전역 설정 (오디오, 알림 스케줄러 등 공통 설정 관리)
 ├─ 📁 Data            # 데이터 계층 (의존성, Persistence, SwiftData 관리)
 ├─ 📁 DesignSystem    # 디자인 시스템
 │  ├─ 📁 Color        # 색상 팔레트
@@ -89,18 +101,21 @@
 - UIKit
 - SnapKit
 - Then
-- Lottie
+<!-- - Lottie -->
+
+### Notification
+- UserNotificationCenter
 
 ### Data
 - SwiftData (Dependencies)
 - UserDefaults
 
+
+
 <!-- ### Network
 - CloudKit (예정)
 
-### Sound
-- AudioToolbox
-- UserNotificationCenter -->
+ -->
 
 ### Etc
 - SafariServices
@@ -109,7 +124,7 @@
 
 ## 📱 주요 기능
 
-### 타이머 리스트
+### ⏳ 타이머 리스트
 - **아이템 표시**
   - 이모지 + 타이틀 + 메타 정보 (오늘 집중/누적) + 우측 플레이 버튼
   - 플레이 버튼 탭 시 실행 화면 진입, 햅틱 피드백 제공
@@ -120,7 +135,7 @@
   - 이모지 선택 버튼, 텍스트필드, 시간 선택기, 저장 버튼으로 단순 구조
 
 
-### 타이머 실행
+### ⏱️ 타이머 실행
 - **공부 중**
   - 목표 시간과 공부 시간 타이머 동작
   - 목표 시간 달성 시 Label 변경 및 ProgressBar 애니메이션 완료
@@ -131,22 +146,49 @@
   - +1분, +5분, +10분 버튼으로 휴식 시간 연장 가능
   - 휴식 진입 시마다 기본 5분으로 초기화
   - 상단 타이머를 통해 이번 휴식 세션에서의 총 휴식 시간 누적 표시
-<!-- - 공통
-  - 타이머 알림 소리 On/Off 설정 지원 -->
+- **공통**
+  - 타이머 알림 소리 On/Off 설정 지원
+  - 타이머 세션을 종료하는 stop버튼
 
 
-### 통계
+### 📊 통계
 - **캘린더 및 통계**
-    - 카테고리별 캘린더 및 통계 필터 제공
-    - 날짜별 누적 집중시간에 따라 색상 진하기로 시각적 확인
-    - 하루·월간 단위 집중시간 분석 지원
-    - 타이머 종료 시 통계 데이터 즉시 갱신
-    - SwiftData를 활용해 기록 불러오기
+  - 카테고리별 캘린더 및 통계 필터 제공
+  - 날짜별 누적 집중시간에 따라 색상 진하기로 시각적 확인
+  - 하루·월간 단위 집중시간 분석 지원
+  - 타이머 종료 시 통계 데이터 즉시 갱신
+  - 오늘 날짜로 복귀하는 버튼 제공
+  - SwiftData를 활용해 기록 불러오기
 
-### 설정
-<!-- - 타이머 알림 소리 On/Off 설정 (UserDefaults 저장) -->
+
+### ⚙️ 설정
+- 타이머 알림 소리 On/Off 설정
 - 문의·건의하기 (Google Form 연결)
 - 리뷰 남기기 (App Store 연결)
+
+---
+
+## 개발 진행 사항
+
+### ver 1.0.0
+- **⏳ 타이머 리스트**
+  - 이모지 + 타이틀 + 메타 정보 + 실행 버튼 표시
+  - 타이머 생성/편집 (중복 방지, 토스트/햅틱 피드백)
+  - 목표 집중 시간 picker 제공
+- **⏱️ 타이머 실행**
+  - 공부 모드: 목표 시간/누적 시간 관리, ProgressBar 애니메이션
+  - 휴식 모드: 기본 5분, 휴식 시간 연장(+1분, +5분, +10분) 지원, 총 휴식 시간 표시
+  - 공통: 알림 소리 On/Off, stop 버튼
+- **📊 통계**
+  - 캘린더 기반 통계, 카테고리별 필터
+  - 일간/월간 집중 시간 분석, 색상 진하기 표시
+  - 오늘 날짜로 복귀 버튼 제공
+  - SwiftData 활용해 기록 즉시 갱신 및 조회
+- **⚙️ 설정**
+  - 알림 소리 설정
+  - 문의·건의하기(Google Form)
+  - 리뷰 남기기(App Store)
+
 
 <!-- ---
 
@@ -154,11 +196,6 @@
 ## 시연 영상
 - Youtube
 
-## 앱 스크린
-
-## 개발 진행 사항
-- ver 1.0.0
-    - 어떤 기능들이 있는지 등
 
 ---
 -  -->
