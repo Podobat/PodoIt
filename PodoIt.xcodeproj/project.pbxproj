@@ -16,6 +16,7 @@
 		E873907A2E56BCB100941B2A /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E87390792E56BCB100941B2A /* Lottie */; };
 		E873907D2E56BCC200941B2A /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = E873907C2E56BCC200941B2A /* Algorithms */; };
 		E87390802E56BCED00941B2A /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = E873907F2E56BCED00941B2A /* KeychainAccess */; };
+		F2715BAF2E5840A9001FDECE /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = F2715BAE2E5840A9001FDECE /* Dependencies */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 				E87390802E56BCED00941B2A /* KeychainAccess in Frameworks */,
 				E87390772E56BC9E00941B2A /* FSCalendar in Frameworks */,
 				E87390692E56B84A00941B2A /* SnapKit in Frameworks */,
+				F2715BAF2E5840A9001FDECE /* Dependencies in Frameworks */,
 				E873907D2E56BCC200941B2A /* Algorithms in Frameworks */,
 				E87390742E56BC8B00941B2A /* DGCharts in Frameworks */,
 				E87390712E56BC6700941B2A /* RxRelay in Frameworks */,
@@ -67,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				E8571A132E50B3B2001CAD9D /* PodoIt */,
+				F2DEA0CD2E58548E00484FE7 /* Frameworks */,
 				E8571A122E50B3B2001CAD9D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -77,6 +80,13 @@
 				E8571A112E50B3B2001CAD9D /* PodoIt.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F2DEA0CD2E58548E00484FE7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -108,6 +118,7 @@
 				E87390792E56BCB100941B2A /* Lottie */,
 				E873907C2E56BCC200941B2A /* Algorithms */,
 				E873907F2E56BCED00941B2A /* KeychainAccess */,
+				F2715BAE2E5840A9001FDECE /* Dependencies */,
 			);
 			productName = PodoIt;
 			productReference = E8571A112E50B3B2001CAD9D /* PodoIt.app */;
@@ -129,11 +140,12 @@
 				};
 			};
 			buildConfigurationList = E8571A0C2E50B3B2001CAD9D /* Build configuration list for PBXProject "PodoIt" */;
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				ko,
 			);
 			mainGroup = E8571A082E50B3B2001CAD9D;
 			minimizedProjectReferenceProxies = 1;
@@ -146,6 +158,7 @@
 				E87390782E56BCB100941B2A /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				E873907B2E56BCC200941B2A /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				E873907E2E56BCED00941B2A /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E8571A122E50B3B2001CAD9D /* Products */;
@@ -184,22 +197,24 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Y774295X22;
+				CURRENT_PROJECT_VERSION = 6;
+				DEVELOPMENT_TEAM = NCUV99Q4S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PodoIt/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "포도잇";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hxxru.PodoIt;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.PodoIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -207,7 +222,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -217,22 +232,24 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Y774295X22;
+				CURRENT_PROJECT_VERSION = 6;
+				DEVELOPMENT_TEAM = NCUV99Q4S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PodoIt/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "포도잇";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hxxru.PodoIt;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.PodoIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -240,7 +257,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -249,6 +266,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -313,6 +331,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -453,6 +472,14 @@
 				kind = branch;
 			};
 		};
+		F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-dependencies.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.4;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -500,6 +527,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E873907E2E56BCED00941B2A /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
+		};
+		F2715BAE2E5840A9001FDECE /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */;
+			productName = Dependencies;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
