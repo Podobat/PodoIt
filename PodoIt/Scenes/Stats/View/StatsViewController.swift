@@ -17,8 +17,6 @@ final class StatsViewController: UIViewController {
   private enum Metrics {
     static let addButtonBottomOffset: CGFloat = -16
     static let addButtonHeight: CGFloat = 36
-    static let todayHiddenBottomOffset: CGFloat = 0
-    static let todayVisibleBottomOffset: CGFloat = -48
   }
 
   // MARK: - Properties
@@ -32,8 +30,6 @@ final class StatsViewController: UIViewController {
   private let calendarColorView = CalendarColorView()
   private let summaryView = StatsSummaryView()
 
-  private var contentStackBottomConstraint: Constraint?
-
   private let scrollView = UIScrollView().then {
     $0.backgroundColor = .gray100
     $0.alwaysBounceVertical = true
@@ -44,32 +40,6 @@ final class StatsViewController: UIViewController {
     $0.spacing = 0
   }
 
-  private let todayButton = UIButton(type: .system).then {
-    $0.setAttributedTitle(
-      Typography.attributed("오늘 날짜", style: .labelMd(weight: .semibold), color: .primary600),
-      for: .normal
-    )
-    $0.backgroundColor = .primary100
-    // 버튼 이미지 설정
-    let image = UIImage(named: "rotate-ccw")?
-      .withConfiguration(
-        UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
-      )
-      .withRenderingMode(.alwaysTemplate)
-    $0.setImage(image, for: .normal)
-    $0.tintColor = .primary600
-    $0.layer.borderWidth = 1
-    $0.layer.borderColor = UIColor.primary200.cgColor
-    $0.layer.cornerRadius = 18
-    $0.layer.shadowColor = UIColor.appBlack.cgColor
-    $0.layer.shadowOpacity = 0.08
-    $0.layer.shadowRadius = 12
-    // 버튼 전체 패딩
-    $0.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 16)
-    // 이미지-텍스트 간격
-    $0.titleEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: -4)
-  }
-
   // MARK: - Lifecycle
 
   override func viewDidLoad() {
@@ -77,14 +47,6 @@ final class StatsViewController: UIViewController {
     configureUI()
     bind()
     viewModel.viewDidLoad()
-  }
-
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    todayButton.layer.shadowPath = UIBezierPath(
-      roundedRect: todayButton.bounds,
-      cornerRadius: 18
-    ).cgPath
   }
 
   // MARK: - Private Methods
@@ -97,7 +59,7 @@ final class StatsViewController: UIViewController {
   }
 
   private func setupViews() {
-    [headerView, scrollView, todayButton].forEach { view.addSubview($0) }
+    [headerView, scrollView].forEach { view.addSubview($0) }
     scrollView.addSubview(contentStackView)
     [calendarView, calendarColorView, summaryView].forEach { contentStackView.addArrangedSubview($0) }
     calendarView.layer.zPosition = 1
@@ -117,14 +79,8 @@ final class StatsViewController: UIViewController {
     contentStackView.snp.makeConstraints {
       $0.top.equalToSuperview()
       $0.directionalHorizontalEdges.equalToSuperview()
-      contentStackBottomConstraint = $0.bottom.equalToSuperview()
-        .offset(Metrics.todayHiddenBottomOffset).constraint
+      $0.bottom.equalToSuperview()
       $0.width.equalTo(scrollView.snp.width)
-    }
-
-    todayButton.snp.makeConstraints {
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(Metrics.addButtonBottomOffset)
-      $0.centerX.equalToSuperview()
     }
   }
 
@@ -181,7 +137,7 @@ final class StatsViewController: UIViewController {
       .bind(to: viewModel.visibleMonthRange)
       .disposed(by: disposeBag)
 
-    todayButton.rx.tap
+    headerView.todayButton.rx.tap
       .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
       .subscribe(onNext: { [weak self] in
         self?.calendarView.goToToday()
@@ -192,11 +148,7 @@ final class StatsViewController: UIViewController {
     // 오늘 날짜 선택시 버튼 히든 처리
     viewModel.isTodaySelected
       .drive(onNext: { [weak self] isToday in
-        self?.todayButton.isHidden = isToday
-        self?.contentStackBottomConstraint?.update(
-          offset: isToday ? Metrics.todayHiddenBottomOffset
-            : Metrics.todayVisibleBottomOffset
-        )
+        self?.headerView.todayButton.isHidden = isToday
         self?.view.layoutIfNeeded()
       })
       .disposed(by: disposeBag)

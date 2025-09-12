@@ -41,6 +41,35 @@ final class StatsHeaderView: UIView {
     $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: Metrics.titleImageSpacing, bottom: 0, right: 0)
   }
 
+  let todayButton = UIButton(type: .system).then {
+    $0.setAttributedTitle(
+      Typography.attributed("오늘", style: .labelMd(weight: .semibold), color: .primary600),
+      for: .normal
+    )
+    $0.backgroundColor = .primary100
+    // 버튼 이미지 설정
+    let image = UIImage(named: "rotate-ccw")?
+      .withConfiguration(
+        UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+      )
+      .withRenderingMode(.alwaysTemplate)
+    $0.setImage(image, for: .normal)
+    $0.tintColor = .primary600
+    $0.layer.borderWidth = 1
+    $0.layer.borderColor = UIColor.primary200.cgColor
+    $0.layer.cornerRadius = 18 // 버튼 전체 패딩
+    $0.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 16)
+    // 이미지-텍스트 간격
+    $0.titleEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: -4)
+  }
+
+  private let spacerView = UIView()
+
+  private lazy var hStack = UIStackView(arrangedSubviews: [categoryButton, spacerView, todayButton]).then {
+    $0.axis = .horizontal
+    $0.distribution = .fill
+  }
+
   // MARK: - Init
 
   override init(frame: CGRect) {
@@ -62,17 +91,25 @@ final class StatsHeaderView: UIView {
 
   private func setupView() {
     addSubview(container)
-    container.contentView.addSubview(categoryButton)
+    container.contentView.addSubview(hStack)
   }
 
   private func setupConstraints() {
+    categoryButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    categoryButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+    spacerView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    spacerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+    todayButton.setContentHuggingPriority(.required, for: .horizontal)
+    todayButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+
     container.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
 
-    categoryButton.snp.makeConstraints {
-      $0.directionalVerticalEdges.equalToSuperview()
-      $0.leading.equalToSuperview()
+    hStack.snp.makeConstraints {
+      $0.edges.equalToSuperview()
     }
   }
 
