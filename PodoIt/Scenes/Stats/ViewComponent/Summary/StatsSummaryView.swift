@@ -245,26 +245,20 @@ final class StatsSummaryView: UIView {
     collectionView.isHidden = !hasData
     emptyView.isHidden = hasData
 
-    // empty 라벨 텍스트/폰트 토글
+    // empty 라벨 텍스트 토글
     if !hasData {
-      if isDaily {
-        // 일간
-        emptyLabel.attributedText = Typography.attributed(
-          "이 날에는 기록된\n집중 시간이 없어요.",
-          style: .bodyLg(weight: .regular),
-          color: .gray400
-        )
-      } else {
-        // 월간
-        emptyLabel.attributedText = Typography.attributed(
-          "이 달에는 기록된\n집중 시간이 없어요.",
-          style: .bodyLg(weight: .semibold),
-          color: .gray400
-        )
-      }
+      let emptyText = isDaily
+        ? "이 날에는 기록된\n집중 시간이 없어요."
+        : "이 달에는 기록된\n집중 시간이 없어요."
+
+      emptyLabel.attributedText = Typography.attributed(
+        emptyText,
+        style: .bodyLg(weight: .regular),
+        color: .gray400
+      )
     }
     emptyLabel.textAlignment = .center
-    
+
     vStack.spacing = hasData ? Metrics.summaryVStackSpacing : 0
   }
 }
