@@ -98,6 +98,10 @@ final class TimerEditViewController: UIViewController {
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.setLeftPadding(Metrics.textFieldLeftPadding)
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+    $0.returnKeyType = .done
+    $0.enablesReturnKeyAutomatically = true // 내용 없으면 비활성화
+
     // 에러 테두리 대비 초기 상태
     $0.layer.borderWidth = 0
     $0.layer.borderColor = UIColor.clear.cgColor
