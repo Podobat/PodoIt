@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import Dependencies
 import Foundation
 import RxCocoa
 import RxSwift
@@ -26,8 +27,7 @@ enum RestAddCase {
 final class TimerRunViewModel {
   // MARK: - Dependencies
 
-//  private let timerID: UUID
-  private let repo: TimerRepository
+  @Dependency(\.timerRepository) private var repo
   private static let udSnapshotKey = "timer_key"
   
   // MARK: - State
@@ -35,7 +35,6 @@ final class TimerRunViewModel {
   private(set) var timer: TimerModel
   private let disposeBag = DisposeBag()
   
-  // FIXME: 사용하지 않을 것 같은 값들 주석. 끝내고도 사용 안하면 삭제 예정
   private(set) var state = TimerSessionState(
     intervalStart: Date(),
     isStudying: true,
@@ -90,9 +89,8 @@ final class TimerRunViewModel {
   
   // MARK: - init
 
-  init(timer: TimerModel, repo: TimerRepository) {
+  init(timer: TimerModel) {
     self.timer = timer
-    self.repo = repo
     goalTime = timer.goalTime * 60 // Int값을 초 단위로 변경
   }
   

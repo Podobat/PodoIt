@@ -424,7 +424,7 @@ extension TimerViewController: UICollectionViewDataSource {
       guard let self = self else { return }
       let timer = self.timers[indexPath.item]
       // 타이머 실행 화면으로 이동
-      let runVC = TimerRunViewController(timer: timer, repo: self.repository) // timer 전달
+      let runVC = TimerRunViewController(timer: timer) // timer 전달
       runVC.hidesBottomBarWhenPushed = true // 탭바 숨기기
       self.navigationController?.pushViewController(runVC, animated: true)
     }

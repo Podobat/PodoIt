@@ -19,8 +19,8 @@ final class TimerRunViewController: UIViewController {
 
   // MARK: - init
 
-  init(timer: TimerModel, repo: TimerRepository) {
-    self.viewModel = TimerRunViewModel(timer: timer, repo: repo)
+  init(timer: TimerModel) {
+    self.viewModel = TimerRunViewModel(timer: timer)
     super.init(nibName: nil, bundle: nil)
   }
 

@@ -30,7 +30,7 @@ final class MainTabBarController: UITabBarController {
     setupAppearance() // 탭바 (컬러/폰트) 설정
     setupViewControllers() // 탭별 화면 연결
   }
-  
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     guard let id = initialTimerID else { return }
@@ -41,7 +41,7 @@ final class MainTabBarController: UITabBarController {
         self.initialTimerID = nil
         return
       }
-      let timerRunVC = TimerRunViewController(timer: timer, repo: repository)
+      let timerRunVC = TimerRunViewController(timer: timer)
       timerRunVC.hidesBottomBarWhenPushed = true
       nav.pushViewController(timerRunVC, animated: false)
       self.initialTimerID = nil // 매번 저 화면으로 push할게 아니기에 1번만 하고 nil
