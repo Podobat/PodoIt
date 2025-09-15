@@ -90,7 +90,7 @@ final class TimerEditViewController: UIViewController {
   }
 
   // 타이머 이름 입력 필드
-  private let nameTextField = UITextField().then {
+  private let nameTextField = PaddedClearTextField().then {
     $0.placeholder = "타이머 이름을 적어주세요"
     $0.font = Typography.font(for: .bodyMd(weight: .medium))
     $0.textColor = .appBlack
@@ -98,9 +98,27 @@ final class TimerEditViewController: UIViewController {
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.setLeftPadding(Metrics.textFieldLeftPadding)
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+    $0.returnKeyType = .done
+    $0.enablesReturnKeyAutomatically = true // 내용 없으면 비활성화
+
+    // 지우기 버튼
+    $0.clearButtonMode = .whileEditing
+
     // 에러 테두리 대비 초기 상태
     $0.layer.borderWidth = 0
     $0.layer.borderColor = UIColor.clear.cgColor
+  }
+
+  // clear 버튼 오른쪽에서 10pt 안쪽으로 당겨 보이게 하는 TextField
+  final class PaddedClearTextField: UITextField {
+    private let clearPadding: CGFloat = 10 // 오른쪽 가장자리로부터 여백
+
+    override func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
+      let rect = super.clearButtonRect(forBounds: bounds)
+      // 15pt 왼쪽으로 이동
+      return rect.offsetBy(dx: -clearPadding, dy: 0)
+    }
   }
 
   // 목표시간 영역 컨테이너
