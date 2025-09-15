@@ -102,6 +102,9 @@ final class TimerEditViewController: UIViewController {
     $0.returnKeyType = .done
     $0.enablesReturnKeyAutomatically = true // 내용 없으면 비활성화
 
+    // 지우기 버튼
+    $0.clearButtonMode = .whileEditing
+
     // 에러 테두리 대비 초기 상태
     $0.layer.borderWidth = 0
     $0.layer.borderColor = UIColor.clear.cgColor
@@ -196,6 +199,17 @@ final class TimerEditViewController: UIViewController {
     $0.isHidden = true
     $0.delegate = self
     $0.addTarget(self, action: #selector(emojiTextChanged), for: .editingChanged)
+  }
+
+  // clear 버튼 오른쪽에서 20pt 안쪽으로 당겨 보이게 하는 TextField
+  final class PaddedClearTextField: UITextField {
+    private let clearPadding: CGFloat = 10 // 오른쪽 가장자리로부터 여백
+
+    override func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
+      let rect = super.clearButtonRect(forBounds: bounds)
+      // 10pt 왼쪽으로 이동
+      return rect.offsetBy(dx: -clearPadding, dy: 0)
+    }
   }
 
   // MARK: - Constraints
