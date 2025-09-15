@@ -90,7 +90,7 @@ final class TimerEditViewController: UIViewController {
   }
 
   // 타이머 이름 입력 필드
-  private let nameTextField = UITextField().then {
+  private let nameTextField = PaddedClearTextField().then {
     $0.placeholder = "타이머 이름을 적어주세요"
     $0.font = Typography.font(for: .bodyMd(weight: .medium))
     $0.textColor = .appBlack
@@ -108,6 +108,17 @@ final class TimerEditViewController: UIViewController {
     // 에러 테두리 대비 초기 상태
     $0.layer.borderWidth = 0
     $0.layer.borderColor = UIColor.clear.cgColor
+  }
+
+  // clear 버튼 오른쪽에서 10pt 안쪽으로 당겨 보이게 하는 TextField
+  final class PaddedClearTextField: UITextField {
+    private let clearPadding: CGFloat = 10 // 오른쪽 가장자리로부터 여백
+
+    override func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
+      let rect = super.clearButtonRect(forBounds: bounds)
+      // 15pt 왼쪽으로 이동
+      return rect.offsetBy(dx: -clearPadding, dy: 0)
+    }
   }
 
   // 목표시간 영역 컨테이너
@@ -199,17 +210,6 @@ final class TimerEditViewController: UIViewController {
     $0.isHidden = true
     $0.delegate = self
     $0.addTarget(self, action: #selector(emojiTextChanged), for: .editingChanged)
-  }
-
-  // clear 버튼 오른쪽에서 20pt 안쪽으로 당겨 보이게 하는 TextField
-  final class PaddedClearTextField: UITextField {
-    private let clearPadding: CGFloat = 10 // 오른쪽 가장자리로부터 여백
-
-    override func clearButtonRect(forBounds bounds: CGRect) -> CGRect {
-      let rect = super.clearButtonRect(forBounds: bounds)
-      // 10pt 왼쪽으로 이동
-      return rect.offsetBy(dx: -clearPadding, dy: 0)
-    }
   }
 
   // MARK: - Constraints
