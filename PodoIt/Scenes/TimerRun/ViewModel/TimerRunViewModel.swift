@@ -26,13 +26,13 @@ enum RestAddCase {
 final class TimerRunViewModel {
   // MARK: - Dependencies
 
-  private let timerID: UUID
+//  private let timerID: UUID
   private let repo: TimerRepository
   private static let udSnapshotKey = "timer_key"
   
   // MARK: - State
 
-  private(set) var timer: TimerModel?
+  private(set) var timer: TimerModel
   private let disposeBag = DisposeBag()
   
   // FIXME: 사용하지 않을 것 같은 값들 주석. 끝내고도 사용 안하면 삭제 예정
@@ -90,20 +90,15 @@ final class TimerRunViewModel {
   
   // MARK: - init
 
-  init(timerID: UUID, repo: TimerRepository) {
-    self.timerID = timerID
+  init(timer: TimerModel, repo: TimerRepository) {
+    self.timer = timer
     self.repo = repo
+    goalTime = timer.goalTime * 60 // Int값을 초 단위로 변경
   }
   
   // MARK: - Data Loading
   
-  // 받아온 UUID를 기준으로 SwiftData에서 데이터를 바인딩
-  func load() throws {
-    guard let entity = try repo.fetch(by: timerID) else {
-      throw RepositoryError.entityNotFound
-    }
-    timer = entity
-    goalTime = entity.goalTime * 60 // Int값을 초 단위로 변경
+  func setupTimer() {
     if state.isStudying {
       scheduleGoalEndNotification() // 공부 목표 시간 알림 예약
     }
@@ -116,7 +111,7 @@ final class TimerRunViewModel {
   /// UserDefaults에 데이터 저장
   private func saveSessionUDSnapshot() {
     let snapshot = TimerSessionUDSnapshot(
-      timerID: self.timerID,
+      timerID: timer.timerID,
       isStudying: state.isStudying,
       intervalStart: state.intervalStart,
       totalStudySeconds: state.totalStudySeconds,
@@ -137,7 +132,7 @@ final class TimerRunViewModel {
     guard let snapshotData = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: savedData) else { return } // UD 디코딩
     
     // 주입받은 timerID가 스냅샷의 ID와 다르게 되면 무시하도록. (안전을 위해)
-    guard snapshotData.timerID == self.timerID else { return }
+    guard snapshotData.timerID == timer.timerID else { return }
     
     // 상태 복원
     self.state.isStudying = snapshotData.isStudying
@@ -261,10 +256,6 @@ final class TimerRunViewModel {
   /// SwiftData의 StatsModel에 데이터 저장
   @MainActor
   private func save() {
-    guard let timer = timer else {
-      print("세이브 실패. 타이머 데이터가 없습니다.")
-      return
-    }
     do {
       try SwiftDataManager.shared.insertStats(
         icon: timer.iconName, // 타이머 아이콘
