@@ -19,9 +19,8 @@ final class TimerRunViewController: UIViewController {
 
   // MARK: - init
 
-  init(timerID: UUID, repo: TimerRepository) {
-    // UUID를 받아올 때마다 새로운 VM을 생성
-    self.viewModel = TimerRunViewModel(timerID: timerID, repo: repo)
+  init(timer: TimerModel, repo: TimerRepository) {
+    self.viewModel = TimerRunViewModel(timer: timer, repo: repo)
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -52,22 +51,16 @@ final class TimerRunViewController: UIViewController {
     self.hidesBottomBarWhenPushed = true
     configureUI()
     configureLayout()
-    loadData()
+    configureTimer()
     bind()
   }
 
   // MARK: - Data Loading
 
-  private func loadData() {
-    do {
-      viewModel.loadUDSaved() // UD 데이터 불러오기 (없으면 내부 return)
-      try viewModel.load()
-      if let timer = viewModel.timer {
-        configureAll(timer: timer)
-      }
-    } catch {
-      print("타이머 데이터 로딩 실패: \(error)")
-    }
+  private func configureTimer() {
+    viewModel.loadUDSaved() // UD 데이터 불러오기 (없으면 내부 return)
+    viewModel.setupTimer()
+    configureAll(timer: viewModel.timer)
   }
 
   // MARK: - configureUI
