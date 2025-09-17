@@ -5,12 +5,16 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import DotLottie
 import SnapKit
 import Then
 import UIKit
 
 final class AnimationSectionView: UIView {
   // MARK: - Components
+
+  private var animation = DotLottieAnimation(fileName: "focus", config: AnimationConfig(autoplay: true, loop: true))
+  private lazy var animationView: UIView = animation.view()
 
   private let stateImageView = UIImageView().then {
     $0.image = UIImage(named: "focus")
@@ -37,24 +41,14 @@ final class AnimationSectionView: UIView {
   // MARK: - configureUI
 
   private func configureUI() {
-    addSubview(stateImageView)
+    addSubview(animationView)
   }
 
   // MARK: - configureLayout
 
   private func configureLayout() {
-    stateImageView.snp.makeConstraints {
-      $0.directionalEdges.equalToSuperview().inset(20)
-    }
-  }
-
-  // MARK: - 집중/휴식 상태에 따른 일러스트 변경
-
-  func updateStateImage(isStudying: Bool) {
-    if isStudying { // 공부 중
-      stateImageView.image = UIImage(named: "focus")
-    } else {
-      stateImageView.image = UIImage(named: "rest")
+    animationView.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview().inset(40)
     }
   }
 }
