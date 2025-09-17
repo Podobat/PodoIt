@@ -13,10 +13,22 @@ extension UIViewController {
                  duration: TimeInterval = 1.5,
                  above anchorView: UIView)
   {
-    let conatiner = makeToastContainer(message: message, icon: icon)
-    setupToastBaseContainer(conatiner)
-    positionToastAbove(container: conatiner, above: anchorView, spacing: -20)
-    animateToast(conatiner, duration: duration, message: message)
+    let container = makeToastContainer(message: message, icon: icon)
+    setupToastBaseContainer(container)
+    positionToastAbove(container: container, above: anchorView, spacing: -20)
+    animateToast(container, duration: duration, message: message)
+  }
+  
+  func showToastBelow(
+    _ message: String,
+    icon: UIImage? = nil,
+    duration: TimeInterval = 1.5,
+    above anchorView: UIView
+  ) {
+    let container = makeToastContainer(message: message, icon: icon)
+    setupToastBaseContainer(container)
+    positionToastBelow(container: container, below: anchorView, spacing: 8)
+    animateToast(container, duration: duration, message: message)
   }
 
   // MARK: - 컨테이너
@@ -83,14 +95,19 @@ extension UIViewController {
     ])
   }
 
-  // anchorView를 기준으로 20px위에 붙이는 메서드
+  // anchorView를 기준으로 위에 붙이는 메서드
   private func positionToastAbove(container: UIView, above anchorView: UIView, spacing: CGFloat) {
     UIKit.NSLayoutConstraint.activate([
       container.bottomAnchor.constraint(equalTo: anchorView.topAnchor, constant: spacing)
     ])
   }
   
-  // anchorView를 기준으로 8px아래에 붙이는 메서드
+  // anchorView를 기준으로 아래에 붙이는 메서드
+  private func positionToastBelow(container: UIView, below anchorView: UIView, spacing: CGFloat) {
+    UIKit.NSLayoutConstraint.activate([
+      container.topAnchor.constraint(equalTo: anchorView.topAnchor, constant: spacing)
+    ])
+  }
 
   // 애니메이션
   private func animateToast(_ container: UIView, duration: TimeInterval, message: String) {
