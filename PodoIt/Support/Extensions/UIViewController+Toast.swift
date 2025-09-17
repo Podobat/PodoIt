@@ -35,7 +35,7 @@ extension UIViewController {
 
   private func makeToastContainer(message: String, icon: UIImage?) -> UIView {
     let container = UIView()
-    container.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+    container.backgroundColor = .gray500
     container.layer.cornerRadius = 8
     container.clipsToBounds = true
     container.alpha = 0
