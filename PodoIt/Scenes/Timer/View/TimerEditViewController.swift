@@ -91,7 +91,7 @@ final class TimerEditViewController: UIViewController {
 
   // 타이머 이름 입력 필드
   private let nameTextField = PaddedClearTextField().then {
-    $0.placeholder = "타이머 이름을 적어주세요"
+    $0.placeholder = "타이머 이름을 적어주세요 (최대 15자)"
     $0.font = Typography.font(for: .bodyMd(weight: .medium))
     $0.textColor = .appBlack
     $0.backgroundColor = .appWhite
