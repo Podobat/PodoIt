@@ -18,6 +18,8 @@ final class CategorySheetViewController: UIViewController {
     static let sheetCornerRadius: CGFloat = 16
     static let minDetent: CGFloat = 0 // 최소 모달 크기 수정 가능
     static let sheetTopInset: CGFloat = 21
+    static let grabberHeight: CGFloat = 5
+    static let grabberWidth: CGFloat = 40
   }
 
   // MARK: - Properties
