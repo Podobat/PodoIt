@@ -271,6 +271,12 @@ final class TimerEditViewController: UIViewController {
     updateSaveButtonStyle()
   }
 
+  // interactivePopGestureRecognizer 활성화
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    navigationController?.interactivePopGestureRecognizer?.delegate = nil
+  }
+
   private func setupEditMode() {
     deleteButton.isHidden = !isEditMode
 
