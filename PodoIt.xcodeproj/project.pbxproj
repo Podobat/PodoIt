@@ -7,15 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7982D0A02E7AD06800C75EA3 /* DotLottie in Frameworks */ = {isa = PBXBuildFile; productRef = 7982D09F2E7AD06800C75EA3 /* DotLottie */; };
 		E87390692E56B84A00941B2A /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = E87390682E56B84A00941B2A /* SnapKit */; };
 		E873906C2E56B85900941B2A /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = E873906B2E56B85900941B2A /* Then */; };
 		E873906F2E56BC6700941B2A /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = E873906E2E56BC6700941B2A /* RxCocoa */; };
 		E87390712E56BC6700941B2A /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = E87390702E56BC6700941B2A /* RxRelay */; };
-		E87390742E56BC8B00941B2A /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = E87390732E56BC8B00941B2A /* DGCharts */; };
 		E87390772E56BC9E00941B2A /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = E87390762E56BC9E00941B2A /* FSCalendar */; };
-		E873907A2E56BCB100941B2A /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E87390792E56BCB100941B2A /* Lottie */; };
 		E873907D2E56BCC200941B2A /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = E873907C2E56BCC200941B2A /* Algorithms */; };
-		E87390802E56BCED00941B2A /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = E873907F2E56BCED00941B2A /* KeychainAccess */; };
 		F2715BAF2E5840A9001FDECE /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = F2715BAE2E5840A9001FDECE /* Dependencies */; };
 /* End PBXBuildFile section */
 
@@ -49,14 +47,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7982D0A02E7AD06800C75EA3 /* DotLottie in Frameworks */,
 				E873906F2E56BC6700941B2A /* RxCocoa in Frameworks */,
-				E873907A2E56BCB100941B2A /* Lottie in Frameworks */,
-				E87390802E56BCED00941B2A /* KeychainAccess in Frameworks */,
 				E87390772E56BC9E00941B2A /* FSCalendar in Frameworks */,
 				E87390692E56B84A00941B2A /* SnapKit in Frameworks */,
 				F2715BAF2E5840A9001FDECE /* Dependencies in Frameworks */,
 				E873907D2E56BCC200941B2A /* Algorithms in Frameworks */,
-				E87390742E56BC8B00941B2A /* DGCharts in Frameworks */,
 				E87390712E56BC6700941B2A /* RxRelay in Frameworks */,
 				E873906C2E56B85900941B2A /* Then in Frameworks */,
 			);
@@ -113,12 +109,10 @@
 				E873906B2E56B85900941B2A /* Then */,
 				E873906E2E56BC6700941B2A /* RxCocoa */,
 				E87390702E56BC6700941B2A /* RxRelay */,
-				E87390732E56BC8B00941B2A /* DGCharts */,
 				E87390762E56BC9E00941B2A /* FSCalendar */,
-				E87390792E56BCB100941B2A /* Lottie */,
 				E873907C2E56BCC200941B2A /* Algorithms */,
-				E873907F2E56BCED00941B2A /* KeychainAccess */,
 				F2715BAE2E5840A9001FDECE /* Dependencies */,
+				7982D09F2E7AD06800C75EA3 /* DotLottie */,
 			);
 			productName = PodoIt;
 			productReference = E8571A112E50B3B2001CAD9D /* PodoIt.app */;
@@ -153,12 +147,10 @@
 				E87390672E56B84A00941B2A /* XCRemoteSwiftPackageReference "SnapKit" */,
 				E873906A2E56B85900941B2A /* XCRemoteSwiftPackageReference "Then" */,
 				E873906D2E56BC6700941B2A /* XCRemoteSwiftPackageReference "RxSwift" */,
-				E87390722E56BC8B00941B2A /* XCRemoteSwiftPackageReference "Charts" */,
 				E87390752E56BC9E00941B2A /* XCRemoteSwiftPackageReference "FSCalendar" */,
-				E87390782E56BCB100941B2A /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				E873907B2E56BCC200941B2A /* XCRemoteSwiftPackageReference "swift-algorithms" */,
-				E873907E2E56BCED00941B2A /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */,
+				7982D09E2E7AD06800C75EA3 /* XCRemoteSwiftPackageReference "dotlottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E8571A122E50B3B2001CAD9D /* Products */;
@@ -197,7 +189,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = NCUV99Q4S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PodoIt/Resources/Info.plist;
@@ -213,7 +205,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.PodoIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -232,7 +224,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = NCUV99Q4S8;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PodoIt/Resources/Info.plist;
@@ -248,7 +240,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.PodoIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -408,6 +400,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		7982D09E2E7AD06800C75EA3 /* XCRemoteSwiftPackageReference "dotlottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LottieFiles/dotlottie-ios";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.9.2;
+			};
+		};
 		E87390672E56B84A00941B2A /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit";
@@ -432,14 +432,6 @@
 				minimumVersion = 6.9.0;
 			};
 		};
-		E87390722E56BC8B00941B2A /* XCRemoteSwiftPackageReference "Charts" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/danielgindi/Charts.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.1.0;
-			};
-		};
 		E87390752E56BC9E00941B2A /* XCRemoteSwiftPackageReference "FSCalendar" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/WenchaoD/FSCalendar.git";
@@ -448,28 +440,12 @@
 				minimumVersion = 2.8.4;
 			};
 		};
-		E87390782E56BCB100941B2A /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.5.2;
-			};
-		};
 		E873907B2E56BCC200941B2A /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-algorithms.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.2.1;
-			};
-		};
-		E873907E2E56BCED00941B2A /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess.git";
-			requirement = {
-				branch = master;
-				kind = branch;
 			};
 		};
 		F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */ = {
@@ -483,6 +459,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		7982D09F2E7AD06800C75EA3 /* DotLottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7982D09E2E7AD06800C75EA3 /* XCRemoteSwiftPackageReference "dotlottie-ios" */;
+			productName = DotLottie;
+		};
 		E87390682E56B84A00941B2A /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E87390672E56B84A00941B2A /* XCRemoteSwiftPackageReference "SnapKit" */;
@@ -503,30 +484,15 @@
 			package = E873906D2E56BC6700941B2A /* XCRemoteSwiftPackageReference "RxSwift" */;
 			productName = RxRelay;
 		};
-		E87390732E56BC8B00941B2A /* DGCharts */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E87390722E56BC8B00941B2A /* XCRemoteSwiftPackageReference "Charts" */;
-			productName = DGCharts;
-		};
 		E87390762E56BC9E00941B2A /* FSCalendar */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E87390752E56BC9E00941B2A /* XCRemoteSwiftPackageReference "FSCalendar" */;
 			productName = FSCalendar;
 		};
-		E87390792E56BCB100941B2A /* Lottie */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E87390782E56BCB100941B2A /* XCRemoteSwiftPackageReference "lottie-ios" */;
-			productName = Lottie;
-		};
 		E873907C2E56BCC200941B2A /* Algorithms */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E873907B2E56BCC200941B2A /* XCRemoteSwiftPackageReference "swift-algorithms" */;
 			productName = Algorithms;
-		};
-		E873907F2E56BCED00941B2A /* KeychainAccess */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E873907E2E56BCED00941B2A /* XCRemoteSwiftPackageReference "KeychainAccess" */;
-			productName = KeychainAccess;
 		};
 		F2715BAE2E5840A9001FDECE /* Dependencies */ = {
 			isa = XCSwiftPackageProductDependency;
