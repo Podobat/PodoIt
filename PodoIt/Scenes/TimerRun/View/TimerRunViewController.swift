@@ -145,8 +145,14 @@ final class TimerRunViewController: UIViewController {
       .disposed(by: disposeBag)
 
     viewModel.isMuteDriver // 음소거(mute)의 Bool 상태 (아래는 tick 모음이라 계속 호출되서 분리)
+      .skip(1)
       .drive(with: self) { vc, isMute in
         vc.headerSectionView.updateMuteIcon(isMute: isMute)
+        vc.showToastBelow(
+          isMute ? "알림이 꺼졌어요." : "알림이 켜졌어요.",
+          icon: UIImage(named: isMute ? "circle-bang" : "circle-check-green"),
+          above: vc.animationSectionView
+        )
       }
       .disposed(by: disposeBag)
 

@@ -609,7 +609,7 @@ final class TimerEditViewController: UIViewController {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
       setNameFieldError(true, animated: true)
       nameTextField.becomeFirstResponder()
-      showToast("중복된 이름이 있어요.", icon: UIImage(named: "bang"), above: saveButton)
+      showToastAbove("중복된 이름이 있어요.", icon: UIImage(named: "bang"), above: saveButton)
       updateSaveButtonStyle()
       return
     }
