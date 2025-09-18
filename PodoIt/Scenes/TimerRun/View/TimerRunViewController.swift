@@ -108,9 +108,12 @@ final class TimerRunViewController: UIViewController {
 
     // stop 버튼 tap하여 중지
     buttonSectionView.stopButtonTap
-      .asSignal()
-      .emit(with: self) { vc, _ in
-        PodoAlertController.presentStopTimerAlert(from: vc, onConfirm: {
+      .asDriver()
+      .withLatestFrom(viewModel.isOverOneMinute)
+      .drive(with: self) { vc, isOver in
+        let type: PodoAlertController.StopAlertType = isOver ? .over1Min : .under1Min
+        PodoAlertController
+          .presentStopTimerAlert(from: vc, title: type.title, onConfirm: {
           vc.viewModel.stop()
           vc.navigationController?.popViewController(animated: true)
         })
