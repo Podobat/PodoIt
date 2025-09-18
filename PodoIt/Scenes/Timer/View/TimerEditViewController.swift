@@ -39,7 +39,7 @@ final class TimerEditViewController: UIViewController {
     static let textFieldHeight: CGFloat = 56
     static let textFieldLeftPadding: CGFloat = 16
     static let topOffset: CGFloat = 32
-    static let bottomSafeAreaInset: CGFloat = 20
+    static let bottomSafeAreaInset: CGFloat = 16
     static let dashedCircleSize: CGFloat = 40
 
     // Picker
@@ -439,7 +439,7 @@ final class TimerEditViewController: UIViewController {
     saveButton.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
       $0.height.equalTo(Metrics.buttonHeight)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Metrics.bottomSafeAreaInset)
+      $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-Metrics.bottomSafeAreaInset)
     }
 
     emojiInputField.snp.makeConstraints {
