@@ -20,6 +20,23 @@ final class PodoAlertController: UIViewController {
     static let buttonSpacing: CGFloat = 8
     static let buttonHeight: CGFloat = 48
   }
+  
+  enum StopAlertType {
+    case under1Min
+    case over1Min
+    
+    var title: String {
+      switch self {
+      case .under1Min:
+        return """
+          아직 목표 시간을 채우지 않았어요.
+          그래도 종료할까요?
+          """
+      case .over1Min:
+        return "현재 집중 세션을 종료하시겠습니까?"
+      }
+    }
+  }
 
   // MARK: - API
 
@@ -46,7 +63,7 @@ final class PodoAlertController: UIViewController {
 
   static func presentStopTimerAlert(
     from presenter: UIViewController,
-    title: String = "현재 집중 세션을 종료하시겠습니까?",
+    title: String,
     message: String = "1분 이상 집중한 시간은 그대로 기록돼요.",
     cancelTitle: String = "계속하기",
     confirmTitle: String = "종료하기",
