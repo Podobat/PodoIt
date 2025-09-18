@@ -170,6 +170,7 @@ final class TimerRunViewController: UIViewController {
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
       vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
       vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
+      vc.animationSectionView.updateAnimationsIsHidden(isStudying: isStudying)
 
       if isStudying { // 공부중
         vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)

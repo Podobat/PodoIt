@@ -13,14 +13,16 @@ import UIKit
 final class AnimationSectionView: UIView {
   // MARK: - Components
 
-  private var animation = DotLottieAnimation(fileName: "focus", config: AnimationConfig(autoplay: true, loop: true))
-  private lazy var animationView: UIView = animation.view()
+  // 집중 Lottie
+  private var focusAnimation = DotLottieAnimation(fileName: "focus", config: AnimationConfig(autoplay: true, loop: true))
+  private lazy var focusAnimationView: UIView = focusAnimation.view().then {
+    $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
+    $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
+  }
 
-  private let stateImageView = UIImageView().then {
-    $0.image = UIImage(named: "focus")
-    $0.contentMode = .scaleAspectFit // 비율 유지하면서 잘리지 않도록
-    // VC에 있는 rootStack의 stackView 내부에서 우선순위는 적용되지 않음.
-    // 다만, 그 내부에 있는 컴포넌트 우선순위는 적용되기 때문에 이미지 뷰의 우선순위를 낮춰서 rootStack 내에서 남는 공간을 이 뷰가 차지하도록 함
+  // 휴식 Lottie
+  private var restAnimation = DotLottieAnimation(fileName: "Marketing", config: AnimationConfig(autoplay: true, loop: true))
+  private lazy var restAnimationView: UIView = restAnimation.view().then {
     $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
     $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
   }
@@ -41,14 +43,23 @@ final class AnimationSectionView: UIView {
   // MARK: - configureUI
 
   private func configureUI() {
-    addSubview(animationView)
+    [focusAnimationView, restAnimationView].forEach { addSubview($0) }
   }
 
   // MARK: - configureLayout
 
   private func configureLayout() {
-    animationView.snp.makeConstraints {
+    focusAnimationView.snp.makeConstraints {
       $0.directionalEdges.equalToSuperview().inset(40)
     }
+
+    restAnimationView.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview().inset(40)
+    }
+  }
+
+  func updateAnimationsIsHidden(isStudying: Bool) {
+    focusAnimationView.isHidden = isStudying ? false : true
+    restAnimationView.isHidden = isStudying ? true : false
   }
 }
