@@ -223,6 +223,19 @@ final class TimerEditViewController: UIViewController {
   // 이모지 상태
   private var selectedEmoji: String?
 
+  // MARK: - 토스트
+
+  private var lastNameLimitToastAt: Date?
+  private func showNameLimitToastIfNeeded() { // 15자 초과 시 토스트 + 스로틀
+    let now = Date()
+    if let last = lastNameLimitToastAt, now.timeIntervalSince(last) < 0.8 { return } // 0.8초 쿨타임
+    lastNameLimitToastAt = now
+    showToastAbove("이름은 최대 15자까지 작성 가능해요.", // 저장 버튼 위 16pt
+                   icon: UIImage(named: "bang"),
+                   above: saveButton,
+                   spacing: -16)
+  }
+
   // MARK: - Init
 
   init(viewModel: TimerEditViewModel) {
@@ -615,7 +628,7 @@ final class TimerEditViewController: UIViewController {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
       setNameFieldError(true, animated: true)
       nameTextField.becomeFirstResponder()
-      showToastAbove("중복된 이름이 있어요.", icon: UIImage(named: "bang"), above: saveButton)
+      showToastAbove("중복된 이름이 있어요.", icon: UIImage(named: "bang"), above: saveButton, spacing: -20)
       updateSaveButtonStyle()
       return
     }
@@ -854,6 +867,7 @@ extension TimerEditViewController: UITextFieldDelegate {
 
     guard remaining > 0 else {
       UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      showNameLimitToastIfNeeded()
       return false
     }
 
@@ -863,6 +877,7 @@ extension TimerEditViewController: UITextFieldDelegate {
     textField.text = truncated
 
     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    showNameLimitToastIfNeeded()
     return false // 우리가 직접 세팅했으니 시스템 변경은 막음
   }
 }
