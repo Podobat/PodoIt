@@ -33,7 +33,7 @@ final class StatsHeaderView: UIView {
     config.baseForegroundColor = .appBlack
 
     // 텍스트
-    let title = Typography.attributed("전체", style: .headingLg, color: .appBlack)
+    let title = Typography.attributed("전체", style: .headingMd(weight: .bold), color: .appBlack)
     config.attributedTitle = AttributedString(title)
 
     // 아이콘 (오른쪽)
@@ -151,7 +151,7 @@ final class StatsHeaderView: UIView {
   func updateCategory(_ category: StatsCategoryModel) {
     let title = makeTitle(for: category)
     categoryButton.setAttributedTitle(
-      Typography.attributed(title, style: .headingLg, color: .appBlack),
+      Typography.attributed(title, style: .headingMd(weight: .bold), color: .appBlack),
       for: .normal
     )
   }

@@ -87,7 +87,7 @@ final class ProgressRestSectionView: UIView {
 
     for restAddButton in restAddButtons {
       restAddButton.backgroundColor = .gray100
-      restAddButton.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
+      restAddButton.titleLabel?.font = Typography.font(for: .labelLg)
       restAddButton.setTitleColor(.gray900, for: .normal)
       restAddButton.layer.cornerRadius = 8
     }

@@ -96,15 +96,15 @@ final class PodoAlertController: UIViewController {
     self.confirmHandler = onConfirm
     super.init(nibName: nil, bundle: nil)
 
-    titleLabel.attributedText = centered(Typography.attributed(title, style: .headingLg, color: .appBlack))
+    titleLabel.attributedText = centered(Typography.attributed(title, style: .headingMd(weight: .bold), color: .appBlack))
     messageLabel.attributedText = centered(messageLabelTargetBolding(fullText: message, boldTarget: "1분 이상"))
 
     cancelButton.setAttributedTitle(
-      Typography.attributed(cancelTitle, style: .labelLg(weight: .semibold), color: .gray900),
+      Typography.attributed(cancelTitle, style: .labelLg, color: .gray900),
       for: .normal
     )
     confirmButton.setAttributedTitle(
-      Typography.attributed(confirmTitle, style: .labelLg(weight: .semibold), color: .appWhite),
+      Typography.attributed(confirmTitle, style: .labelLg, color: .appWhite),
       for: .normal
     )
     confirmButton.backgroundColor = confirmColor
