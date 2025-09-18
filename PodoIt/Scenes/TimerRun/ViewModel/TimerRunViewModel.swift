@@ -41,7 +41,7 @@ final class TimerRunViewModel {
     totalStudySeconds: 0,
   )
   
-  // isRunningRelay가 값이 바뀔 때마다 이벤트 방출
+  // isStudyingRelay가 값이 바뀔 때마다 이벤트 방출
   private let isStudyingRelay = BehaviorRelay<Bool>(value: true) // accept로 변경 가능하니 노출 x
   var isStudyingDriver: Driver<Bool> { // UI 바인딩용. 호출때마다 Relay를 Driver로 감싼 스트림 반환
     isStudyingRelay.asDriver()
@@ -86,6 +86,7 @@ final class TimerRunViewModel {
   lazy var restingTimeText: Driver<String> = makeRestingTimeText(tigger: restTimeUpdateTrigger) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
 
   lazy var progress: Driver<Float> = makeProgress(tick: tick) // progress 진행률 방출
+  lazy var isOverOneMinute: Driver<Bool> = makeIsOverOneMinute(tick: tick) // 1분 이상인지 아닌지에 따른 Bool값
   
   // MARK: - init
 
@@ -272,7 +273,17 @@ final class TimerRunViewModel {
   }
 
   // MARK: Stream
-
+  
+  private func makeIsOverOneMinute(tick: Observable<Int>) -> Driver<Bool> {
+    return tick.withUnretained(self)
+      .map { vm, _ in
+        let totalStudyTime = vm.totalStudyTime()
+        return totalStudyTime >= 60
+      }
+      .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
+      .asDriver(onErrorJustReturn: false)
+  }
+  
   /// 목표시간 스트림
   private func makeGoalTimeText(tick: Observable<Int>) -> Driver<String> {
     return tick.withUnretained(self)
@@ -281,7 +292,7 @@ final class TimerRunViewModel {
         let remainingStudyTime = max(vm.goalTime - totalStudyTime, 0) // 남은 시간은 목표시간 - 총 공부시간
         return TimerRunViewModel.formatMMSS(seconds: remainingStudyTime)
       }
-      .distinctUntilChanged() // 이전값과 새 값이 같으면 방출안하고 무시
+      .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "00:00")
   }
   
