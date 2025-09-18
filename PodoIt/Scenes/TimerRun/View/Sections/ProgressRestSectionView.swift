@@ -40,7 +40,7 @@ final class ProgressRestSectionView: UIView {
   private let buttonsHStackView = UIStackView().then { // 3개 버튼의 H스택뷰
     $0.axis = .horizontal
     $0.alignment = .center
-    $0.distribution = .equalSpacing
+    $0.distribution = .fillEqually
     $0.spacing = 8
   }
 
@@ -126,9 +126,9 @@ final class ProgressRestSectionView: UIView {
       $0.centerX.equalToSuperview()
       $0.top.bottom.equalToSuperview()
     }
-
-    for restAddButton in restAddButtons {
-      restAddButton.snp.makeConstraints {
+    
+    restAddButtons.forEach {
+      $0.snp.makeConstraints {
         $0.width.equalTo(72)
         $0.height.equalTo(44)
       }
