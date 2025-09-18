@@ -76,6 +76,10 @@ final class TimerRunViewController: UIViewController {
     rootStack.snp.makeConstraints {
       $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
     }
+    
+    buttonSectionView.snp.makeConstraints {
+      $0.height.equalTo(100)
+    }
   }
 
   // MARK: - Bindings
