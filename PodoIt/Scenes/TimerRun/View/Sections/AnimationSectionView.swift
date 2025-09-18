@@ -21,7 +21,7 @@ final class AnimationSectionView: UIView {
   }
 
   // 휴식 Lottie
-  private var restAnimation = DotLottieAnimation(fileName: "Marketing", config: AnimationConfig(autoplay: true, loop: true))
+  private var restAnimation = DotLottieAnimation(fileName: "rest", config: AnimationConfig(autoplay: true, loop: true))
   private lazy var restAnimationView: UIView = restAnimation.view().then {
     $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
     $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
