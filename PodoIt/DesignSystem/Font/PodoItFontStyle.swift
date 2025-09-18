@@ -111,8 +111,8 @@ extension UIFont {
   func monospacedDigits() -> UIFont {
     let features: [[UIFontDescriptor.FeatureKey: Any]] = [
       [
-        .featureIdentifier: kNumberSpacingType, // 숫자 간격 기능 그룹
-        .typeIdentifier: kMonospacedNumbersSelector // 위 간격을 고정폭으로 선택
+        .type: kNumberSpacingType, // 어떤 기능 그룹인지: 숫자 간격 기능 그룹
+        .selector: kMonospacedNumbersSelector // 그 그룹 안에서 어떤 옵션을 쓸 것인가: 위 간격을 고정폭으로 선택
       ]
     ]
     let desc = fontDescriptor.addingAttributes([.featureSettings: features]) // 기존 폰트 기반에 만들어둔 features 적용
