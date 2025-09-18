@@ -9,16 +9,17 @@ import UIKit
 
 extension UIViewController {
   func showToastAbove(_ message: String,
-                 icon: UIImage? = nil,
-                 duration: TimeInterval = 1.5,
-                 above anchorView: UIView)
+                      icon: UIImage? = nil,
+                      duration: TimeInterval = 1.5,
+                      above anchorView: UIView,
+                      spacing: CGFloat = -20)
   {
     let container = makeToastContainer(message: message, icon: icon)
     setupToastBaseContainer(container)
-    positionToastAbove(container: container, above: anchorView, spacing: -20)
+    positionToastAbove(container: container, above: anchorView, spacing: spacing)
     animateToast(container, duration: duration, message: message)
   }
-  
+
   func showToastBelow(
     _ message: String,
     icon: UIImage? = nil,
@@ -101,7 +102,7 @@ extension UIViewController {
       container.bottomAnchor.constraint(equalTo: anchorView.topAnchor, constant: spacing)
     ])
   }
-  
+
   // anchorView를 기준으로 아래에 붙이는 메서드
   private func positionToastBelow(container: UIView, below anchorView: UIView, spacing: CGFloat) {
     UIKit.NSLayoutConstraint.activate([
