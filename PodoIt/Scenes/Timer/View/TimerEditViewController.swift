@@ -249,6 +249,12 @@ final class TimerEditViewController: UIViewController {
     // 이름 필드 변경 실시간 감지 → 비면 빨간 스트로크
     nameTextField.addTarget(self, action: #selector(nameEditingChanged), for: .editingChanged)
 
+    // 키보드 위 미리보기 바 제거
+    for item in [nameTextField, emojiInputField] {
+      item.autocorrectionType = .no
+      item.spellCheckingType = .no
+    }
+
     goalTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     goalTitleLabel.setContentHuggingPriority(.required, for: .vertical)
     goalValueArea.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
