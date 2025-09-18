@@ -182,6 +182,18 @@ final class CalendarView: UIView {
     collectionView.selectItem(at: ip, animated: false, scrollPosition: [])
     (collectionView.cellForItem(at: ip) as? CalendarCell)?.isSelected = true
   }
+  
+  private func defaultSelectionDate(for month: Date) -> Date {
+    let comps = calendar.dateComponents([.year, .month], from: month)
+    let firstDayOfMonth = calendar.date(from: comps) ?? month
+
+    // 오늘(Date())이 month와 같은 연/월인지 비교
+    if calendar.isDate(Date(), equalTo: firstDayOfMonth, toGranularity: .month) {
+      return Date()
+    } else {
+      return firstDayOfMonth
+    }
+  }
 
   // 히트맵 주입 시 선택 복구 호출
   func applyHeat(_ minutesByDay: [Int: Int]) {
@@ -323,14 +335,27 @@ extension CalendarView {
     updateCollectionViewHeight()
   }
 
-  private func minusMonth() {
-    calendarDate = calendar.date(byAdding: DateComponents(month: -1), to: calendarDate) ?? Date()
+  private func changeMonth(by offset: Int) {
+    // 새 달 계산 (offset이 -1이면 이전 달, +1이면 다음 달)
+    calendarDate = calendar.date(byAdding: .month, value: offset, to: calendarDate) ?? calendarDate
+
+    // 새 달에서 선택할 날짜 결정 (오늘 or 1일)
+    let newSelection = defaultSelectionDate(for: calendarDate)
+
+    lastSelectedDate = newSelection
+    selectedDateRelay.accept(newSelection)
+
     updateCalendar()
   }
 
+  // 이전 달로 이동
+  private func minusMonth() {
+    changeMonth(by: -1)
+  }
+
+  // 다음 달로 이동
   private func plusMonth() {
-    calendarDate = calendar.date(byAdding: DateComponents(month: 1), to: calendarDate) ?? Date()
-    updateCalendar()
+    changeMonth(by: 1)
   }
 
   private func today() {
