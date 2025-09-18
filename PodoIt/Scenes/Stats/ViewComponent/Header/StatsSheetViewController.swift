@@ -15,7 +15,6 @@ final class CategorySheetViewController: UIViewController {
     static let rowHeight: CGFloat = 56
     static let cellVInset: CGFloat = 16
     static let cellHInset: CGFloat = 20
-    static let sheetCornerRadius: CGFloat = 16
     static let minDetent: CGFloat = 0 // 최소 모달 크기 수정 가능
     static let sheetTopInset: CGFloat = 21
     static let grabberHeight: CGFloat = 5
@@ -30,8 +29,13 @@ final class CategorySheetViewController: UIViewController {
 
   private let checkImage = UIImage.check.withRenderingMode(.alwaysTemplate)
 
+  private let grabber = UIView().then {
+    $0.backgroundColor = .gray300
+    $0.layer.cornerRadius = 2.5
+  }
+
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
-    $0.backgroundColor = .appWhite
+    $0.backgroundColor = .clear
     $0.dataSource = self
     $0.delegate = self
     $0.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -39,6 +43,8 @@ final class CategorySheetViewController: UIViewController {
     $0.rowHeight = UITableView.automaticDimension
     $0.estimatedRowHeight = Metrics.rowHeight
   }
+
+  private let sheetTransitioningDelegate = SheetTransitioningDelegate()
 
   // MARK: - Init
 
@@ -56,6 +62,14 @@ final class CategorySheetViewController: UIViewController {
     self.selectedCategory = selectedCategory
     self.onSelect = onSelect
     super.init(nibName: nil, bundle: nil)
+    self.modalPresentationStyle = .custom
+    self.transitioningDelegate = sheetTransitioningDelegate
+
+    let height = CGFloat(categories.count) * Metrics.rowHeight + Metrics.sheetTopInset
+    self.sheetTransitioningDelegate.contentHeight = .custom {
+      min($0.height - $1.top, height + $1.bottom)
+    }
+    self.sheetTransitioningDelegate.scrollView = tableView
   }
 
   @available(*, unavailable)
@@ -71,21 +85,26 @@ final class CategorySheetViewController: UIViewController {
     configureLayout()
   }
 
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    configureSheet()
-  }
-
   // MARK: - SetupUI
 
   private func configureUI() {
+    view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
     view.backgroundColor = .appWhite
+    view.addSubview(grabber)
     view.addSubview(tableView)
   }
 
   private func configureLayout() {
+    grabber.snp.makeConstraints {
+      $0.top.equalToSuperview().inset(8)
+      $0.centerX.equalToSuperview()
+      $0.width.equalTo(Metrics.grabberWidth)
+      $0.height.equalTo(Metrics.grabberHeight)
+    }
+
     tableView.snp.makeConstraints {
-      $0.edges.equalTo(view.safeAreaLayoutGuide).inset(UIEdgeInsets(top: Metrics.sheetTopInset, left: 0, bottom: 0, right: 0))
+      $0.top.equalTo(grabber.snp.bottom).offset(8)
+      $0.leading.trailing.bottom.equalToSuperview()
     }
   }
 
@@ -109,7 +128,6 @@ final class CategorySheetViewController: UIViewController {
 
     sheet.detents = [fit]
     sheet.prefersGrabberVisible = true
-    sheet.preferredCornerRadius = Metrics.sheetCornerRadius
   }
 }
 
@@ -171,7 +189,7 @@ extension CategorySheetViewController: UITableViewDataSource {
     let imageView = UIImageView(image: checkImage)
     imageView.tintColor = .primary500
 
-    cell.backgroundColor = .appWhite
+    cell.backgroundColor = .clear
     cell.contentConfiguration = config
     cell.accessoryView = (category == selectedCategory) ? imageView : .none
     cell.selectionStyle = .none
