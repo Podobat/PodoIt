@@ -17,7 +17,7 @@ final class TimerHeaderView: UIView {
   private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "ko_KR") // 한국어 로케일
-    formatter.dateFormat = "M월 d일"
+    formatter.dateFormat = "M월 d일 E요일"
 
     return formatter
   }()

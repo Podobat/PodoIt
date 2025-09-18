@@ -5,6 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
+import DotLottie
 import SnapKit
 import Then
 import UIKit
@@ -12,11 +13,16 @@ import UIKit
 final class AnimationSectionView: UIView {
   // MARK: - Components
 
-  private let stateImageView = UIImageView().then {
-    $0.image = UIImage(named: "focus")
-    $0.contentMode = .scaleAspectFit // 비율 유지하면서 잘리지 않도록
-    // VC에 있는 rootStack의 stackView 내부에서 우선순위는 적용되지 않음.
-    // 다만, 그 내부에 있는 컴포넌트 우선순위는 적용되기 때문에 이미지 뷰의 우선순위를 낮춰서 rootStack 내에서 남는 공간을 이 뷰가 차지하도록 함
+  // 집중 Lottie
+  private var focusAnimation = DotLottieAnimation(fileName: "focus", config: AnimationConfig(autoplay: true, loop: true))
+  private lazy var focusAnimationView: UIView = focusAnimation.view().then {
+    $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
+    $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
+  }
+
+  // 휴식 Lottie
+  private var restAnimation = DotLottieAnimation(fileName: "Marketing", config: AnimationConfig(autoplay: true, loop: true))
+  private lazy var restAnimationView: UIView = restAnimation.view().then {
     $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
     $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
   }
@@ -37,24 +43,23 @@ final class AnimationSectionView: UIView {
   // MARK: - configureUI
 
   private func configureUI() {
-    addSubview(stateImageView)
+    [focusAnimationView, restAnimationView].forEach { addSubview($0) }
   }
 
   // MARK: - configureLayout
 
   private func configureLayout() {
-    stateImageView.snp.makeConstraints {
-      $0.directionalEdges.equalToSuperview().inset(20)
+    focusAnimationView.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview().inset(40)
+    }
+
+    restAnimationView.snp.makeConstraints {
+      $0.directionalEdges.equalToSuperview().inset(40)
     }
   }
 
-  // MARK: - 집중/휴식 상태에 따른 일러스트 변경
-
-  func updateStateImage(isStudying: Bool) {
-    if isStudying { // 공부 중
-      stateImageView.image = UIImage(named: "focus")
-    } else {
-      stateImageView.image = UIImage(named: "rest")
-    }
+  func updateAnimationsIsHidden(isStudying: Bool) {
+    focusAnimationView.isHidden = isStudying ? false : true
+    restAnimationView.isHidden = isStudying ? true : false
   }
 }
