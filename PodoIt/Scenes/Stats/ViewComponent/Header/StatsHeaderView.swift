@@ -15,7 +15,10 @@ final class StatsHeaderView: UIView {
   private enum Metrics {
     static let horizontalPadding: CGFloat = 20
     static let verticalPadding: CGFloat = 16
-    static let titleImageSpacing: CGFloat = 4
+    static let categoryImageSpacing: CGFloat = 2
+    static let todayImageSpacing: CGFloat = 4
+    static let todayHorizontalPadding: CGFloat = 12
+    static let todayVerticalPadding: CGFloat = 8
     static let titleMaxLength: Int = 8
   }
 
@@ -25,42 +28,70 @@ final class StatsHeaderView: UIView {
     $0.backgroundColor = .appWhite
   }
 
-  let categoryButton = UIButton(type: .system).then {
-    $0.setAttributedTitle(
-      Typography.attributed("전체", style: .headingLg, color: .appBlack),
-      for: .normal
-    )
-    $0.backgroundColor = .appWhite
-    // 버튼 이미지 설정
-    let image = UIImage.chevronDown.withRenderingMode(.alwaysTemplate)
-    $0.setImage(image, for: .normal)
-    $0.tintColor = .appBlack
-    // 텍스트 오른쪽, 이미지 왼쪽
-    $0.semanticContentAttribute = .forceRightToLeft
-    // 텍스트와 이미지 간 간격
-    $0.imageEdgeInsets = UIEdgeInsets(top: 0, left: Metrics.titleImageSpacing, bottom: 0, right: 0)
+  let categoryButton = UIButton(type: .system).then { btn in
+    var config = UIButton.Configuration.plain()
+    config.baseForegroundColor = .appBlack
+
+    // 텍스트
+    let title = Typography.attributed("전체", style: .headingLg, color: .appBlack)
+    config.attributedTitle = AttributedString(title)
+
+    // 아이콘 (오른쪽)
+    config.image = UIImage.chevronDown.withRenderingMode(.alwaysTemplate)
+    config.imagePlacement = .trailing
+    config.imagePadding = Metrics.categoryImageSpacing
+
+    // 바깥 여백
+    config.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 0)
+
+    // 배경
+    var bg = UIBackgroundConfiguration.clear()
+    bg.backgroundColor = .clear
+    config.background = bg
+
+    btn.configuration = config
+
+    // 잘림 방지
+    btn.setContentCompressionResistancePriority(.required, for: .horizontal)
   }
 
-  let todayButton = UIButton(type: .system).then {
-    $0.setAttributedTitle(
-      Typography.attributed("오늘", style: .labelMd(weight: .semibold), color: .primary600),
-      for: .normal
+  let todayButton = UIButton(type: .system).then { btn in
+    var config = UIButton.Configuration.plain()
+    config.baseForegroundColor = .primary600
+
+    // 텍스트
+    let title = Typography.attributed(
+      "오늘",
+      style: .labelMd(weight: .semibold),
+      color: .primary600
     )
-    $0.backgroundColor = .primary100
-    // 버튼 이미지 설정
-    let image = UIImage(named: "rotate-ccw")?
-      .withConfiguration(
-        UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
-      )
-      .withRenderingMode(.alwaysTemplate)
-    $0.setImage(image, for: .normal)
-    $0.tintColor = .primary600
-    $0.layer.borderWidth = 1
-    $0.layer.borderColor = UIColor.primary200.cgColor
-    $0.layer.cornerRadius = 18 // 버튼 전체 패딩
-    $0.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 16)
-    // 이미지-텍스트 간격
-    $0.titleEdgeInsets = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: -4)
+    config.attributedTitle = AttributedString(title)
+
+    // 아이콘 (왼쪽)
+    config.image = UIImage.rotateCcw.withRenderingMode(.alwaysTemplate)
+    config.imagePlacement = .leading
+    config.imagePadding = Metrics.todayImageSpacing
+
+    // 바깥 여백
+    config.contentInsets = .init(
+      top: Metrics.todayVerticalPadding,
+      leading: Metrics.todayHorizontalPadding,
+      bottom: Metrics.todayVerticalPadding,
+      trailing: Metrics.todayHorizontalPadding
+    )
+
+    // 배경/테두리/코너
+    var bg = UIBackgroundConfiguration.clear()
+    bg.backgroundColor = .primary100
+    bg.strokeColor = .primary200
+    bg.strokeWidth = 1
+    bg.cornerRadius = 18
+    config.background = bg
+
+    btn.configuration = config
+
+    // 잘림 방지
+    btn.setContentCompressionResistancePriority(.required, for: .horizontal)
   }
 
   private let spacerView = UIView()
@@ -95,14 +126,8 @@ final class StatsHeaderView: UIView {
   }
 
   private func setupConstraints() {
-    categoryButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
-    categoryButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-
     spacerView.setContentHuggingPriority(.defaultLow, for: .horizontal)
     spacerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-
-    todayButton.setContentHuggingPriority(.required, for: .horizontal)
-    todayButton.setContentCompressionResistancePriority(.required, for: .horizontal)
 
     container.snp.makeConstraints {
       $0.edges.equalToSuperview()
