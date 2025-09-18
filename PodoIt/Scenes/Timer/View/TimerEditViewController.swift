@@ -39,7 +39,7 @@ final class TimerEditViewController: UIViewController {
     static let textFieldHeight: CGFloat = 56
     static let textFieldLeftPadding: CGFloat = 16
     static let topOffset: CGFloat = 32
-    static let bottomSafeAreaInset: CGFloat = 20
+    static let bottomSafeAreaInset: CGFloat = 16
     static let dashedCircleSize: CGFloat = 40
 
     // Picker
@@ -249,6 +249,12 @@ final class TimerEditViewController: UIViewController {
     // 이름 필드 변경 실시간 감지 → 비면 빨간 스트로크
     nameTextField.addTarget(self, action: #selector(nameEditingChanged), for: .editingChanged)
 
+    // 키보드 위 미리보기 바 제거
+    for item in [nameTextField, emojiInputField] {
+      item.autocorrectionType = .no
+      item.spellCheckingType = .no
+    }
+
     goalTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     goalTitleLabel.setContentHuggingPriority(.required, for: .vertical)
     goalValueArea.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
@@ -445,7 +451,7 @@ final class TimerEditViewController: UIViewController {
     saveButton.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
       $0.height.equalTo(Metrics.buttonHeight)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(Metrics.bottomSafeAreaInset)
+      $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-Metrics.bottomSafeAreaInset)
     }
 
     emojiInputField.snp.makeConstraints {
