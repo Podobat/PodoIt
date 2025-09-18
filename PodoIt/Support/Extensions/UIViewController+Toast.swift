@@ -12,7 +12,7 @@ extension UIViewController {
                       icon: UIImage? = nil,
                       duration: TimeInterval = 1.5,
                       above anchorView: UIView,
-                      spacing: CGFloat = -20)
+                      spacing: CGFloat)
   {
     let container = makeToastContainer(message: message, icon: icon)
     setupToastBaseContainer(container)

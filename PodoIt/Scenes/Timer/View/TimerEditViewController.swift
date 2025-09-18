@@ -228,9 +228,10 @@ final class TimerEditViewController: UIViewController {
   private var lastNameLimitToastAt: Date?
   private func showNameLimitToastIfNeeded() { // 15자 초과 시 토스트 + 스로틀
     let now = Date()
-    if let last = lastNameLimitToastAt, now.timeIntervalSince(last) < 0.8 { return } // ✅ 0.8초 쿨타임
+    if let last = lastNameLimitToastAt, now.timeIntervalSince(last) < 0.8 { return } // 0.8초 쿨타임
     lastNameLimitToastAt = now
     showToastAbove("이름은 최대 15자까지 작성 가능해요.", // 저장 버튼 위 16pt
+                   icon: UIImage(named: "bang"),
                    above: saveButton,
                    spacing: -16)
   }
