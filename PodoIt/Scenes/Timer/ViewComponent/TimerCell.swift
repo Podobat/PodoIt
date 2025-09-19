@@ -149,6 +149,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     setupUI()
     setupShadow()
     setupPanGesture()
+    updateDeleteIconPosition()
   }
 
   @available(*, unavailable)
@@ -237,6 +238,22 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
       $0.top.bottom.equalToSuperview()
       $0.trailing.equalToSuperview()
       $0.width.equalTo(80)
+    }
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    // 아이콘 중앙 갱신
+    updateDeleteIconPosition()
+  }
+
+  private func updateDeleteIconPosition() {
+    // 빨간 영역 중앙
+    let leftInset = frame.minX
+    let safeLeft = window?.safeAreaInsets.left ?? 0
+    let totalReveal = 80 + leftInset + safeLeft
+    deleteIconView.snp.updateConstraints { make in
+      make.centerX.equalTo(swipeActionView.snp.trailing).offset(-totalReveal / 2)
     }
   }
 
