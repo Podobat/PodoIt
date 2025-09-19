@@ -9,7 +9,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class TimerCell: UICollectionViewCell {
+final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
   static let reuseIdentifier = "TimerCell"
 
   #if DEBUG
@@ -112,12 +112,14 @@ final class TimerCell: UICollectionViewCell {
   }
 
   var onPlayTapped: (() -> Void)?
+  var onDeleteTapped: (() -> Void)?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
     backgroundColor = .clear
     setupUI()
     setupShadow()
+    setupSwipeGesture()
   }
 
   @available(*, unavailable)
@@ -205,6 +207,18 @@ final class TimerCell: UICollectionViewCell {
 
   @objc private func handlePlayTapped() {
     onPlayTapped?()
+  }
+
+  // MARK: - Swipe Gesture
+  
+  private func setupSwipeGesture() {
+    let swipeGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeGesture))
+    swipeGesture.direction = .left
+    addGestureRecognizer(swipeGesture)
+  }
+
+  @objc private func handleSwipeGesture() {
+    onDeleteTapped?()
   }
 
   // MARK: - Public Methods
