@@ -287,6 +287,8 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
 
     case .changed:
       // 왼쪽으로만 스와이프
+      guard translation.x <= 0 else { return }
+
       let maxTranslation: CGFloat = -80
       let clampedTranslation = max(translation.x, maxTranslation)
       mainContentView.transform = CGAffineTransform(translationX: clampedTranslation, y: 0)
