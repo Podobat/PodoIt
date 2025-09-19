@@ -64,8 +64,6 @@ final class TimerRunViewModel {
   
   // MARK: - Tick (공유 타이머 스트림)
   
-  // tick을 여러군데에서 쓰일 것 같기에 빼둠.
-  // ❗️FIXME: 0.1초가 괜찮을지 모르겠음. 즉발 트리거를 tick이랑 merge해서 만들어도 안되기에, 1초가 아닌 0.1초로 하긴 했지만..
   private lazy var tick: Observable<Int> = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
     .startWith(0) // startWith(0)을 안붙여주면, 첫 이벤트가 1초 뒤에 옴.
     .share(replay: 1, scope: .whileConnected) // share로 한 번에 여러곳에 공유. 가장 최근 이벤트 1개 방출 및 구독자가 존재할때만 스트림 유지
