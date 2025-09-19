@@ -149,6 +149,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     setupUI()
     setupShadow()
     setupPanGesture()
+    updateDeleteIconPosition()
   }
 
   @available(*, unavailable)
@@ -170,7 +171,8 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     contentView.backgroundColor = .clear
     contentView.layer.cornerRadius = Metrics.cornerRadius
     contentView.layer.cornerCurve = .continuous
-    contentView.clipsToBounds = true
+    // 셀이 왼쪽으로 넘어갈 때 셀 경계 밖으로 나가도록
+    contentView.clipsToBounds = false
 
     selectedBackgroundView = UIView().then {
       $0.backgroundColor = UIColor.gray100.withAlphaComponent(0.5)
@@ -239,6 +241,22 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
   }
 
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    // 아이콘 중앙 갱신
+    updateDeleteIconPosition()
+  }
+
+  private func updateDeleteIconPosition() {
+    // 빨간 영역 중앙
+    let leftInset = frame.minX
+    let safeLeft = window?.safeAreaInsets.left ?? 0
+    let totalReveal = 80 + leftInset + safeLeft
+    deleteIconView.snp.updateConstraints { make in
+      make.centerX.equalTo(swipeActionView.snp.trailing).offset(-totalReveal / 2)
+    }
+  }
+
   private func setupShadow() {
     layer.masksToBounds = false
     layer.shadowColor = UIColor.black.cgColor
@@ -287,7 +305,12 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
 
     case .changed:
       // 왼쪽으로만 스와이프
-      let maxTranslation: CGFloat = -80
+      guard translation.x <= 0 else { return }
+
+      // 안전구역까지 무시하고 이동
+      let leftInset = frame.minX
+      let safeLeft = window?.safeAreaInsets.left ?? 0
+      let maxTranslation: CGFloat = -(80 + leftInset + safeLeft)
       let clampedTranslation = max(translation.x, maxTranslation)
       mainContentView.transform = CGAffineTransform(translationX: clampedTranslation, y: 0)
 
@@ -315,7 +338,9 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
 
   private func showSwipeAction() {
     UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.6) {
-      self.mainContentView.transform = CGAffineTransform(translationX: -80, y: 0)
+      let leftInset = self.frame.minX
+      let safeLeft = self.window?.safeAreaInsets.left ?? 0
+      self.mainContentView.transform = CGAffineTransform(translationX: -(80 + leftInset + safeLeft), y: 0)
     }
   }
 
