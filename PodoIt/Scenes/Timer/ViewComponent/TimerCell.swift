@@ -111,6 +111,35 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     $0.addTarget(self, action: #selector(handlePlayTapped), for: .touchUpInside)
   }
 
+  // MARK: - Swipe Action UI
+
+  private let mainContentView = UIView().then {
+    $0.backgroundColor = .appWhite
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.layer.cornerCurve = .continuous
+    $0.clipsToBounds = true
+  }
+
+  private let swipeActionView = UIView().then {
+    $0.backgroundColor = .error
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.layer.cornerCurve = .continuous
+    $0.clipsToBounds = true
+  }
+
+  private let deleteIconView = UIImageView().then {
+    let image = UIImage(named: "trash")?.withRenderingMode(.alwaysTemplate)
+    $0.image = image
+    $0.tintColor = .appWhite
+    $0.contentMode = .scaleAspectFit
+    $0.isHidden = true
+  }
+
+  private let deleteButton = UIButton(type: .system).then {
+    $0.backgroundColor = .clear
+    $0.addTarget(self, action: #selector(handleDeleteTapped), for: .touchUpInside)
+  }
+
   var onPlayTapped: (() -> Void)?
   var onDeleteTapped: (() -> Void)?
 
@@ -137,7 +166,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
   }
 
   private func setupContentView() {
-    contentView.backgroundColor = .appWhite
+    contentView.backgroundColor = .clear
     contentView.layer.cornerRadius = Metrics.cornerRadius
     contentView.layer.cornerCurve = .continuous
     contentView.clipsToBounds = true
@@ -148,11 +177,23 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
   }
 
   private func addSubviews() {
-    contentView.addSubviews([emojiFrameView, titleLabel, metaStack, playButton])
+    contentView.addSubviews([swipeActionView, mainContentView])
+    mainContentView.addSubviews([emojiFrameView, titleLabel, metaStack, playButton])
     emojiFrameView.addSubview(iconLabel)
+    swipeActionView.addSubviews([deleteIconView, deleteButton])
   }
 
   private func setupConstraints() {
+    // 스와이프 액션 뷰 - 전체 영역
+    swipeActionView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+
+    // 메인 액션 뷰 - 스와이프
+    mainContentView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+
     emojiFrameView.snp.makeConstraints {
       $0.leading.equalToSuperview().inset(Metrics.stackHPadding)
       $0.top.equalToSuperview().inset(Metrics.stackVPadding)
@@ -173,13 +214,27 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
       $0.leading.equalTo(emojiFrameView)
       $0.top.equalTo(emojiFrameView.snp.bottom).offset(Metrics.titleMetaSpacing)
       $0.trailing.lessThanOrEqualTo(playButton.snp.leading).offset(-Metrics.buttonTrailingSpacing)
-      $0.bottom.lessThanOrEqualTo(contentView).inset(Metrics.stackVPadding)
+      $0.bottom.lessThanOrEqualTo(mainContentView).inset(Metrics.stackVPadding)
     }
 
     playButton.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(16)
       $0.centerY.equalToSuperview()
       $0.size.equalTo(Metrics.playOuterSize)
+    }
+
+    // 빨간색 프레임 영역의 가운데 정렬
+
+    deleteIconView.snp.makeConstraints {
+      $0.centerY.equalToSuperview()
+      $0.centerX.equalTo(swipeActionView.snp.trailing).offset(-40)
+      $0.size.equalTo(32)
+    }
+
+    deleteButton.snp.makeConstraints {
+      $0.top.bottom.equalToSuperview()
+      $0.trailing.equalToSuperview()
+      $0.width.equalTo(80)
     }
   }
 
@@ -210,7 +265,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
   }
 
   // MARK: - Swipe Gesture
-  
+
   private func setupSwipeGesture() {
     let swipeGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeGesture))
     swipeGesture.direction = .left
@@ -218,6 +273,10 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
   }
 
   @objc private func handleSwipeGesture() {
+    onDeleteTapped?()
+  }
+
+  @objc private func handleDeleteTapped() {
     onDeleteTapped?()
   }
 
