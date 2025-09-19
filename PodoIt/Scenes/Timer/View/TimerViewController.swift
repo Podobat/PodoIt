@@ -51,7 +51,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     static let addButtonHeight: CGFloat = 48
     static let minimumLineSpacing: CGFloat = 12
     static let sectionInset = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
-    static let cellHeight: CGFloat = 96
+    static let cellHeight: CGFloat = 100
   }
 
   // MARK: - UI Components
