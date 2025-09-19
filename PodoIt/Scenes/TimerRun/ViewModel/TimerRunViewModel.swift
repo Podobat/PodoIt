@@ -259,13 +259,13 @@ final class TimerRunViewModel {
       try SwiftDataManager.shared.insertStats(
         icon: timer.iconName, // 타이머 아이콘
         category: timer.title, // 타이머 이름
-        time: TimerRunViewModel.formatHMMSS(seconds: Int(state.totalStudySeconds.rounded())) // 총 공부 시간
+        time: TimerRunViewModel.formatHMMSS(seconds: state.totalStudySeconds) // 총 공부 시간
       )
       print("""
       [데이터 저장 완료]
       아이콘 이름: \(timer.iconName)
       타이머 이름: \(timer.title)
-      총 공부 시간: \(TimerRunViewModel.formatHMMSS(seconds: Int(state.totalStudySeconds.rounded())))
+      총 공부 시간: \(TimerRunViewModel.formatHMMSS(seconds: state.totalStudySeconds))
       """)
     } catch {
       print("데이터 저장 실패: \(RepositoryError.saveFailed)")
@@ -290,7 +290,7 @@ final class TimerRunViewModel {
       .map { vm, _ in
         let totalStudyTime = vm.totalStudyTime()
         let remainingStudyTime = max(vm.goalTime - totalStudyTime, 0) // 남은 시간은 목표시간 - 총 공부시간
-        return TimerRunViewModel.formatMMSS(seconds: Int(remainingStudyTime.rounded()))
+        return TimerRunViewModel.formatMMSS(seconds: remainingStudyTime)
       }
       .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "00:00")
@@ -302,7 +302,7 @@ final class TimerRunViewModel {
       .map { vm, _ in
         let totalStudyTime = vm.totalStudyTime()
         // 총 공부 시간을 "h:mm:ss" 형태 문자열로 반환
-        return TimerRunViewModel.formatHMMSS(seconds: Int(totalStudyTime.rounded()))
+        return TimerRunViewModel.formatHMMSS(seconds: totalStudyTime)
       }
       .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "0:00:00") // 에러나면 기본으로 "0:00:00" 방출
@@ -314,7 +314,7 @@ final class TimerRunViewModel {
       .map { vm, _ in // now(현재) - stateStart(휴식 섹션 시작한 시간)
         let now = Date()
         let restIntervalTime = vm.state.isStudying ? 0 : now.timeIntervalSince(vm.state.intervalStart)
-        return TimerRunViewModel.formatMMSS(seconds: Int(restIntervalTime.rounded()))
+        return TimerRunViewModel.formatMMSS(seconds: restIntervalTime)
       }
       .distinctUntilChanged()
       .asDriver(onErrorJustReturn: "00:00")
@@ -351,7 +351,7 @@ final class TimerRunViewModel {
             vm.addedMark = nil // 추가버튼 눌린 시점 초기화
             vm.addSnapshot = vm.restAddSeconds // 다음 번의 누적값에서 0되기 전의 추가 시간 제외하기 위해, 현재의 restAddSeconds값 보관
           }
-          return TimerRunViewModel.formatMMSS(seconds: Int(remaining.rounded()))
+          return TimerRunViewModel.formatMMSS(seconds: remaining)
         }
       
         // MARK: 1) 기본 시간 0분 안된. 일반적인 기본 카운트다운 (0 되기 전 추가 휴식시간 포함)
@@ -359,7 +359,7 @@ final class TimerRunViewModel {
         // 기본 300초(5분) + 추가된 휴식 시간 - 휴식중인 시간
         let base = max(vm.defaultRestSeconds + vm.restAddSeconds - restIntervalTime, 0)
         if base > 0 { // 0되기 전에는 이 값을 반환
-          return TimerRunViewModel.formatMMSS(seconds: Int(base.rounded()))
+          return TimerRunViewModel.formatMMSS(seconds: base)
         }
         
         // MARK: 2) 0으로 막 진입. 스냅샷 준비. 값은 00:00 반환
@@ -387,19 +387,21 @@ final class TimerRunViewModel {
   // MARK: - Formatters
 
   /// 시간 포맷터 ("h:mm:ss")
-  private static func formatHMMSS(seconds: Int) -> String {
-    let h = seconds / 3600
-    let m = (seconds % 3600) / 60
-    let s = seconds % 60
+  private static func formatHMMSS(seconds: Double) -> String {
+    let sec = Int(seconds.rounded()) // 반올림 처리까지
+    let h = sec / 3600
+    let m = (sec % 3600) / 60
+    let s = sec % 60
     return String(format: "%d:%02d:%02d", h, m, s) // 0:12:53, 1:50:49, 12:49:39등으로 포맷
   }
   
   /// 시간 포맷터 ("mm:ss")
-  private static func formatMMSS(seconds: Int) -> String {
+  private static func formatMMSS(seconds: Double) -> String {
+    let sec = Int(seconds.rounded())
     // 값이 3600이 들어옴
     // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
-    let m = seconds / 60
-    let s = seconds % 60
+    let m = sec / 60
+    let s = sec % 60
     return String(format: "%02d:%02d", m, s)
   }
 }
