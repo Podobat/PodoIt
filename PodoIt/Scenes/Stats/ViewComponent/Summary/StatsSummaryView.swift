@@ -60,16 +60,16 @@ final class StatsSummaryView: UIView {
   }
 
   private let totalTimeTotalLabel = UILabel.makeAttributed(
-    text: "총", style: .headingMd, color: .gray500, alignment: .left
+    text: "총", style: .headingSm, color: .gray500, alignment: .left
   )
 
   // 총 집중 시간 텍스트
   private let totalTimeLabel = UILabel.makeAttributed(
-    text: "2시간 50분", style: .headingXl(weight: .bold), color: .primary600, alignment: .left
+    text: "2시간 50분", style: .headingLg(weight: .bold), color: .primary600, alignment: .left
   )
 
   private let totalTimeFocusLabel = UILabel.makeAttributed(
-    text: "집중했어요!", style: .headingMd, color: .gray500, alignment: .left
+    text: "집중했어요!", style: .headingSm, color: .gray500, alignment: .left
   )
 
   private lazy var totalTimeStackView = UIStackView(arrangedSubviews: [totalTimeTotalLabel, totalTimeLabel, totalTimeFocusLabel]).then {

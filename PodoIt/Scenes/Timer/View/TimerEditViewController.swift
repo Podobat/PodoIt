@@ -62,7 +62,7 @@ final class TimerEditViewController: UIViewController {
 
   // 화면 상단 제목
   private let titleLabel = UILabel().then {
-    $0.attributedText = Typography.attributed("타이머 추가", style: .headingMd, color: .appBlack)
+    $0.attributedText = Typography.attributed("타이머 추가", style: .headingSm, color: .appBlack)
     $0.textAlignment = .center
   }
 
@@ -155,7 +155,7 @@ final class TimerEditViewController: UIViewController {
 
   private lazy var unitLabel = UILabel().then { [isTest = TimerEditViewController.isTestMode] in
     let unit = isTest ? "초" : "분"
-    $0.attributedText = Typography.attributed(unit, style: .headingXl(weight: .semibold), color: .appBlack)
+    $0.attributedText = Typography.attributed(unit, style: .headingLg(weight: .bold), color: .appBlack)
     $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     $0.setContentHuggingPriority(.required, for: .horizontal)
   }
@@ -171,7 +171,7 @@ final class TimerEditViewController: UIViewController {
     $0.layer.cornerRadius = Metrics.buttonCornerRadius
     $0.clipsToBounds = true
     $0.setAttributedTitle(
-      Typography.attributed("저장하기", style: .labelLg(weight: .semibold), color: .appWhite),
+      Typography.attributed("저장하기", style: .labelLg, color: .appWhite),
       for: .normal
     )
     $0.isEnabled = true
@@ -300,7 +300,7 @@ final class TimerEditViewController: UIViewController {
     deleteButton.isHidden = !isEditMode
 
     if let editing = viewModel.editing {
-      titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingMd, color: .appBlack)
+      titleLabel.attributedText = Typography.attributed("타이머 수정", style: .headingSm, color: .appBlack)
       nameTextField.text = editing.title
 
       if TimerEditViewController.isTestMode {
@@ -509,7 +509,7 @@ final class TimerEditViewController: UIViewController {
       number.addAttribute(.kern, value: 8, range: NSRange(location: number.length - 1, length: 1))
     }
 
-    let unit = Typography.attributed(unitText, style: .headingXl(weight: .semibold), color: .appBlack)
+    let unit = Typography.attributed(unitText, style: .headingLg(weight: .semibold), color: .appBlack)
     number.append(unit)
     collapsedValueLabel.attributedText = number
   }
@@ -582,13 +582,13 @@ final class TimerEditViewController: UIViewController {
     if valid {
       saveButton.backgroundColor = Palette.Primary.p600
       saveButton.setAttributedTitle(
-        Typography.attributed("저장하기", style: .labelLg(weight: .semibold), color: .appWhite),
+        Typography.attributed("저장하기", style: .labelLg, color: .appWhite),
         for: .normal
       )
     } else {
       saveButton.backgroundColor = Palette.Gray.g200
       saveButton.setAttributedTitle(
-        Typography.attributed("저장하기", style: .labelLg(weight: .semibold), color: Palette.Gray.g400),
+        Typography.attributed("저장하기", style: .labelLg, color: Palette.Gray.g400),
         for: .normal
       )
     }
@@ -704,7 +704,7 @@ final class TimerEditViewController: UIViewController {
     // 이미지 제거 후 타이틀로 이모지 표시
     emojiButton.setImage(nil, for: .normal)
     emojiButton.setAttributedTitle(
-      Typography.attributed(emoji, style: .headingXl(weight: .semibold), color: .appBlack),
+      Typography.attributed(emoji, style: .headingLg(weight: .semibold), color: .appBlack),
       for: .normal
     )
     emojiButton.tintColor = Palette.Primary.p600
@@ -780,7 +780,7 @@ extension TimerEditViewController: UIPickerViewDataSource, UIPickerViewDelegate 
 
     // 숫자 라벨을 좌측으로 delta만큼
     let unitText = TimerEditViewController.isTestMode ? "초" : "분"
-    let unitFont = Typography.font(for: .headingXl(weight: .semibold))
+    let unitFont = Typography.font(for: .headingLg(weight: .semibold))
     let unitWidth = (unitText as NSString).size(withAttributes: [.font: unitFont]).width
     let delta = (unitWidth + Metrics.unitLeftSpacing) / 2.0
 

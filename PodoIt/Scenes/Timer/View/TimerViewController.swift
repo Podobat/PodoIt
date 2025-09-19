@@ -66,7 +66,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   private let addButton = UIButton(type: .system).then {
     let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate)
     $0.setImage(image, for: .normal)
-    $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
+    $0.titleLabel?.font = Typography.font(for: .labelLg)
     $0.layer.cornerRadius = 24
     $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
     $0.semanticContentAttribute = .forceLeftToRight

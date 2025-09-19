@@ -49,7 +49,7 @@ final class TimerCell: UICollectionViewCell {
   }
 
   private let titleLabel = UILabel().then {
-    $0.font = Typography.font(for: .headingMd)
+    $0.font = Typography.font(for: .headingSm)
     $0.textColor = .appBlack
     $0.numberOfLines = 1
     $0.lineBreakMode = .byTruncatingTail

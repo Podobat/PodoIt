@@ -23,7 +23,7 @@ final class TimerHeaderView: UIView {
   }()
 
   private let dateLabel = UILabel.makeAttributed(
-    text: "", style: .headingLg, color: .appBlack, alignment: .left
+    text: "", style: .headingMd(weight: .bold), color: .appBlack, alignment: .left
   )
 
   private let dividerView = UIView().then {
@@ -87,7 +87,7 @@ final class TimerHeaderView: UIView {
       let today = TimerHeaderView.dateFormatter.string(from: Date())
       let attributed = Typography.attributed(
           today,
-          style: .headingLg,
+          style: .headingMd(weight: .bold),
           color: .appBlack
       )
 

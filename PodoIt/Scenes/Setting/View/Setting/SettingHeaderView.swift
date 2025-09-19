@@ -9,7 +9,7 @@ import SnapKit
 import UIKit
 
 final class SettingHeaderView: UIView {
-  private let titleLabel = UILabel.makeAttributed(text: "설정", style: .headingLg, color: .appBlack)
+  private let titleLabel = UILabel.makeAttributed(text: "설정", style: .headingMd(weight: .bold), color: .appBlack)
   
   override init(frame: CGRect) {
     super.init(frame: frame)

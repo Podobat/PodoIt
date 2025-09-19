@@ -41,7 +41,7 @@ final class CalendarView: UIView {
   private var lastSelectedDate: Date? = Date() // 앱 시작 시 오늘을 기본 선택으로
 
   private lazy var titleLabel = UILabel.makeAttributed(
-    text: "", style: .labelLg(weight: .semibold), color: .gray900
+    text: "", style: .labelLg, color: .gray900
   )
 
   private let previousButton = UIButton().then {
@@ -285,7 +285,7 @@ extension CalendarView {
     let date = dateFormatter.string(from: calendarDate)
     titleLabel.attributedText = Typography.attributed(
       date,
-      style: .labelLg(weight: .semibold),
+      style: .labelLg,
       color: .gray900
     )
   }

@@ -37,7 +37,7 @@ final class ThemeSheetViewController: UIViewController {
   
   private let titleLabel = UILabel.makeAttributed(
     text: "테마 변경",
-    style: .headingLg,
+    style: .headingMd(weight: .bold),
     color: .appBlack,
     alignment: .center
   )
@@ -71,7 +71,7 @@ final class ThemeSheetViewController: UIViewController {
     // 폰트
     config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { font in
       var out = font
-      out.font = Typography.font(for: .labelLg(weight: .semibold))
+      out.font = Typography.font(for: .labelLg)
       return out
     }
     return config
