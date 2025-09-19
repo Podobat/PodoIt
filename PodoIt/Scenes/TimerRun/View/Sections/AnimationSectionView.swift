@@ -5,7 +5,7 @@
 //  Created by 서광용 on 8/28/25.
 //
 
-import DotLottie
+import Lottie
 import SnapKit
 import Then
 import UIKit
@@ -14,15 +14,8 @@ final class AnimationSectionView: UIView {
   // MARK: - Components
 
   // 집중 Lottie
-  private var focusAnimation = DotLottieAnimation(fileName: "focus", config: AnimationConfig(autoplay: true, loop: true))
-  private lazy var focusAnimationView: UIView = focusAnimation.view().then {
-    $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
-    $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
-  }
-
-  // 휴식 Lottie
-  private var restAnimation = DotLottieAnimation(fileName: "rest", config: AnimationConfig(autoplay: true, loop: true))
-  private lazy var restAnimationView: UIView = restAnimation.view().then {
+  private var animationView = LottieAnimationView().then {
+    $0.loopMode = .loop
     $0.setContentHuggingPriority(UILayoutPriority(1), for: .vertical)
     $0.setContentCompressionResistancePriority(UILayoutPriority(1), for: .vertical)
   }
@@ -43,23 +36,20 @@ final class AnimationSectionView: UIView {
   // MARK: - configureUI
 
   private func configureUI() {
-    [focusAnimationView, restAnimationView].forEach { addSubview($0) }
+    addSubview(animationView)
   }
 
   // MARK: - configureLayout
 
   private func configureLayout() {
-    focusAnimationView.snp.makeConstraints {
-      $0.directionalEdges.equalToSuperview().inset(40)
-    }
-
-    restAnimationView.snp.makeConstraints {
+    animationView.snp.makeConstraints {
       $0.directionalEdges.equalToSuperview().inset(40)
     }
   }
 
   func updateAnimationsIsHidden(isStudying: Bool) {
-    focusAnimationView.isHidden = isStudying ? false : true
-    restAnimationView.isHidden = isStudying ? true : false
+    let name = isStudying ? "focus" : "rest"
+    animationView.animation = LottieAnimation.named(name)
+    animationView.play()
   }
 }
