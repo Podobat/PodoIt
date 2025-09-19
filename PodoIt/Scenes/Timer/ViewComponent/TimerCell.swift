@@ -148,7 +148,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     backgroundColor = .clear
     setupUI()
     setupShadow()
-    setupSwipeGesture()
+    setupPanGesture()
   }
 
   @available(*, unavailable)
@@ -156,6 +156,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
 
   override func prepareForReuse() {
     super.prepareForReuse()
+    resetSwipeAction()
     resetLabels()
   }
 
@@ -264,16 +265,67 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     onPlayTapped?()
   }
 
-  // MARK: - Swipe Gesture
-
-  private func setupSwipeGesture() {
-    let swipeGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeGesture))
-    swipeGesture.direction = .left
-    addGestureRecognizer(swipeGesture)
+  // MARK: - Swipe Action
+  
+  private var panGesture: UIPanGestureRecognizer!
+  private var originalTransform: CGAffineTransform = .identity
+  private var isSwipeActionVisible = false
+  
+  private func setupPanGesture() {
+    panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+    panGesture.delegate = self
+    addGestureRecognizer(panGesture)
   }
-
-  @objc private func handleSwipeGesture() {
-    onDeleteTapped?()
+  
+  @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+    let translation = gesture.translation(in: self)
+    let velocity = gesture.velocity(in: self)
+    
+    switch gesture.state {
+    case .began:
+      originalTransform = mainContentView.transform
+      
+    case .changed:
+      // 왼쪽으로만 스와이프
+      let maxTranslation: CGFloat = -80
+      let clampedTranslation = max(translation.x, maxTranslation)
+      mainContentView.transform = CGAffineTransform(translationX: clampedTranslation, y: 0)
+      
+      // 스와이프 액션 표시
+      // 삭제 아이콘
+      let shouldShowAction = translation.x < -30
+      if shouldShowAction != isSwipeActionVisible {
+        isSwipeActionVisible = shouldShowAction
+        deleteIconView.isHidden = !shouldShowAction
+      }
+      
+    case .ended, .cancelled:
+      // 스와이프 거리, 속도에 따라 액션 결정
+      if translation.x < -50 || velocity.x < -500 {
+        // 삭제 액션
+        showSwipeAction()
+      } else {
+        // 원래 위치로
+        resetSwipeAction()
+      }
+      
+    default:
+      break
+    }
+  }
+  
+  private func showSwipeAction() {
+    UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+      self.mainContentView.transform = CGAffineTransform(translationX: -80, y: 0)
+    }
+  }
+  
+  private func resetSwipeAction() {
+    UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+      self.mainContentView.transform = .identity
+    }
+    deleteIconView.isHidden = true
+    isSwipeActionVisible = false
   }
 
   @objc private func handleDeleteTapped() {
