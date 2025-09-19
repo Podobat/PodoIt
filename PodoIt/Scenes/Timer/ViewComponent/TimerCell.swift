@@ -125,6 +125,8 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     $0.layer.cornerRadius = Metrics.cornerRadius
     $0.layer.cornerCurve = .continuous
     $0.clipsToBounds = true
+    // 빨간색 프레임이 셀 주변에 비치지 않도록 기본 숨김
+    $0.isHidden = true
   }
 
   private let deleteIconView = UIImageView().then {
@@ -318,6 +320,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
       let shouldShowAction = translation.x < -25
       if shouldShowAction != isSwipeActionVisible {
         isSwipeActionVisible = shouldShowAction
+        swipeActionView.isHidden = !shouldShowAction
         deleteIconView.isHidden = !shouldShowAction
       }
 
@@ -342,6 +345,8 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
       let safeLeft = self.window?.safeAreaInsets.left ?? 0
       self.mainContentView.transform = CGAffineTransform(translationX: -(80 + leftInset + safeLeft), y: 0)
     }
+    swipeActionView.isHidden = false
+    deleteIconView.isHidden = false
   }
 
   private func resetSwipeAction() {
@@ -350,6 +355,7 @@ final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     }
     deleteIconView.isHidden = true
     isSwipeActionVisible = false
+    swipeActionView.isHidden = true
   }
 
   @objc private func handleDeleteTapped() {
