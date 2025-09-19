@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7982D0A02E7AD06800C75EA3 /* DotLottie in Frameworks */ = {isa = PBXBuildFile; productRef = 7982D09F2E7AD06800C75EA3 /* DotLottie */; };
+		7982D4602E7D3E8500C75EA3 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 7982D45F2E7D3E8500C75EA3 /* Lottie */; };
 		E87390692E56B84A00941B2A /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = E87390682E56B84A00941B2A /* SnapKit */; };
 		E873906C2E56B85900941B2A /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = E873906B2E56B85900941B2A /* Then */; };
 		E873906F2E56BC6700941B2A /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = E873906E2E56BC6700941B2A /* RxCocoa */; };
@@ -47,7 +47,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7982D0A02E7AD06800C75EA3 /* DotLottie in Frameworks */,
 				E873906F2E56BC6700941B2A /* RxCocoa in Frameworks */,
 				E87390772E56BC9E00941B2A /* FSCalendar in Frameworks */,
 				E87390692E56B84A00941B2A /* SnapKit in Frameworks */,
@@ -55,6 +54,7 @@
 				E873907D2E56BCC200941B2A /* Algorithms in Frameworks */,
 				E87390712E56BC6700941B2A /* RxRelay in Frameworks */,
 				E873906C2E56B85900941B2A /* Then in Frameworks */,
+				7982D4602E7D3E8500C75EA3 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,7 +112,7 @@
 				E87390762E56BC9E00941B2A /* FSCalendar */,
 				E873907C2E56BCC200941B2A /* Algorithms */,
 				F2715BAE2E5840A9001FDECE /* Dependencies */,
-				7982D09F2E7AD06800C75EA3 /* DotLottie */,
+				7982D45F2E7D3E8500C75EA3 /* Lottie */,
 			);
 			productName = PodoIt;
 			productReference = E8571A112E50B3B2001CAD9D /* PodoIt.app */;
@@ -150,7 +150,7 @@
 				E87390752E56BC9E00941B2A /* XCRemoteSwiftPackageReference "FSCalendar" */,
 				E873907B2E56BCC200941B2A /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				F2715BAD2E5840A9001FDECE /* XCRemoteSwiftPackageReference "swift-dependencies" */,
-				7982D09E2E7AD06800C75EA3 /* XCRemoteSwiftPackageReference "dotlottie-ios" */,
+				7982D45E2E7D3E8500C75EA3 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E8571A122E50B3B2001CAD9D /* Products */;
@@ -404,12 +404,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7982D09E2E7AD06800C75EA3 /* XCRemoteSwiftPackageReference "dotlottie-ios" */ = {
+		7982D45E2E7D3E8500C75EA3 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/LottieFiles/dotlottie-ios";
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.9.2;
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
 			};
 		};
 		E87390672E56B84A00941B2A /* XCRemoteSwiftPackageReference "SnapKit" */ = {
@@ -463,10 +463,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		7982D09F2E7AD06800C75EA3 /* DotLottie */ = {
+		7982D45F2E7D3E8500C75EA3 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7982D09E2E7AD06800C75EA3 /* XCRemoteSwiftPackageReference "dotlottie-ios" */;
-			productName = DotLottie;
+			package = 7982D45E2E7D3E8500C75EA3 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
 		};
 		E87390682E56B84A00941B2A /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
