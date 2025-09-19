@@ -51,22 +51,20 @@ final class TimerRunViewModel {
     AudioSettings.shared.isMute.asDriver()
   }
 
-  private(set) var goalTime: Int = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
-  private var defaultRestSeconds: Int = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
-  private var restAddSeconds = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
+  private(set) var goalTime: Double = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
+  private var defaultRestSeconds: Double = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
+  private var restAddSeconds: Double = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   // 버튼/상태 변화시에 즉시 재계산을 위함
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
   
   // 휴식 시간 계산을 위한 변수
   private var zeroMark: Bool = false // 남은 시간이 '처음 0이 된' 순간 (true: 0, false: 0이 되기 전)
-  private var addedMark: Int? // 0상태에서 추가 버튼이 눌린 순간의 restIntervalTime. (새 카운트 다운의 시작점)
-  private var addSnapshot: Int = 0 // 0 도달 당시의 restAddSeconds 스냅샷
+  private var addedMark: Double? // 0상태에서 추가 버튼이 눌린 순간의 restIntervalTime. (새 카운트 다운의 시작점)
+  private var addSnapshot: Double = 0 // 0 도달 당시의 restAddSeconds 스냅샷
   
   // MARK: - Tick (공유 타이머 스트림)
   
-  // tick을 여러군데에서 쓰일 것 같기에 빼둠.
-  // ❗️FIXME: 0.1초가 괜찮을지 모르겠음. 즉발 트리거를 tick이랑 merge해서 만들어도 안되기에, 1초가 아닌 0.1초로 하긴 했지만..
-  private lazy var tick: Observable<Int> = Observable<Int>.interval(.milliseconds(100), scheduler: MainScheduler.instance)
+  private lazy var tick: Observable<Int> = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
     .startWith(0) // startWith(0)을 안붙여주면, 첫 이벤트가 1초 뒤에 옴.
     .share(replay: 1, scope: .whileConnected) // share로 한 번에 여러곳에 공유. 가장 최근 이벤트 1개 방출 및 구독자가 존재할때만 스트림 유지
   
@@ -83,7 +81,7 @@ final class TimerRunViewModel {
   lazy var studyingTimeText: Driver<String> = makeStudyingTimeText(tick: tick) // 공부중인 시간 (H:MM:SS)
 
   lazy var totalRestTimeText: Driver<String> = makeTotalRestTimeText(tick: tick) // 총 "휴식 중인 시간"
-  lazy var restingTimeText: Driver<String> = makeRestingTimeText(tigger: restTimeUpdateTrigger) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
+  lazy var restingTimeText: Driver<String> = makeRestingTimeText(trigger: restTimeUpdateTrigger) // "남은 휴식시간" 방출 (기본 5분. MM:SS)
 
   lazy var progress: Driver<Float> = makeProgress(tick: tick) // progress 진행률 방출
   lazy var isOverOneMinute: Driver<Bool> = makeIsOverOneMinute(tick: tick) // 1분 이상인지 아닌지에 따른 Bool값
@@ -92,7 +90,7 @@ final class TimerRunViewModel {
 
   init(timer: TimerModel) {
     self.timer = timer
-    goalTime = timer.goalTime * 60 // Int값을 초 단위로 변경
+    goalTime = Double(timer.goalTime) * 60 // Int값을 초 단위로 변경
   }
   
   // MARK: - Data Loading
@@ -191,12 +189,12 @@ final class TimerRunViewModel {
   
   /// 휴식 시간 추가 (+1/+5/+10) 후 즉시 라벨 갱신
   func addRestTime(seconds: Int) {
-    restAddSeconds += seconds
+    restAddSeconds += Double(seconds)
     
     // 현재 구간의 tick 기반 경과 시간
     let now = Date()
     // 모든 계산을 restIntervalTime을 기준으로 해서 tick을 다 공통되게 흐르게함
-    let restIntervalTime = state.isStudying ? 0 : Int(now.timeIntervalSince(state.intervalStart))
+    let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
     
     if zeroMark == true { // 이미 0에 도달했다면
       addedMark = restIntervalTime // 추가를 누른 시점의 tick을 저장. 이때부터 카운트다운해서 tick을 맞춤
@@ -313,7 +311,7 @@ final class TimerRunViewModel {
     return tick.withUnretained(self)
       .map { vm, _ in // now(현재) - stateStart(휴식 섹션 시작한 시간)
         let now = Date()
-        let restIntervalTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart))
+        let restIntervalTime = vm.state.isStudying ? 0 : now.timeIntervalSince(vm.state.intervalStart)
         return TimerRunViewModel.formatMMSS(seconds: restIntervalTime)
       }
       .distinctUntilChanged()
@@ -321,11 +319,11 @@ final class TimerRunViewModel {
   }
 
   /// UI의 라벨에 바인딩할 "남은 휴식 시간" 문자열 Driver 생성
-  private func makeRestingTimeText(tigger: Observable<Void>) -> Driver<String> {
-    return tigger.withUnretained(self)
+  private func makeRestingTimeText(trigger: Observable<Void>) -> Driver<String> {
+    return trigger.withUnretained(self)
       .map { vm, _ in // 300초 - 휴식시간, 0
         let now = Date()
-        let restIntervalTime = vm.state.isStudying ? 0 : Int(now.timeIntervalSince(vm.state.intervalStart)) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
+        let restIntervalTime = vm.state.isStudying ? 0 : now.timeIntervalSince(vm.state.intervalStart) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         
         // MARK: 3) 0이후. 이미 값이 0이라면 처리
 
@@ -377,8 +375,8 @@ final class TimerRunViewModel {
     return tick.withUnretained(self)
       .map { vm, _ in
         let totalStudyTime = vm.totalStudyTime()
-        let progressValue = Float(totalStudyTime) / Float(vm.goalTime)
-        return min(progressValue, 1.0)
+        let progressValue = totalStudyTime / vm.goalTime
+        return min(Float(progressValue), 1.0)
       }
       .distinctUntilChanged() // 1.0 이후 추가 방출없음. 동일값이라 무시
       .asDriver(onErrorJustReturn: 0.0)
@@ -387,19 +385,21 @@ final class TimerRunViewModel {
   // MARK: - Formatters
 
   /// 시간 포맷터 ("h:mm:ss")
-  private static func formatHMMSS(seconds: Int) -> String {
-    let h = seconds / 3600
-    let m = (seconds % 3600) / 60
-    let s = seconds % 60
+  private static func formatHMMSS(seconds: Double) -> String {
+    let sec = Int(seconds.rounded()) // 반올림 처리까지
+    let h = sec / 3600
+    let m = (sec % 3600) / 60
+    let s = sec % 60
     return String(format: "%d:%02d:%02d", h, m, s) // 0:12:53, 1:50:49, 12:49:39등으로 포맷
   }
   
   /// 시간 포맷터 ("mm:ss")
-  private static func formatMMSS(seconds: Int) -> String {
+  private static func formatMMSS(seconds: Double) -> String {
+    let sec = Int(seconds.rounded())
     // 값이 3600이 들어옴
     // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
-    let m = seconds / 60
-    let s = seconds % 60
+    let m = sec / 60
+    let s = sec % 60
     return String(format: "%02d:%02d", m, s)
   }
 }
@@ -408,7 +408,7 @@ extension TimerRunViewModel {
   /// 현재 구간(state.intervalStart 기준)의 경과 시간을 누적
   /// - 총 공부/휴식 시간을 저장
   private func addIntervalTime(now: Date = Date()) {
-    let intervalTime = Int(now.timeIntervalSince(state.intervalStart))
+    let intervalTime = now.timeIntervalSince(state.intervalStart)
     
     // 상태에 따라서 시간 누적
     if state.isStudying {
@@ -419,23 +419,22 @@ extension TimerRunViewModel {
   
   /// 최신의 총 공부 시간을 반환
   /// - 1초마다 바뀌는 현재의 공부 시간이 필요할때 사용
-  private func totalStudyTime(now: Date = Date()) -> (Int) {
+  private func totalStudyTime(now: Date = Date()) -> (Double) {
     // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
-    let studyIntervalTime = state.isStudying ? Int(now.timeIntervalSince(state.intervalStart)) : 0
+    let studyIntervalTime = state.isStudying ? now.timeIntervalSince(state.intervalStart) : 0
     // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
-    let totalStudyTime = state.totalStudySeconds + studyIntervalTime
-    return totalStudyTime
+    return Double(state.totalStudySeconds) + studyIntervalTime
   }
   
   /// 목표시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
-  private func remainingStudySeconds() -> Int {
+  private func remainingStudySeconds() -> Double {
     let total = totalStudyTime()
-    return max(goalTime - total, 0)
+    return max(Double(goalTime) - total, 0)
   }
   
   /// 남은 휴식 시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
-  private func remainingRestSeconds(now: Date = Date()) -> Int {
-    let restIntervalTime = state.isStudying ? 0 : Int(now.timeIntervalSince(state.intervalStart))
+  private func remainingRestSeconds(now: Date = Date()) -> Double {
+    let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
     
     // 위의 makeRestingTimeText로직과 동일
     // 0 이후 추가 시간 카운트다운
@@ -443,7 +442,7 @@ extension TimerRunViewModel {
       // 값 추가 안하면 0초로 유지
       guard let addedTick = addedMark else { return 0 }
       
-      let addRun = max(restIntervalTime - addedTick, 0) // 추가 이후 경과 시간
+      let addRun = max(restIntervalTime - Double(addedTick), 0) // 추가 이후 경과 시간
       let addSum = max(restAddSeconds - addSnapshot, 0) // 추가된 총 휴식시간
       return max(addSum - addRun, 0)
     }
