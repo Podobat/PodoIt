@@ -60,16 +60,16 @@ final class StatsSummaryView: UIView {
   }
 
   private let totalTimeTotalLabel = UILabel.makeAttributed(
-    text: "총", style: .headingMd, color: .gray500, alignment: .left
+    text: "총", style: .headingSm, color: .gray500, alignment: .left
   )
 
   // 총 집중 시간 텍스트
   private let totalTimeLabel = UILabel.makeAttributed(
-    text: "2시간 50분", style: .headingXl(weight: .bold), color: .primary600, alignment: .left
+    text: "2시간 50분", style: .headingLg(weight: .bold), color: .primary600, alignment: .left
   )
 
   private let totalTimeFocusLabel = UILabel.makeAttributed(
-    text: "집중했어요!", style: .headingMd, color: .gray500, alignment: .left
+    text: "집중했어요!", style: .headingSm, color: .gray500, alignment: .left
   )
 
   private lazy var totalTimeStackView = UIStackView(arrangedSubviews: [totalTimeTotalLabel, totalTimeLabel, totalTimeFocusLabel]).then {
@@ -245,26 +245,20 @@ final class StatsSummaryView: UIView {
     collectionView.isHidden = !hasData
     emptyView.isHidden = hasData
 
-    // empty 라벨 텍스트/폰트 토글
+    // empty 라벨 텍스트 토글
     if !hasData {
-      if isDaily {
-        // 일간
-        emptyLabel.attributedText = Typography.attributed(
-          "이 날에는 기록된\n집중 시간이 없어요.",
-          style: .bodyLg(weight: .regular),
-          color: .gray400
-        )
-      } else {
-        // 월간
-        emptyLabel.attributedText = Typography.attributed(
-          "이 달에는 기록된\n집중 시간이 없어요.",
-          style: .bodyLg(weight: .semibold),
-          color: .gray400
-        )
-      }
+      let emptyText = isDaily
+        ? "이 날에는 기록된\n집중 시간이 없어요."
+        : "이 달에는 기록된\n집중 시간이 없어요."
+
+      emptyLabel.attributedText = Typography.attributed(
+        emptyText,
+        style: .bodyLg(weight: .regular),
+        color: .gray400
+      )
     }
     emptyLabel.textAlignment = .center
-    
+
     vStack.spacing = hasData ? Metrics.summaryVStackSpacing : 0
   }
 }

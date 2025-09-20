@@ -9,7 +9,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class TimerCell: UICollectionViewCell {
+final class TimerCell: UICollectionViewCell, UIGestureRecognizerDelegate {
   static let reuseIdentifier = "TimerCell"
 
   #if DEBUG
@@ -49,7 +49,7 @@ final class TimerCell: UICollectionViewCell {
   }
 
   private let titleLabel = UILabel().then {
-    $0.font = Typography.font(for: .headingMd)
+    $0.font = Typography.font(for: .headingSm)
     $0.textColor = .appBlack
     $0.numberOfLines = 1
     $0.lineBreakMode = .byTruncatingTail
@@ -111,13 +111,47 @@ final class TimerCell: UICollectionViewCell {
     $0.addTarget(self, action: #selector(handlePlayTapped), for: .touchUpInside)
   }
 
+  // MARK: - Swipe Action UI
+
+  private let mainContentView = UIView().then {
+    $0.backgroundColor = .appWhite
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.layer.cornerCurve = .continuous
+    $0.clipsToBounds = true
+  }
+
+  private let swipeActionView = UIView().then {
+    $0.backgroundColor = .error
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.layer.cornerCurve = .continuous
+    $0.clipsToBounds = true
+    // 빨간색 프레임이 셀 주변에 비치지 않도록 기본 숨김
+    $0.isHidden = true
+  }
+
+  private let deleteIconView = UIImageView().then {
+    let image = UIImage(named: "trash")?.withRenderingMode(.alwaysTemplate)
+    $0.image = image
+    $0.tintColor = .appWhite
+    $0.contentMode = .scaleAspectFit
+    $0.isHidden = true
+  }
+
+  private let deleteButton = UIButton(type: .system).then {
+    $0.backgroundColor = .clear
+    $0.addTarget(self, action: #selector(handleDeleteTapped), for: .touchUpInside)
+  }
+
   var onPlayTapped: (() -> Void)?
+  var onDeleteTapped: (() -> Void)?
 
   override init(frame: CGRect) {
     super.init(frame: frame)
     backgroundColor = .clear
     setupUI()
     setupShadow()
+    setupPanGesture()
+    updateDeleteIconPosition()
   }
 
   @available(*, unavailable)
@@ -125,6 +159,7 @@ final class TimerCell: UICollectionViewCell {
 
   override func prepareForReuse() {
     super.prepareForReuse()
+    resetSwipeAction()
     resetLabels()
   }
 
@@ -135,10 +170,11 @@ final class TimerCell: UICollectionViewCell {
   }
 
   private func setupContentView() {
-    contentView.backgroundColor = .appWhite
+    contentView.backgroundColor = .clear
     contentView.layer.cornerRadius = Metrics.cornerRadius
     contentView.layer.cornerCurve = .continuous
-    contentView.clipsToBounds = true
+    // 셀이 왼쪽으로 넘어갈 때 셀 경계 밖으로 나가도록
+    contentView.clipsToBounds = false
 
     selectedBackgroundView = UIView().then {
       $0.backgroundColor = UIColor.gray100.withAlphaComponent(0.5)
@@ -146,11 +182,23 @@ final class TimerCell: UICollectionViewCell {
   }
 
   private func addSubviews() {
-    contentView.addSubviews([emojiFrameView, titleLabel, metaStack, playButton])
+    contentView.addSubviews([swipeActionView, mainContentView])
+    mainContentView.addSubviews([emojiFrameView, titleLabel, metaStack, playButton])
     emojiFrameView.addSubview(iconLabel)
+    swipeActionView.addSubviews([deleteIconView, deleteButton])
   }
 
   private func setupConstraints() {
+    // 스와이프 액션 뷰 - 전체 영역
+    swipeActionView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+
+    // 메인 액션 뷰 - 스와이프
+    mainContentView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+
     emojiFrameView.snp.makeConstraints {
       $0.leading.equalToSuperview().inset(Metrics.stackHPadding)
       $0.top.equalToSuperview().inset(Metrics.stackVPadding)
@@ -171,13 +219,43 @@ final class TimerCell: UICollectionViewCell {
       $0.leading.equalTo(emojiFrameView)
       $0.top.equalTo(emojiFrameView.snp.bottom).offset(Metrics.titleMetaSpacing)
       $0.trailing.lessThanOrEqualTo(playButton.snp.leading).offset(-Metrics.buttonTrailingSpacing)
-      $0.bottom.lessThanOrEqualTo(contentView).inset(Metrics.stackVPadding)
+      $0.bottom.lessThanOrEqualTo(mainContentView).inset(Metrics.stackVPadding)
     }
 
     playButton.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(16)
       $0.centerY.equalToSuperview()
       $0.size.equalTo(Metrics.playOuterSize)
+    }
+
+    // 빨간색 프레임 영역의 가운데 정렬
+
+    deleteIconView.snp.makeConstraints {
+      $0.centerY.equalToSuperview()
+      $0.centerX.equalTo(swipeActionView.snp.trailing).offset(-40)
+      $0.size.equalTo(32)
+    }
+
+    deleteButton.snp.makeConstraints {
+      $0.top.bottom.equalToSuperview()
+      $0.trailing.equalToSuperview()
+      $0.width.equalTo(80)
+    }
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    // 아이콘 중앙 갱신
+    updateDeleteIconPosition()
+  }
+
+  private func updateDeleteIconPosition() {
+    // 빨간 영역 중앙
+    let leftInset = frame.minX
+    let safeLeft = window?.safeAreaInsets.left ?? 0
+    let totalReveal = 80 + leftInset + safeLeft
+    deleteIconView.snp.updateConstraints { make in
+      make.centerX.equalTo(swipeActionView.snp.trailing).offset(-totalReveal / 2)
     }
   }
 
@@ -205,6 +283,83 @@ final class TimerCell: UICollectionViewCell {
 
   @objc private func handlePlayTapped() {
     onPlayTapped?()
+  }
+
+  // MARK: - Swipe Action
+
+  private var panGesture: UIPanGestureRecognizer!
+  private var originalTransform: CGAffineTransform = .identity
+  private var isSwipeActionVisible = false
+
+  private func setupPanGesture() {
+    panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+    panGesture.delegate = self
+    addGestureRecognizer(panGesture)
+  }
+
+  @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+    let translation = gesture.translation(in: self)
+    let velocity = gesture.velocity(in: self)
+
+    switch gesture.state {
+    case .began:
+      originalTransform = mainContentView.transform
+
+    case .changed:
+      // 왼쪽으로만 스와이프
+      guard translation.x <= 0 else { return }
+
+      // 안전구역까지 무시하고 이동
+      let leftInset = frame.minX
+      let safeLeft = window?.safeAreaInsets.left ?? 0
+      let maxTranslation: CGFloat = -(80 + leftInset + safeLeft)
+      let clampedTranslation = max(translation.x, maxTranslation)
+      mainContentView.transform = CGAffineTransform(translationX: clampedTranslation, y: 0)
+
+      // 스와이프 액션 표시 - 삭제 아이콘
+      let shouldShowAction = translation.x < -25
+      if shouldShowAction != isSwipeActionVisible {
+        isSwipeActionVisible = shouldShowAction
+        swipeActionView.isHidden = !shouldShowAction
+        deleteIconView.isHidden = !shouldShowAction
+      }
+
+    case .ended, .cancelled:
+      // 스와이프 거리, 속도에 따라 액션 결정
+      if translation.x < -40 || velocity.x < -400 {
+        // 삭제 액션 실행
+        showSwipeAction()
+      } else {
+        // 원래 위치로 복원
+        resetSwipeAction()
+      }
+
+    default:
+      break
+    }
+  }
+
+  private func showSwipeAction() {
+    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.6) {
+      let leftInset = self.frame.minX
+      let safeLeft = self.window?.safeAreaInsets.left ?? 0
+      self.mainContentView.transform = CGAffineTransform(translationX: -(80 + leftInset + safeLeft), y: 0)
+    }
+    swipeActionView.isHidden = false
+    deleteIconView.isHidden = false
+  }
+
+  private func resetSwipeAction() {
+    UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.6) {
+      self.mainContentView.transform = .identity
+    }
+    deleteIconView.isHidden = true
+    isSwipeActionVisible = false
+    swipeActionView.isHidden = true
+  }
+
+  @objc private func handleDeleteTapped() {
+    onDeleteTapped?()
   }
 
   // MARK: - Public Methods

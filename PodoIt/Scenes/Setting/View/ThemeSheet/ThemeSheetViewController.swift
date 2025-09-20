@@ -37,7 +37,7 @@ final class ThemeSheetViewController: UIViewController {
   
   private let titleLabel = UILabel.makeAttributed(
     text: "테마 변경",
-    style: .headingLg,
+    style: .headingMd(weight: .bold),
     color: .appBlack,
     alignment: .center
   )
@@ -52,19 +52,30 @@ final class ThemeSheetViewController: UIViewController {
     $0.rowHeight = UITableView.automaticDimension
     $0.estimatedRowHeight = Layout.rowHeight
   }
+  
+  private lazy var saveButton = UIButton(configuration: {
+    var config = UIButton.Configuration.filled()
+    config.title = "저장하기"
+    config.baseBackgroundColor = .primary600
+    config.baseForegroundColor = .appWhite
+    config.contentInsets = NSDirectionalEdgeInsets(
+            top: Layout.buttonContentV,
+            leading: Layout.buttonContentH,
+            bottom: Layout.buttonContentV,
+            trailing: Layout.buttonContentH
+      )
+    // 모서리
+    config.cornerStyle = .fixed // 아래에서 준 값으로 고정값
+    config.background.cornerRadius = Layout.buttonCornerRadius
 
-  private lazy var saveButton = UIButton(type: .system).then {
-    $0.setTitle("저장하기", for: .normal)
-    $0.setTitleColor(.appWhite, for: .normal)
-    $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
-    $0.backgroundColor = .primary600
-    $0.layer.cornerRadius = 12
-    $0.contentEdgeInsets = UIEdgeInsets(
-      top: Layout.buttonContentV,
-      left: Layout.buttonContentH,
-      bottom: Layout.buttonContentV,
-      right: Layout.buttonContentH
-    ) // 버튼 내부와 경계 사이 여백
+    // 폰트
+    config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { font in
+      var out = font
+      out.font = Typography.font(for: .labelLg)
+      return out
+    }
+    return config
+  }()).then {
     $0.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
   }
 

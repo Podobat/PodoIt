@@ -24,7 +24,7 @@ private class SegmentChipView: UIControl {
   // MARK: - Properties
   
   private let label = UILabel.makeAttributed(
-    text: "", style: .labelLg(weight: .semibold), color: .appBlack, alignment: .center
+    text: "", style: .labelLg, color: .appBlack, alignment: .center
   )
 
   // MARK: - Init
@@ -59,7 +59,7 @@ private class SegmentChipView: UIControl {
       if let text = self.label.attributedText?.string {
         self.label.attributedText = Typography.attributed(
           text,
-          style: .labelLg(weight: .semibold),
+          style: .labelLg,
           color: selected ? .gray900 : .gray500
         )
       } // 색상 설정

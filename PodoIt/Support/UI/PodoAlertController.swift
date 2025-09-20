@@ -20,6 +20,23 @@ final class PodoAlertController: UIViewController {
     static let buttonSpacing: CGFloat = 8
     static let buttonHeight: CGFloat = 48
   }
+  
+  enum StopAlertType {
+    case under1Min
+    case over1Min
+    
+    var title: String {
+      switch self {
+      case .under1Min:
+        return """
+          아직 목표 시간을 채우지 않았어요.
+          그래도 종료할까요?
+          """
+      case .over1Min:
+        return "현재 집중 세션을 종료하시겠습니까?"
+      }
+    }
+  }
 
   // MARK: - API
 
@@ -46,10 +63,10 @@ final class PodoAlertController: UIViewController {
 
   static func presentStopTimerAlert(
     from presenter: UIViewController,
-    title: String = "이번 집중 세션을 종료하시겠습니까?",
+    title: String,
     message: String = "1분 이상 집중한 시간은 그대로 기록돼요.",
     cancelTitle: String = "계속하기",
-    confirmTitle: String = "그만두기",
+    confirmTitle: String = "종료하기",
     onConfirm: @escaping () -> Void
   ) {
     let vc = PodoAlertController(
@@ -79,15 +96,15 @@ final class PodoAlertController: UIViewController {
     self.confirmHandler = onConfirm
     super.init(nibName: nil, bundle: nil)
 
-    titleLabel.attributedText = centered(Typography.attributed(title, style: .headingLg, color: .appBlack))
+    titleLabel.attributedText = centered(Typography.attributed(title, style: .headingMd(weight: .bold), color: .appBlack))
     messageLabel.attributedText = centered(messageLabelTargetBolding(fullText: message, boldTarget: "1분 이상"))
 
     cancelButton.setAttributedTitle(
-      Typography.attributed(cancelTitle, style: .labelLg(weight: .semibold), color: .gray900),
+      Typography.attributed(cancelTitle, style: .labelLg, color: .gray900),
       for: .normal
     )
     confirmButton.setAttributedTitle(
-      Typography.attributed(confirmTitle, style: .labelLg(weight: .semibold), color: .appWhite),
+      Typography.attributed(confirmTitle, style: .labelLg, color: .appWhite),
       for: .normal
     )
     confirmButton.backgroundColor = confirmColor

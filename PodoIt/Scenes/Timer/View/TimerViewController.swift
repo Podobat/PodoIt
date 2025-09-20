@@ -51,7 +51,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     static let addButtonHeight: CGFloat = 48
     static let minimumLineSpacing: CGFloat = 12
     static let sectionInset = UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
-    static let cellHeight: CGFloat = 96
+    static let cellHeight: CGFloat = 100
   }
 
   // MARK: - UI Components
@@ -66,7 +66,7 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   private let addButton = UIButton(type: .system).then {
     let image = UIImage(named: "plus")?.withRenderingMode(.alwaysTemplate)
     $0.setImage(image, for: .normal)
-    $0.titleLabel?.font = Typography.font(for: .labelLg(weight: .semibold))
+    $0.titleLabel?.font = Typography.font(for: .labelLg)
     $0.layer.cornerRadius = 24
     $0.contentEdgeInsets = UIEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
     $0.semanticContentAttribute = .forceLeftToRight
@@ -393,6 +393,41 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     }
   }
 
+  // MARK: - Delete Timer
+
+  private func showDeleteConfirmation(for timer: TimerModel, at indexPath: IndexPath) {
+    let presenter = navigationController ?? self
+    PodoAlertController.presentDeleteTimerAlert(
+      from: presenter,
+      title: "이 타이머를 삭제할까요?",
+      message: "삭제한 타이머는 복구할 수 없어요.",
+      cancelTitle: "취소",
+      confirmTitle: "삭제하기"
+    ) { [weak self] in
+      self?.deleteTimer(timer, at: indexPath)
+    }
+  }
+
+  private func deleteTimer(_ timer: TimerModel, at indexPath: IndexPath) {
+    do {
+      try repository.delete(id: timer.timerID)
+      // 데이터 삭제 후 UI 업데이트
+      timers.remove(at: indexPath.item)
+      collectionView.deleteItems(at: [indexPath])
+      updateUI()
+      updateHeaderTotalFocusTime()
+    } catch {
+      print("❌ 타이머 삭제 실패: \(error)")
+      // 에러 발생 시 사용자에게 알림
+      let presenter = navigationController ?? self
+      PodoAlertController.presentErrorAlert(
+        from: presenter,
+        title: "삭제 실패",
+        message: "타이머 삭제 중 오류 발생"
+      )
+    }
+  }
+
   deinit {
     NotificationCenter.default.removeObserver(self)
   }
@@ -424,9 +459,16 @@ extension TimerViewController: UICollectionViewDataSource {
       guard let self = self else { return }
       let timer = self.timers[indexPath.item]
       // 타이머 실행 화면으로 이동
-      let runVC = TimerRunViewController(timerID: timer.timerID, repo: self.repository) // UUID 전달
+      let runVC = TimerRunViewController(timer: timer) // timer 전달
       runVC.hidesBottomBarWhenPushed = true // 탭바 숨기기
       self.navigationController?.pushViewController(runVC, animated: true)
+    }
+
+    // 셀 → VC로 스와이프 삭제 이벤트 전달
+    cell.onDeleteTapped = { [weak self] in
+      guard let self = self else { return }
+      let timer = self.timers[indexPath.item]
+      self.showDeleteConfirmation(for: timer, at: indexPath)
     }
 
     return cell

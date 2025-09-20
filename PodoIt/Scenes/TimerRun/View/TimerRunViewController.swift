@@ -19,9 +19,8 @@ final class TimerRunViewController: UIViewController {
 
   // MARK: - init
 
-  init(timerID: UUID, repo: TimerRepository) {
-    // UUID를 받아올 때마다 새로운 VM을 생성
-    self.viewModel = TimerRunViewModel(timerID: timerID, repo: repo)
+  init(timer: TimerModel) {
+    self.viewModel = TimerRunViewModel(timer: timer)
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -50,24 +49,19 @@ final class TimerRunViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     self.hidesBottomBarWhenPushed = true
+    self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
     configureUI()
     configureLayout()
-    loadData()
+    configureTimer()
     bind()
   }
 
   // MARK: - Data Loading
 
-  private func loadData() {
-    do {
-      viewModel.loadUDSaved() // UD 데이터 불러오기 (없으면 내부 return)
-      try viewModel.load()
-      if let timer = viewModel.timer {
-        configureAll(timer: timer)
-      }
-    } catch {
-      print("타이머 데이터 로딩 실패: \(error)")
-    }
+  private func configureTimer() {
+    viewModel.loadUDSaved() // UD 데이터 불러오기 (없으면 내부 return)
+    viewModel.setupTimer()
+    configureAll(timer: viewModel.timer)
   }
 
   // MARK: - configureUI
@@ -82,6 +76,10 @@ final class TimerRunViewController: UIViewController {
   private func configureLayout() {
     rootStack.snp.makeConstraints {
       $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
+    }
+    
+    buttonSectionView.snp.makeConstraints {
+      $0.height.equalTo(100)
     }
   }
 
@@ -115,9 +113,12 @@ final class TimerRunViewController: UIViewController {
 
     // stop 버튼 tap하여 중지
     buttonSectionView.stopButtonTap
-      .asSignal()
-      .emit(with: self) { vc, _ in
-        PodoAlertController.presentStopTimerAlert(from: vc, onConfirm: {
+      .asDriver()
+      .withLatestFrom(viewModel.isOverOneMinute)
+      .drive(with: self) { vc, isOver in
+        let type: PodoAlertController.StopAlertType = isOver ? .over1Min : .under1Min
+        PodoAlertController
+          .presentStopTimerAlert(from: vc, title: type.title, onConfirm: {
           vc.viewModel.stop()
           vc.navigationController?.popViewController(animated: true)
         })
@@ -152,8 +153,14 @@ final class TimerRunViewController: UIViewController {
       .disposed(by: disposeBag)
 
     viewModel.isMuteDriver // 음소거(mute)의 Bool 상태 (아래는 tick 모음이라 계속 호출되서 분리)
+      .skip(1)
       .drive(with: self) { vc, isMute in
         vc.headerSectionView.updateMuteIcon(isMute: isMute)
+        vc.showToastBelow(
+          isMute ? "알림이 꺼졌어요." : "알림이 켜졌어요.",
+          icon: UIImage(named: isMute ? "circle-bang" : "circle-check-green"),
+          above: vc.animationSectionView
+        )
       }
       .disposed(by: disposeBag)
 
@@ -171,7 +178,7 @@ final class TimerRunViewController: UIViewController {
       // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
       vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
       vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
-      vc.animationSectionView.updateStateImage(isStudying: isStudying)
+      vc.animationSectionView.updateAnimationsIsHidden(isStudying: isStudying)
 
       if isStudying { // 공부중
         vc.timerSectionView.updateGoalTimeUI(goalTime: goalTime, studyingTime: studyingTime)

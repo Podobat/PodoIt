@@ -11,7 +11,7 @@ import UIKit
 
 final class EmptyStateView: UIView {
   private let titleLabel = UILabel.makeAttributed(
-    text: "타이머가 비어 있어요", style: .headingLg, color: .appBlack, alignment: .center
+    text: "타이머가 비어 있어요", style: .headingLg(weight: .bold), color: .appBlack, alignment: .center
   )
 
   private let descriptionLabel = UILabel.makeAttributed(
