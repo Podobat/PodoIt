@@ -519,6 +519,9 @@ final class TimerEditViewController: UIViewController {
     unitLabel.isHidden = true
     timePicker.isHidden = true
     collapsedValueLabel.isHidden = false
+    
+    // issue 200 - 접히는 순간 최신 선택값으로 라벨 동기화
+    updateCollapsedLabelText()
 
     timePickerMinHeightConstraint?.deactivate()
     goalContainerHeightConstraint?.update(offset: Metrics.goalContainerHeightCollapsed)
