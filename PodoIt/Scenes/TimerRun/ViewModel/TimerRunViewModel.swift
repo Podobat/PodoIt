@@ -196,7 +196,7 @@ final class TimerRunViewModel {
     // 모든 계산을 restIntervalTime을 기준으로 해서 tick을 다 공통되게 흐르게함
     let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
     
-    if zeroMark == true { // 이미 0에 도달했다면
+    if zeroMark == true, addedMark == nil { // 이미 0에 도달했다면
       addedMark = restIntervalTime // 추가를 누른 시점 기준까지 "총 휴식한 시간"을 저장.
     }
     
