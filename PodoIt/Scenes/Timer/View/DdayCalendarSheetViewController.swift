@@ -13,14 +13,12 @@ final class DdayCalendarSheetViewController: UIViewController {
   // MARK: - Metrics
   
   private enum Metrics {
-    static let grabberHeight: CGFloat = 5 // 회색바 높이
-    static let grabberWidth: CGFloat = 40 // 회색바 너비
     static let horizontalPadding: CGFloat = 20 // 좌우 여백
-    static let grabberTopInset: CGFloat = 16 // 회색바 상단 여백
     static let contentTopOffset: CGFloat = 40 // 콘텐츠 상단 여백
     static let xButtonTopOffset: CGFloat = 16 // X 버튼 상단 여백
     static let xButtonLeading: CGFloat = 20 // X 버튼 좌측 여백
-    static let contentTopOffsetFromX: CGFloat = 18 // 콘텐츠 X 버튼 아래 여백
+    static let contentTopOffsetFromX: CGFloat = 20 // 콘텐츠 X 버튼 아래 여백
+    static let calendarHeight: CGFloat = 400 // 캘린더 높이
   }
   
   // MARK: - Properties
@@ -29,10 +27,7 @@ final class DdayCalendarSheetViewController: UIViewController {
   
   private let sheetTransitioningDelegate = SheetTransitioningDelegate()
   
-  private let grabber = UIView().then {
-    $0.backgroundColor = .gray300
-    $0.layer.cornerRadius = 2.5
-  }
+  private let scrollView = UIScrollView()
   
   private let closeButton = UIButton(type: .system).then {
     let image = UIImage(named: "x")?.withRenderingMode(.alwaysTemplate)
@@ -47,6 +42,16 @@ final class DdayCalendarSheetViewController: UIViewController {
     $0.textAlignment = .left
   }
   
+  private lazy var datePicker: UIDatePicker = {
+    let picker = UIDatePicker()
+    picker.preferredDatePickerStyle = .inline
+    picker.datePickerMode = .date
+    picker.locale = Locale(identifier: "ko_KR")
+    picker.calendar = Calendar(identifier: .gregorian)
+    picker.minimumDate = Date()
+    return picker
+  }()
+  
   // MARK: - Init
   
   init() {
@@ -55,10 +60,10 @@ final class DdayCalendarSheetViewController: UIViewController {
     transitioningDelegate = sheetTransitioningDelegate
     
     sheetTransitioningDelegate.contentHeight = .custom { size, insets in
-      let height: CGFloat = size.height * 0.5 // 화면 높이의 절반
+      let height: CGFloat = 500 // 고정 높이
       return min(size.height - insets.top, height + insets.bottom)
     }
-    sheetTransitioningDelegate.scrollView = nil
+    sheetTransitioningDelegate.scrollView = scrollView
     sheetTransitioningDelegate.cornerRadius = 21
     sheetTransitioningDelegate.prefersGrabberVisible = false
     sheetTransitioningDelegate.usesTapGestureDismiss = true
@@ -82,35 +87,49 @@ final class DdayCalendarSheetViewController: UIViewController {
   
   private func configureUI() {
     view.backgroundColor = .appWhite
-    view.addSubview(grabber)
+    view.addSubview(scrollView)
     view.addSubview(closeButton)
-    view.addSubview(contentLabel)
+    scrollView.addSubview(contentLabel)
+    scrollView.addSubview(datePicker)
     
     closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
+    datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
   }
   
   private func configureLayout() {
-    grabber.snp.makeConstraints {
-      $0.top.equalToSuperview().inset(Metrics.grabberTopInset)
-      $0.centerX.equalToSuperview()
-      $0.width.equalTo(Metrics.grabberWidth)
-      $0.height.equalTo(Metrics.grabberHeight)
+    scrollView.snp.makeConstraints {
+      $0.top.equalToSuperview()
+      $0.leading.trailing.bottom.equalToSuperview()
     }
     
     closeButton.snp.makeConstraints {
-      $0.top.equalTo(grabber.snp.bottom).offset(Metrics.xButtonTopOffset)
+      $0.top.equalToSuperview().offset(Metrics.xButtonTopOffset)
       $0.leading.equalToSuperview().offset(Metrics.xButtonLeading)
-      $0.width.height.equalTo(44)
+      $0.width.height.equalTo(24)
     }
     
     contentLabel.snp.makeConstraints {
       $0.top.equalTo(closeButton.snp.bottom).offset(Metrics.contentTopOffsetFromX)
-      $0.leading.equalToSuperview().offset(Metrics.xButtonLeading)
-      $0.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
+      $0.leading.equalTo(view).offset(20)
+      $0.trailing.equalTo(view).offset(-20)
+      $0.width.equalTo(view).offset(-40)
+    }
+    
+    datePicker.snp.makeConstraints {
+      $0.top.equalTo(contentLabel.snp.bottom).offset(-5)
+      $0.centerX.equalTo(view)
+      $0.leading.equalTo(view).offset(4)
+      $0.trailing.equalTo(view).offset(-20)
+      $0.height.equalTo(Metrics.calendarHeight)
+      $0.bottom.equalToSuperview().offset(-40)
     }
   }
   
   @objc private func closeButtonTapped() {
     dismiss(animated: true)
+  }
+  
+  @objc private func dateChanged() {
+    onDateSelected?(datePicker.date)
   }
 }
