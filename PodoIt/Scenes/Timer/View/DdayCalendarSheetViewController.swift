@@ -55,7 +55,7 @@ final class DdayCalendarSheetViewController: UIViewController {
     transitioningDelegate = sheetTransitioningDelegate
     
     sheetTransitioningDelegate.contentHeight = .custom { size, insets in
-      let height: CGFloat = 300
+      let height: CGFloat = size.height * 0.5 // 화면 높이의 절반
       return min(size.height - insets.top, height + insets.bottom)
     }
     sheetTransitioningDelegate.scrollView = nil
