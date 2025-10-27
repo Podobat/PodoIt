@@ -20,6 +20,7 @@ final class DdayCalendarSheetViewController: UIViewController {
     static let contentTopOffset: CGFloat = 40 // 콘텐츠 상단 여백
     static let xButtonTopOffset: CGFloat = 16 // X 버튼 상단 여백
     static let xButtonLeading: CGFloat = 20 // X 버튼 좌측 여백
+    static let contentTopOffsetFromX: CGFloat = 18 // 콘텐츠 X 버튼 아래 여백
   }
   
   // MARK: - Properties
@@ -43,7 +44,7 @@ final class DdayCalendarSheetViewController: UIViewController {
     $0.text = "디데이 날짜를 선택해 주세요"
     $0.font = Typography.font(for: .headingMd(weight: .semibold))
     $0.textColor = .appBlack
-    $0.textAlignment = .center
+    $0.textAlignment = .left
   }
   
   // MARK: - Init
@@ -103,9 +104,9 @@ final class DdayCalendarSheetViewController: UIViewController {
     }
     
     contentLabel.snp.makeConstraints {
-      $0.top.equalTo(grabber.snp.bottom).offset(Metrics.contentTopOffset)
-      $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
-      $0.centerY.equalToSuperview()
+      $0.top.equalTo(closeButton.snp.bottom).offset(Metrics.contentTopOffsetFromX)
+      $0.leading.equalToSuperview().offset(Metrics.xButtonLeading)
+      $0.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
     }
   }
   
