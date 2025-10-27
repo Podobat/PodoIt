@@ -14,6 +14,8 @@ final class TimerHeaderView: UIView {
     static let horizontalPadding: CGFloat = 20
   }
   
+  var onDdayButtonTap: (() -> Void)?
+  
   private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "ko_KR") // 한국어 로케일
@@ -72,6 +74,12 @@ final class TimerHeaderView: UIView {
     for item in [dateLabel, ddayButton, dividerView, descriptionLabel, timeLabel] {
       addSubview(item)
     }
+    
+    ddayButton.addTarget(self, action: #selector(ddayButtonTapped), for: .touchUpInside)
+  }
+  
+  @objc private func ddayButtonTapped() {
+    onDdayButtonTap?()
   }
   
   private func setupConstraints() {
