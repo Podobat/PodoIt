@@ -18,6 +18,8 @@ final class DdayCalendarSheetViewController: UIViewController {
     static let horizontalPadding: CGFloat = 20 // 좌우 여백
     static let grabberTopInset: CGFloat = 16 // 회색바 상단 여백
     static let contentTopOffset: CGFloat = 40 // 콘텐츠 상단 여백
+    static let xButtonTopOffset: CGFloat = 16 // X 버튼 상단 여백
+    static let xButtonLeading: CGFloat = 20 // X 버튼 좌측 여백
   }
   
   // MARK: - Properties
@@ -29,6 +31,12 @@ final class DdayCalendarSheetViewController: UIViewController {
   private let grabber = UIView().then {
     $0.backgroundColor = .gray300
     $0.layer.cornerRadius = 2.5
+  }
+  
+  private let closeButton = UIButton(type: .system).then {
+    let image = UIImage(named: "x")?.withRenderingMode(.alwaysTemplate)
+    $0.setImage(image, for: .normal)
+    $0.tintColor = .appBlack
   }
   
   private let contentLabel = UILabel().then {
@@ -74,7 +82,10 @@ final class DdayCalendarSheetViewController: UIViewController {
   private func configureUI() {
     view.backgroundColor = .appWhite
     view.addSubview(grabber)
+    view.addSubview(closeButton)
     view.addSubview(contentLabel)
+    
+    closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
   }
   
   private func configureLayout() {
@@ -85,10 +96,20 @@ final class DdayCalendarSheetViewController: UIViewController {
       $0.height.equalTo(Metrics.grabberHeight)
     }
     
+    closeButton.snp.makeConstraints {
+      $0.top.equalTo(grabber.snp.bottom).offset(Metrics.xButtonTopOffset)
+      $0.leading.equalToSuperview().offset(Metrics.xButtonLeading)
+      $0.width.height.equalTo(44)
+    }
+    
     contentLabel.snp.makeConstraints {
       $0.top.equalTo(grabber.snp.bottom).offset(Metrics.contentTopOffset)
       $0.leading.trailing.equalToSuperview().inset(Metrics.horizontalPadding)
       $0.centerY.equalToSuperview()
     }
+  }
+  
+  @objc private func closeButtonTapped() {
+    dismiss(animated: true)
   }
 }
