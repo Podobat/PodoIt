@@ -49,6 +49,7 @@ final class DdayCalendarSheetViewController: UIViewController {
     picker.locale = Locale(identifier: "ko_KR")
     picker.calendar = Calendar(identifier: .gregorian)
     picker.minimumDate = Date()
+    picker.tintColor = Palette.Primary.p700
     return picker
   }()
   
