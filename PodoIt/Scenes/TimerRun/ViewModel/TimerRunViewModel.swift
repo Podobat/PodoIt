@@ -52,7 +52,13 @@ final class TimerRunViewModel {
   }
 
   private(set) var goalTime: Double = 0 // 목표시간 (초). load()시에 분 -> 초 단위로 세팅됨
-  private var defaultRestSeconds: Double = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
+  
+  #if DEBUG
+  private let defaultRestSeconds: Double = 10 // 디버그 상태에서는 10초로 고정
+  #else
+  private let defaultRestSeconds: Double = 300 // 기본 휴식시간 5분 고정 (매 휴식마다 5분 초기화)
+  #endif
+  
   private var restAddSeconds: Double = 0 // 기본 휴식시간에 추가로 더 휴식하는 시간
   // 버튼/상태 변화시에 즉시 재계산을 위함
   private let restUpdateRelay = PublishRelay<Void>() // 초기값 없이 단순 이벤트 방출
