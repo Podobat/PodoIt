@@ -153,6 +153,7 @@ final class TimerRunViewController: UIViewController {
       .disposed(by: disposeBag)
 
     viewModel.isMuteDriver // 음소거(mute)의 Bool 상태
+      .distinctUntilChanged()
       .drive(with: self) { vc, isMute in
         // 아이콘 초기값 바로 반영
         vc.headerSectionView.updateMuteIcon(isMute: isMute)
@@ -161,6 +162,7 @@ final class TimerRunViewController: UIViewController {
 
     viewModel.isMuteDriver
       .skip(1) // 토스트 알럿은 초기값 무시
+      .distinctUntilChanged()
       .drive(with: self) { vc, isMute in
         vc.showToastBelow(
           isMute ? "알림이 꺼졌어요." : "알림이 켜졌어요.",
