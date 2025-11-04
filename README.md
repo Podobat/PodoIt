@@ -13,7 +13,7 @@
 - **앱 이름**: **포도잇 (Podoit)**
 - **프로젝트 기간**: 2025.08.14(화) ~
 - **Figma**: [포도잇, Podoit](https://www.figma.com/design/uBOMlShQ4yaqJMKmdehByc/podoit?node-id=3-1049&t=SW3tHXFIUbBRHUdC-1)
-- **최종 발표 자료**: [MVP 발표자료](https://www.figma.com/slides/ecGvZ69FFrHGSWMOyWQPbt/%ED%8F%AC%EB%8F%84%EC%9E%87-%EC%B5%9C%EC%A2%85-%EB%B0%9C%ED%91%9C-PPT?node-id=1-146&t=xep3XhaHeNMTObzU-1)
+- **최종 발표 자료**: [최종 발표 자료](https://www.figma.com/slides/ecGvZ69FFrHGSWMOyWQPbt/%ED%8F%AC%EB%8F%84%EC%9E%87-%EC%B5%9C%EC%A2%85-%EB%B0%9C%ED%91%9C-PPT?node-id=1-146&t=xep3XhaHeNMTObzU-1)
 - **앱스토어 주소**: [포도잇, Podoit](https://apps.apple.com/kr/app/%ED%8F%AC%EB%8F%84%EC%9E%87/id6752013483)
 
 ---
