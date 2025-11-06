@@ -29,9 +29,7 @@ final class HeaderSectionView: UIView {
     $0.lineBreakMode = .byTruncatingTail // 길면 ...처리
   }
   
-  private let muteButton = UIButton().then {
-    $0.setImage(UIImage(named: "alarm-clock"), for: .normal)
-  }
+  private let muteButton = UIButton()
   
   // MARK: - init
 
@@ -83,6 +81,7 @@ final class HeaderSectionView: UIView {
   }
   
   // MARK: - 음소거 상태에 따라 이미지 교체
+
   func updateMuteIcon(isMute: Bool) {
     muteButton.setImage(UIImage(named: isMute ? "alarm-clock-off" : "alarm-clock"), for: .normal)
   }
