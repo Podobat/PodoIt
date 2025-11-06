@@ -1,5 +1,5 @@
 # 포도잇 (Podoit)
-| 🍇 사용자의 시간을 데이터화해 목표 달성과 자기 성장을 돕는 타이머 앱 ⏰
+🍇 사용자의 시간을 데이터화해 목표 달성과 자기 성장을 돕는 타이머 앱 ⏰
 
 <br>
 
@@ -12,8 +12,8 @@
 ## 📋 프로젝트
 - **앱 이름**: **포도잇 (Podoit)**
 - **프로젝트 기간**: 2025.08.14(화) ~
-- **Figma**: [포도잇, Podoit](https://www.figma.com/design/NX3vLL4i9cbhPr6657Xeqx/%ED%8F%AC%EB%8F%84%EC%9E%87?node-id=126-379&p=f&t=feq8LsVgittc9Qwr-0)
-- **MVP 발표 자료**: [MVP 발표자료](https://www.figma.com/slides/Ot24DdlBBOkWfrq1lhPXO8/Podoit?node-id=0-1&p=f&t=JZBcddCwh1RaENuy-0)
+- **Figma**: [포도잇, Podoit](https://www.figma.com/design/uBOMlShQ4yaqJMKmdehByc/podoit?node-id=3-1049&t=SW3tHXFIUbBRHUdC-1)
+- **최종 발표 자료**: [최종 발표 자료](https://www.figma.com/slides/ecGvZ69FFrHGSWMOyWQPbt/%ED%8F%AC%EB%8F%84%EC%9E%87-%EC%B5%9C%EC%A2%85-%EB%B0%9C%ED%91%9C-PPT?node-id=1-146&t=xep3XhaHeNMTObzU-1)
 - **앱스토어 주소**: [포도잇, Podoit](https://apps.apple.com/kr/app/%ED%8F%AC%EB%8F%84%EC%9E%87/id6752013483)
 
 ---
@@ -52,7 +52,7 @@
 - **스크럼**: 매일 오전 10:10, 오후 20:10 진행
 - **PR 규칙**
   - `develop`, `main` 브랜치 삭제 불가
-  - 최소 1명 이상 `approve` 후 머지 가능
+  - 최소 1명 이상 `approve` 후 `merge` 가능
   - 강제 푸시(`--force push`) 금지
 
 ### 컨벤션
@@ -192,7 +192,11 @@
   - 손쉬운 사용 볼드체 텍스트 적용 시 버튼 텍스트 잘림 수정
   - 캘린더 달 이동 시 통계 자동 갱신
 
-## 시연 영상
-- Youtube
+### ver 1.1.1 이후 
+- ver 1.1.1 이후 업데이트 내역은 아래의 Notion 문서에서 확인 가능
+  - [Notion 바로가기](https://iris-ceres-022.notion.site/2938f738d002806499e1fade60f57b11?source=copy_link)
+
 ---
-- https://youtube.com/shorts/g1Xb2EwhsMk?feature=shared
+
+## 시연 영상
+- [Youtube](https://youtube.com/shorts/g1Xb2EwhsMk?feature=shared)
