@@ -45,15 +45,27 @@ final class ProgressRestSectionView: UIView {
   }
 
   private let plusOneMinuteButton = UIButton(type: .system).then { // +1분
-    $0.setTitle("+1분", for: .normal)
+    #if DEBUG
+      $0.setTitle("+10초", for: .normal)
+    #else
+      $0.setTitle("+1분", for: .normal)
+    #endif
   }
 
   private let plusFiveMinuteButton = UIButton(type: .system).then { // +5분
-    $0.setTitle("+5분", for: .normal)
+    #if DEBUG
+      $0.setTitle("+20초", for: .normal)
+    #else
+      $0.setTitle("+5분", for: .normal)
+    #endif
   }
 
   private let plusTenMinuteButton = UIButton(type: .system).then { // +10분
-    $0.setTitle("+10분", for: .normal)
+    #if DEBUG
+      $0.setTitle("+30초", for: .normal)
+    #else
+      $0.setTitle("+10분", for: .normal)
+    #endif
   }
 
   private lazy var restAddButtons: [UIButton] = [ // 버튼들 공통 로직 쓰기 편하도록 묶음
@@ -126,9 +138,9 @@ final class ProgressRestSectionView: UIView {
       $0.centerX.equalToSuperview()
       $0.top.bottom.equalToSuperview()
     }
-    
-    restAddButtons.forEach {
-      $0.snp.makeConstraints {
+
+    for restAddButton in restAddButtons {
+      restAddButton.snp.makeConstraints {
         $0.width.equalTo(72)
         $0.height.equalTo(44)
       }
