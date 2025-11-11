@@ -77,7 +77,7 @@ final class TimerRunViewController: UIViewController {
     rootStack.snp.makeConstraints {
       $0.directionalEdges.equalTo(view.safeAreaLayoutGuide)
     }
-    
+
     buttonSectionView.snp.makeConstraints {
       $0.height.equalTo(100)
     }
@@ -119,9 +119,9 @@ final class TimerRunViewController: UIViewController {
         let type: PodoAlertController.StopAlertType = isOver ? .over1Min : .under1Min
         PodoAlertController
           .presentStopTimerAlert(from: vc, title: type.title, onConfirm: {
-          vc.viewModel.stop()
-          vc.navigationController?.popViewController(animated: true)
-        })
+            vc.viewModel.stop()
+            vc.navigationController?.popViewController(animated: true)
+          })
       }
       .disposed(by: disposeBag)
 
@@ -152,10 +152,18 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    viewModel.isMuteDriver // 음소거(mute)의 Bool 상태 (아래는 tick 모음이라 계속 호출되서 분리)
-      .skip(1)
+    viewModel.isMuteDriver // 음소거(mute)의 Bool 상태
+      .distinctUntilChanged()
       .drive(with: self) { vc, isMute in
+        // 아이콘 초기값 바로 반영
         vc.headerSectionView.updateMuteIcon(isMute: isMute)
+      }
+      .disposed(by: disposeBag)
+
+    viewModel.isMuteDriver
+      .skip(1) // 토스트 알럿은 초기값 무시
+      .distinctUntilChanged()
+      .drive(with: self) { vc, isMute in
         vc.showToastBelow(
           isMute ? "알림이 꺼졌어요." : "알림이 켜졌어요.",
           icon: UIImage(named: isMute ? "circle-bang" : "circle-check-green"),
