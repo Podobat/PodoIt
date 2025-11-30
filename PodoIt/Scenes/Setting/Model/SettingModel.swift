@@ -22,14 +22,14 @@ enum Theme: String, CaseIterable {
 enum SettingItem {
   case notification(isOn: Bool) // 알림 설정
   case theme(current: Theme) // 테마 변경
-  case inquiry // 문의/건의하기
+  case feedback // 문의/건의하기
   case review // 리뷰 남기기
   
   var title: String {
     switch self {
     case .notification: return "타이머 알림 소리"
     case .theme: return "테마 설정"
-    case .inquiry: return "문의·건의하기"
+    case .feedback: return "문의·건의하기"
     case .review: return "리뷰 남기기"
     }
   }
@@ -44,7 +44,7 @@ enum SettingItem {
     switch self {
     case .notification(let isOn): return .toggle(isOn: isOn)
     case .theme(let current): return .value(text: current)
-    case .inquiry, .review: return .disclosure
+    case .feedback, .review: return .disclosure
     }
   }
 }

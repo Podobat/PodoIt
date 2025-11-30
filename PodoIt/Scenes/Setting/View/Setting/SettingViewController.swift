@@ -118,7 +118,7 @@ extension SettingViewController: UITableViewDelegate {
       }, selectedTheme: current)
       sheetVC.modalPresentationStyle = .pageSheet
       present(sheetVC, animated: true)
-    case .inquiry:
+    case .feedback:
       guard let url = URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSc7ek143AR7jBzxrNdbQsHJso4Nv4n_41v0ExHlXwsOHi6gfQ/viewform?usp=header") else { return }
       let safariViewController = SFSafariViewController(url: url)
       present(safariViewController, animated: true, completion: nil)
