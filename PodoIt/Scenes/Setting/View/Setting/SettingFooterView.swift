@@ -14,16 +14,13 @@ final class SettingFooterView: UIView {
     static let verticalPadding: CGFloat = 16
   }
 
-  private let versionLabel = UILabel.makeAttributed(
-    text: "ver.1.0.0",
-    style: .captionLg(weight: .regular),
-    color: .gray400
-  )
+  private let versionLabel = UILabel()
 
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureUI()
     configureLayout()
+    appVersion()
   }
 
   @available(*, unavailable)
@@ -40,5 +37,26 @@ final class SettingFooterView: UIView {
       $0.top.bottom.equalToSuperview().inset(Layout.verticalPadding)
       $0.leading.trailing.equalToSuperview().inset(Layout.horizontalPadding)
     }
+  }
+
+  // MARK: - appVersion
+
+  private func appVersion() {
+    guard
+      let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+      let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+    else { return }
+
+    #if DEBUG
+      let text = "v\(version) (\(build))"
+    #else
+      let text = "v\(version)"
+    #endif
+
+    versionLabel.attributedText = Typography.attributed(
+      text,
+      style: .captionLg(weight: .regular),
+      color: .gray400
+    )
   }
 }
