@@ -13,7 +13,7 @@ import UIKit
 
 final class SettingViewController: UIViewController {
   private let viewModel = SettingViewModel()
-  private let myAppID = 6752013483
+  private let appID = 6752013483
   private let disposeBag = DisposeBag()
 
   private lazy var tableView = UITableView(frame: .zero, style: .plain).then {
@@ -118,14 +118,14 @@ extension SettingViewController: UITableViewDelegate {
       }, selectedTheme: current)
       sheetVC.modalPresentationStyle = .pageSheet
       present(sheetVC, animated: true)
-    case .inquiry:
+    case .feedback:
       guard let url = URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSc7ek143AR7jBzxrNdbQsHJso4Nv4n_41v0ExHlXwsOHi6gfQ/viewform?usp=header") else { return }
       let safariViewController = SFSafariViewController(url: url)
       present(safariViewController, animated: true, completion: nil)
     case .review:
       guard
-        let appStoreURL = URL(string: "itms-apps://itunes.apple.com/app/id\(myAppID)"), // App Store 앱 직행
-        let webURL = URL(string: "https://apps.apple.com/app/id\(self.myAppID)") // 웹으로 이동(Safari 백업용)
+        let appStoreURL = URL(string: "itms-apps://itunes.apple.com/app/id\(appID)"), // App Store 앱 직행
+        let webURL = URL(string: "https://apps.apple.com/app/id\(self.appID)") // 웹으로 이동(Safari 백업용)
       else { return }
 
       // 먼저 App Store 시도 → 실패하면 Safari로 연결
@@ -151,14 +151,14 @@ extension SettingViewController: UITableViewDataSource {
 
     switch item {
     case .notification:
-      cell.toggleSwitch.rx.isOn // ControlProperty<Bool> 타입
-        // 위의 타입이 ControlProperty<Bool>이면, configure에서 isOn = isOn으로 초기값을 세팅해도 이벤트가 들어감
-        // 그걸 방지하기 위해 .changed를 사용해서 ControlEvent<Bool> 타입으로 변경
-        // 사용자가 직접 토글을 켜거나 끌 때만 값이 방출됨.
+      cell.toggleSwitch.rx.isOn // ControlProperty<Bool> 타입: 값 + 변경 이벤트를 모두 가짐
+        // 코드로 isOn을 세팅할 떄 발생하는 이벤트는 무시하고,
+        // 사용자가 직접 토글한 경우만 받고 싶어서 .changed로 "값이 실제로 변경" 되었을 때만 필터링
+        // ControlProperty<Bool> -> ControlEvent<Bool>로 타입이 변경됨
         .changed
-      // until: cell.rx.meth..여기서 메서드가 1번이라도 호출되면 구독을 자동으로 종료시킴
-      // prepareForReuse가 셀 재사용 직전에 테이블 뷰가 호출
-      // 즉, 이 셀 인스턴스가 재사용 되기 직전까지만 토글 이벤트를 받는다는 의미.
+        // 셀이 재상요되기 직전(prepareForReuse)까지만 이벤트를 받고,
+        // 이후에는 자동으로 구독을 해제해서 중복 바인딩 방지
+        // 즉, 이 셀 인스턴스가 재사용 되기 직전까지만 토글 이벤트를 받는다는 의미.
         .take(until: cell.rx.methodInvoked(#selector(UITableViewCell.prepareForReuse)))
         .bind(with: self) { vc, isOn in
           vc.viewModel.updateIsMute(isOn: isOn)

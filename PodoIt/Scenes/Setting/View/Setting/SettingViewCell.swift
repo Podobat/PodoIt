@@ -39,8 +39,8 @@ final class SettingViewCell: UITableViewCell {
   
   func configure(_ item: SettingItem) {
     itemLabel.attributedText = Typography.attributed(item.title, style: .headingSm, color: .gray800)
-    // 셀은 재사용되니 문제 생기지 않도록 초기화
     selectionStyle = .none // 셀 선택 하이라이트 안보이도록
+    // 셀은 재사용되니 문제 생기지 않도록 초기화
     accessoryType = .none
     accessoryView = nil
     
