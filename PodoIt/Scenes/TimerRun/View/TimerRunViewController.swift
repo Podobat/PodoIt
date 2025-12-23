@@ -113,6 +113,7 @@ final class TimerRunViewController: UIViewController {
 
     // stop 버튼 tap하여 중지
     buttonSectionView.stopButtonTap
+    // TODO: - Driver이 아닌, Signal로 변경. Driver보다 Signal이 맞음
       .asDriver()
       .withLatestFrom(viewModel.isOverOneMinute)
       .drive(with: self) { vc, isOver in
@@ -135,17 +136,18 @@ final class TimerRunViewController: UIViewController {
 
     // progressBar 진행
     viewModel.progress
-      .asObservable()
+    // MARK: - 140번줄 삭제 및 143번째줄 VM에서 min 1.0으로 잡았기에 == 1.0으로 변경.
+//      .asObservable() 의미없어서 삭제
       .asDriver(onErrorJustReturn: 0.0)
       .drive(with: self) { vc, progress in
         if progress >= 0.9999 { // 반올림 생각해서
           vc.progressRestSectionView.updateProgressBar(progress: 1.0)
         } else {
           vc.progressRestSectionView.progressBar.layoutIfNeeded() // 애니메이션 꼬임 방지용. 미리 레이아웃 최신상태로
-          let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) // 선형으로 1초마다 애니메이션 객체 생성
+          let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) // 1초동안 선형으로 진행되는 animator 생성
           animator.addAnimations {
             vc.progressRestSectionView.progressBar.progress = progress // 매 틱 들어오는 진행률(progress) 값 바인딩
-            vc.progressRestSectionView.progressBar.layoutIfNeeded() // 안하면 툭툭 끊김
+            vc.progressRestSectionView.progressBar.layoutIfNeeded() // progress 변경이 다음 runloop로 밀리지 않게해서 애니메이션 끊김을 방지
           }
           animator.startAnimation()
         }
@@ -160,6 +162,8 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
+    // TODO: - 일회성 이벤트인 토스트 알럿이라서 Signal + emit으로 변경
+    // TODO: - isMuteDriver가 아닌, muteButtonTap으로 변경. VM로직도 다시 확인
     viewModel.isMuteDriver
       .skip(1) // 토스트 알럿은 초기값 무시
       .distinctUntilChanged()
