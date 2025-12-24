@@ -380,7 +380,7 @@ final class TimerRunViewModel {
 
   /// 시간 포맷터 ("h:mm:ss")
   private static func formatHMMSS(seconds: Double) -> String {
-    let sec = Int(seconds.rounded()) // 반올림 처리까지
+    let sec = Int(seconds)
     let h = sec / 3600
     let m = (sec % 3600) / 60
     let s = sec % 60
@@ -389,7 +389,7 @@ final class TimerRunViewModel {
   
   /// 시간 포맷터 ("mm:ss")
   private static func formatMMSS(seconds: Double) -> String {
-    let sec = Int(seconds.rounded())
+    let sec = Int(seconds)
     // 값이 3600이 들어옴
     // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
     let m = sec / 60
