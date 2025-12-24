@@ -71,7 +71,7 @@ final class TimerRunViewModel {
   
   // 휴식 시간 계산을 위한 변수
   private var zeroMark: Bool = false // 남은 시간이 '처음 0이 된' 순간 (true: 0, false: 0이 되기 전)
-  private var addedMark: Double? // 0상태에서 추가 버튼이 눌린 순간의 restIntervalTime. (버튼을 누른 시점까지의 "총 휴식 경과시간")
+  private var addedMark: Double? // 0상태에서 + 버튼이 눌린 순간의 restIntervalTime. (버튼을 누른 시점까지의 "총 휴식 경과시간")
   private var addSnapshot: Double = 0 // 0 도달 당시의 restAddSeconds 스냅샷 (0 도달 전까지 휴식한 시간과 구별하기 위함)
   
   // MARK: - Tick (공유 타이머 스트림)
