@@ -192,7 +192,7 @@ final class TimerRunViewModel {
     
     // 현재 구간의 tick 기반 경과 시간
     let now = Date()
-    // 모든 계산을 restIntervalTime을 기준으로 해서 tick을 다 공통되게 흐르게함
+    // 휴식 구간 기준 경과시간(addedMark 계산용). 공부중에는 휴식이 아니라서 0처리
     let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
     
     if zeroMark == true, addedMark == nil { // 이미 0에 도달했다면
@@ -201,7 +201,7 @@ final class TimerRunViewModel {
     
     restUpdateRelay.accept(()) // Void라서 넣지 않고 신호만 보냄. 즉시 갱신
     if state.isStudying == false { // 휴식 중
-      scheduleRestEndNotification() // 휴식시간이 늘어나니 다시 시간 재계산 후 예약
+      scheduleRestEndNotification() // 휴식시간이 늘어나니, 휴식 시간 재계산 후 알림 예약
     }
     // 휴식 시간이 늘어날 때마다 스냅샷 저장
     saveSessionUDSnapshot()
@@ -210,7 +210,7 @@ final class TimerRunViewModel {
   /// 시작/일시정지 버튼 토글
   func startAndPause() {
     // 여기에서 타이머 작동 로직
-    addIntervalTime() // 현재 구간 기준으로 총 공부/휴식 시간 저장
+    addIntervalTime() // 현재 구간 기준으로 공부 시간을 totalStudySeconds에 누적
     state.isStudying.toggle()
     state.intervalStart = Date() // 공부 <-> 휴식 상태가 바뀌니, 그 구간의 새 시각
     isStudyingRelay.accept(state.isStudying) // 변경된 상태 저장
@@ -400,7 +400,7 @@ final class TimerRunViewModel {
 
 extension TimerRunViewModel {
   /// 현재 구간(state.intervalStart 기준)의 경과 시간을 누적
-  /// - 총 공부/휴식 시간을 저장
+  /// - 총 공부 시간을 저장
   private func addIntervalTime(now: Date = Date()) {
     let intervalTime = now.timeIntervalSince(state.intervalStart)
     
