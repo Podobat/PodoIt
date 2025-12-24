@@ -154,15 +154,8 @@ final class TimerRunViewModel {
     self.addSnapshot = snapshotData.addSnapshot
     
     self.isStudyingRelay.accept(snapshotData.isStudying) // 공부중인지 UI가 알아야 바뀌니까 accept
-    // TODO: 이거 startAndPause의 알림 재예약과 로직이 동일하니, 하나의 메서드로 분리하자
-    // 상태 전환때마다 알림 재예약
-    if state.isStudying { // 휴식 -> 공부로 변경: 휴식 취소하고, 공부 알림 예약
-      cancelRestEndNotification()
-      scheduleGoalEndNotification()
-    } else { // 공부 -> 휴식으로 변경: 공부 취소하고, 휴식 알리 ㅁ예약
-      cancelGoalEndNotification()
-      scheduleRestEndNotification()
-    }
+    // 상태 복원 후 알림을 현재 상태에 맞게 재예약
+    rescheduleNotifications()
   }
   
   /// UserDefaults 데이터 삭제
@@ -189,14 +182,8 @@ final class TimerRunViewModel {
     let newValue = !AudioSettings.shared.isMute.value // 값 toggle
     AudioSettings.shared.isMute.accept(newValue) // 버튼 UI 변경을 위한 Bool값 스트림
     
-    // 음소거 시, 현재 상태에 따라 알림 재예약
-    if state.isStudying { // 공부 중
-      cancelGoalEndNotification()
-      scheduleGoalEndNotification()
-    } else { // 휴식 중
-      cancelRestEndNotification()
-      scheduleRestEndNotification()
-    }
+    // 음소거 토글시, 현재 상태에 따라 알림 재예약
+    rescheduleNotifications()
   }
   
   /// 휴식 시간 추가 (+1/+5/+10) 후 즉시 라벨 갱신
@@ -235,13 +222,7 @@ final class TimerRunViewModel {
     addSnapshot = 0
     
     // 상태 전환때마다 알림 재예약
-    if state.isStudying { // 휴식 -> 공부로 변경: 휴식 취소하고, 공부 알림 예약
-      cancelRestEndNotification()
-      scheduleGoalEndNotification()
-    } else { // 공부 -> 휴식으로 변경: 공부 취소하고, 휴식 알리 ㅁ예약
-      cancelGoalEndNotification()
-      scheduleRestEndNotification()
-    }
+    rescheduleNotifications()
     // 상태 전환 후 스냅샷 저장
     saveSessionUDSnapshot()
   }
@@ -492,6 +473,20 @@ extension TimerRunViewModel {
         date: Date().addingTimeInterval(TimeInterval(sec)),
         isMuted: AudioSettings.shared.isMute.value
       )
+  }
+  
+  /// 현재 상태(state.isStudying)에 맞게 알림을 정리/재예약
+  private func rescheduleNotifications() {
+    // 항상 둘 다 취소해서 상태 꼬임/중복 예약을 방지
+    cancelGoalEndNotification()
+    cancelRestEndNotification()
+    
+    // 현재 상태에 맞는 알림만 예약
+    if state.isStudying {
+      scheduleGoalEndNotification()
+    } else {
+      scheduleRestEndNotification()
+    }
   }
   
   /// 목표시간 Notification 예약 취소
