@@ -71,7 +71,7 @@ final class TimerRunViewModel {
   
   // 휴식 시간 계산을 위한 변수
   private var zeroMark: Bool = false // 남은 시간이 '처음 0이 된' 순간 (true: 0, false: 0이 되기 전)
-  private var addedMark: Double? // 0상태에서 + 버튼이 눌린 순간의 restIntervalTime. (버튼을 누른 시점까지의 "총 휴식 경과시간")
+  private var addedMark: Double? // 0상태에서 + 버튼을 처음 누른 시점의 스냅샷
   private var addSnapshot: Double = 0 // 0 도달 당시의 restAddSeconds 스냅샷 (0 도달 전까지 휴식한 시간과 구별하기 위함)
   
   // MARK: - Tick (공유 타이머 스트림)
@@ -196,7 +196,7 @@ final class TimerRunViewModel {
     let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
     
     if zeroMark == true, addedMark == nil { // 이미 0에 도달했다면
-      addedMark = restIntervalTime // 추가를 누른 시점 기준까지 "총 휴식한 시간"을 저장.
+      addedMark = restIntervalTime // 0상태에서 + 버튼을 처음 누른 시점의 스냅샷. 이후 addRun에서 사용
     }
     
     restUpdateRelay.accept(()) // Void라서 넣지 않고 신호만 보냄. 즉시 갱신
@@ -320,26 +320,26 @@ final class TimerRunViewModel {
         
         // MARK: 3) 0이후. 이미 값이 0이라면 처리
 
-        if vm.zeroMark == true { // 값이 있으면(이미 0인 상태)
-          // 아직 시간이 추가하지 않았다면 "00:00" 유지
+        if vm.zeroMark == true { // 기본 휴식 시간이 0이 된 상태
+          // 아직 시간을 추가하지 않았다면 "00:00" 유지
           guard let restTimeAtAdd = vm.addedMark else {
             return "00:00"
           }
           
-          /// 휴식시간 추가 후 흐른 시간
-          // 추가 버튼을 누른 순간까지 휴식했던 시간(restTimeAtAdd)부터 지금까지 흐른 시간
-          // 305초에 +1분하고 지금까지 320초가 흘렀다면, 320 - 305 = 15초가 흘렀다는 것
+          /// 시간 추가(+)를 한 이후로 경과한 시간
+          /// (현재 휴식 누적시간 - 추가 버튼을 누른 시점의 스냅샷)
           let addRun = max(restIntervalTime - restTimeAtAdd, 0)
           
-          /// 0이 된 시점 이후 새로 추가된 총 휴식 시간
-          // restAddSeconds는 값이 누적되니, 누적된 값이 0으로 다 소진되면, 그 값을 addSnapshot에 넣어서, 추가된 휴식 시간만 쉬도록 보장
+          /// 기본 휴식시간이 0이 된 이후로 새로 추가된 총 휴식 시간
+          /// (누적된 추가 시간 - 0에 도달한 시점의 스냅샷)
           let addSum = max(vm.restAddSeconds - vm.addSnapshot, 0)
           
           /// 화면에 보여줄 남은 추가 휴식시간
-          // 추가된 총 휴식시간(addSum)에서 이미 지난 시간(addRun)을 뺸 값.
+          /// (추가된 총 휴식시간 - 이미 경과한 시간)
           let remaining = max(addSum - addRun, 0)
           
-          if remaining == 0 { // 0초가 되면
+          if remaining == 0 {
+            // 추가된 휴식 시간이 모두 소진되면 기준값 초기화
             vm.addedMark = nil // 추가버튼 눌린 시점 초기화
             vm.addSnapshot = vm.restAddSeconds // 다음 번의 누적값에서 0되기 전의 추가 시간 제외하기 위해, 현재의 restAddSeconds값 보관
           }
