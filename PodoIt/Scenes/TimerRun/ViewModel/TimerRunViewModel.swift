@@ -359,6 +359,35 @@ final class TimerRunViewModel {
       .asDriver(onErrorJustReturn: 0.0)
   }
   
+  // MARK: - Study Time Helpers
+  
+  /// 현재 구간(state.intervalStart 기준)의 경과 시간을 누적
+  /// - 총 공부 시간을 저장
+  private func addIntervalTime(now: Date = Date()) {
+    let intervalTime = now.timeIntervalSince(state.intervalStart)
+    
+    // 상태에 따라서 시간 누적
+    if state.isStudying {
+      state.totalStudySeconds += intervalTime // 공부 시간 누적
+      print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
+    }
+  }
+  
+  /// 최신의 총 공부 시간을 반환
+  /// - 1초마다 바뀌는 현재의 공부 시간이 필요할때 사용
+  private func totalStudyTime(now: Date = Date()) -> (Double) {
+    // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
+    let studyIntervalTime = state.isStudying ? now.timeIntervalSince(state.intervalStart) : 0
+    // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
+    return Double(state.totalStudySeconds) + studyIntervalTime
+  }
+  
+  /// 목표시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingStudySeconds() -> Double {
+    let total = totalStudyTime()
+    return max(Double(goalTime) - total, 0)
+  }
+  
   // MARK: - Rest Time Helpers
   
   /// 휴식 구간에서 "추가된 휴식 시간"만 카운트다운할때, 남은 초를 계산
@@ -381,6 +410,25 @@ final class TimerRunViewModel {
   /// 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과시간
   private func remainingBaseRestSeconds(restIntervalTime: Double) -> Double {
     return max(defaultRestSeconds + restAddSeconds - restIntervalTime, 0)
+  }
+  
+  /// 남은 휴식 시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingRestSeconds(now: Date = Date()) -> Double {
+    let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
+    
+    // 0 이후, 추가 시간 카운트다운
+    if zeroMark {
+      // 값 추가 안하면 0초로 유지
+      guard let remaining = remainingAddedRestSeconds(restIntervalTime: restIntervalTime) else { return 0 }
+      return remaining
+    }
+    
+    // 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과한 시간
+    let base = remainingBaseRestSeconds(restIntervalTime: restIntervalTime)
+    if base > 0 { return base }
+    
+    // 막 0에 진입한 순간
+    return 0
   }
   
   // MARK: - Notification Helpers
@@ -430,54 +478,6 @@ final class TimerRunViewModel {
   
   /// 휴식 Notification 예약 취소
   private func cancelRestEndNotification() { NotificationScheduler.cancel(id: NotificationID.restingTimeEnd) }
-  
-  // MARK: - Time Helpers
-  
-  /// 현재 구간(state.intervalStart 기준)의 경과 시간을 누적
-  /// - 총 공부 시간을 저장
-  private func addIntervalTime(now: Date = Date()) {
-    let intervalTime = now.timeIntervalSince(state.intervalStart)
-    
-    // 상태에 따라서 시간 누적
-    if state.isStudying {
-      state.totalStudySeconds += intervalTime // 공부 시간 누적
-      print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
-    }
-  }
-  
-  /// 최신의 총 공부 시간을 반환
-  /// - 1초마다 바뀌는 현재의 공부 시간이 필요할때 사용
-  private func totalStudyTime(now: Date = Date()) -> (Double) {
-    // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
-    let studyIntervalTime = state.isStudying ? now.timeIntervalSince(state.intervalStart) : 0
-    // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
-    return Double(state.totalStudySeconds) + studyIntervalTime
-  }
-  
-  /// 목표시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
-  private func remainingStudySeconds() -> Double {
-    let total = totalStudyTime()
-    return max(Double(goalTime) - total, 0)
-  }
-  
-  /// 남은 휴식 시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
-  private func remainingRestSeconds(now: Date = Date()) -> Double {
-    let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
-    
-    // 0 이후, 추가 시간 카운트다운
-    if zeroMark {
-      // 값 추가 안하면 0초로 유지
-      guard let remaining = remainingAddedRestSeconds(restIntervalTime: restIntervalTime) else { return 0 }
-      return remaining
-    }
-    
-    // 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과한 시간
-    let base = remainingBaseRestSeconds(restIntervalTime: restIntervalTime)
-    if base > 0 { return base }
-    
-    // 막 0에 진입한 순간
-    return 0
-  }
   
   // MARK: - Formatters
 
