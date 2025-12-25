@@ -74,30 +74,6 @@ final class TimerRunViewModel {
   private var addedMark: Double? // 0상태에서 + 버튼을 처음 누른 시점의 스냅샷
   private var addSnapshot: Double = 0 // 0 도달 당시의 restAddSeconds 스냅샷 (0 도달 전까지 휴식한 시간과 구별하기 위함)
   
-  // MARK: - 휴식 시간 계산 헬퍼
-  
-  /// 휴식 구간에서 "추가된 휴식 시간"만 카운트다운할때, 남은 초를 계산
-  private func remainingAddedRestSeconds(restIntervalTime: Double) -> Double? {
-    guard let restTimeAtAdd = addedMark else { return nil }
-    
-    // 시간 추가(+)를 한 이후로 경과한 시간
-    // (현재 휴식 누적시간 - 추가 버튼을 누른 시점의 스냅샷)
-    let addRun = max(restIntervalTime - restTimeAtAdd, 0)
-    
-    // 기본 휴식시간이 0이 된 이후로 새로 추가된 총 휴식 시간
-    // (누적된 추가 시간 - 0에 도달한 시점의 스냅샷)
-    let addSum = max(restAddSeconds - addSnapshot, 0)
-    
-    // 화면에 보여줄 남은 추가 휴식시간
-    // (추가된 총 휴식시간 - 이미 경과한 시간)
-    return max(addSum - addRun, 0)
-  }
-  
-  /// 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과시간
-  private func remainingBaseRestSeconds(restIntervalTime: Double) -> Double {
-    return max(defaultRestSeconds + restAddSeconds - restIntervalTime, 0)
-  }
-  
   // MARK: - Tick (공유 타이머 스트림)
   
   private lazy var tick: Observable<Int> = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
@@ -129,7 +105,7 @@ final class TimerRunViewModel {
     goalTime = Double(timer.goalTime) * 60 // Int값을 초 단위로 변경
   }
   
-  // MARK: - Data Loading
+  // MARK: - Public
   
   func setupTimer() {
     if state.isStudying {
@@ -138,56 +114,6 @@ final class TimerRunViewModel {
     // 앱 진입 후 바로 스냅샷 저장
     saveSessionUDSnapshot()
   }
-  
-  // MARK: - UserDefaults 저장/불러오기/삭제
-  
-  /// UserDefaults에 데이터 저장
-  private func saveSessionUDSnapshot() {
-    let snapshot = TimerSessionUDSnapshot(
-      timerID: timer.timerID,
-      isStudying: state.isStudying,
-      intervalStart: state.intervalStart,
-      totalStudySeconds: state.totalStudySeconds,
-      restAddSeconds: self.restAddSeconds,
-      zeroMark: self.zeroMark,
-      addedMark: self.addedMark,
-      addSnapshot: self.addSnapshot
-    )
-    
-    if let data = try? JSONEncoder().encode(snapshot) {
-      UserDefaults.standard.set(data, forKey: Self.udSnapshotKey) // Self는 현재 타입을 의미해서 TimerRunViewModel.ud..와 동일
-    }
-  }
-  
-  /// UserDefaults에 데이터 불러오기
-  private func fetchSessionUDSnapshot() {
-    guard let savedData = UserDefaults.standard.object(forKey: Self.udSnapshotKey) as? Data else { return } // UD 가져옴
-    guard let snapshotData = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: savedData) else { return } // UD 디코딩
-    
-    // 주입받은 timerID가 스냅샷의 ID와 다르게 되면 무시하도록. (안전을 위해)
-    guard snapshotData.timerID == timer.timerID else { return }
-    
-    // 상태 복원
-    self.state.isStudying = snapshotData.isStudying
-    self.state.intervalStart = snapshotData.intervalStart
-    self.state.totalStudySeconds = snapshotData.totalStudySeconds
-    
-    self.restAddSeconds = snapshotData.restAddSeconds
-    self.zeroMark = snapshotData.zeroMark
-    self.addedMark = snapshotData.addedMark
-    self.addSnapshot = snapshotData.addSnapshot
-    
-    self.isStudyingRelay.accept(snapshotData.isStudying) // 공부중인지 UI가 알아야 바뀌니까 accept
-    // 상태 복원 후 알림을 현재 상태에 맞게 재예약
-    rescheduleNotifications()
-  }
-  
-  /// UserDefaults 데이터 삭제
-  private func deleteSessionUDSnapshot() {
-    UserDefaults.standard.removeObject(forKey: Self.udSnapshotKey)
-  }
-  
-  // MARK: 앱 라이프 사이클에 따른 UD Snapshot
   
   /// 앱이 백그라운드로 갈 때 호출해서 데이터 저장
   func saveUDOnBackground() {
@@ -198,8 +124,6 @@ final class TimerRunViewModel {
   func loadUDSaved() {
     fetchSessionUDSnapshot()
   }
-  
-  // MARK: - Actions
   
   /// 타이머 음소거
   func toggleMute() {
@@ -267,6 +191,8 @@ final class TimerRunViewModel {
     save()
   }
   
+  // MARK: - save()
+  
   /// SwiftData의 StatsModel에 데이터 저장
   @MainActor
   private func save() {
@@ -285,6 +211,54 @@ final class TimerRunViewModel {
     } catch {
       print("데이터 저장 실패: \(RepositoryError.saveFailed)")
     }
+  }
+  
+  // MARK: - UserDefaults 스냅샷(저장/불러오기/삭제)
+  
+  /// UserDefaults에 데이터 저장
+  private func saveSessionUDSnapshot() {
+    let snapshot = TimerSessionUDSnapshot(
+      timerID: timer.timerID,
+      isStudying: state.isStudying,
+      intervalStart: state.intervalStart,
+      totalStudySeconds: state.totalStudySeconds,
+      restAddSeconds: self.restAddSeconds,
+      zeroMark: self.zeroMark,
+      addedMark: self.addedMark,
+      addSnapshot: self.addSnapshot
+    )
+    
+    if let data = try? JSONEncoder().encode(snapshot) {
+      UserDefaults.standard.set(data, forKey: Self.udSnapshotKey) // Self는 현재 타입을 의미해서 TimerRunViewModel.ud..와 동일
+    }
+  }
+  
+  /// UserDefaults에 데이터 불러오기
+  private func fetchSessionUDSnapshot() {
+    guard let savedData = UserDefaults.standard.object(forKey: Self.udSnapshotKey) as? Data else { return } // UD 가져옴
+    guard let snapshotData = try? JSONDecoder().decode(TimerSessionUDSnapshot.self, from: savedData) else { return } // UD 디코딩
+    
+    // 주입받은 timerID가 스냅샷의 ID와 다르게 되면 무시하도록. (안전을 위해)
+    guard snapshotData.timerID == timer.timerID else { return }
+    
+    // 상태 복원
+    self.state.isStudying = snapshotData.isStudying
+    self.state.intervalStart = snapshotData.intervalStart
+    self.state.totalStudySeconds = snapshotData.totalStudySeconds
+    
+    self.restAddSeconds = snapshotData.restAddSeconds
+    self.zeroMark = snapshotData.zeroMark
+    self.addedMark = snapshotData.addedMark
+    self.addSnapshot = snapshotData.addSnapshot
+    
+    self.isStudyingRelay.accept(snapshotData.isStudying) // 공부중인지 UI가 알아야 바뀌니까 accept
+    // 상태 복원 후 알림을 현재 상태에 맞게 재예약
+    rescheduleNotifications()
+  }
+  
+  /// UserDefaults 데이터 삭제
+  private func deleteSessionUDSnapshot() {
+    UserDefaults.standard.removeObject(forKey: Self.udSnapshotKey)
   }
 
   // MARK: Stream
@@ -388,74 +362,31 @@ final class TimerRunViewModel {
       .asDriver(onErrorJustReturn: 0.0)
   }
   
-  // MARK: - Formatters
-
-  /// 시간 포맷터 ("h:mm:ss")
-  private static func formatHMMSS(seconds: Double) -> String {
-    let sec = Int(seconds)
-    let h = sec / 3600
-    let m = (sec % 3600) / 60
-    let s = sec % 60
-    return String(format: "%d:%02d:%02d", h, m, s) // 0:12:53, 1:50:49, 12:49:39등으로 포맷
+  // MARK: - Rest Time Helpers
+  
+  /// 휴식 구간에서 "추가된 휴식 시간"만 카운트다운할때, 남은 초를 계산
+  private func remainingAddedRestSeconds(restIntervalTime: Double) -> Double? {
+    guard let restTimeAtAdd = addedMark else { return nil }
+    
+    // 시간 추가(+)를 한 이후로 경과한 시간
+    // (현재 휴식 누적시간 - 추가 버튼을 누른 시점의 스냅샷)
+    let addRun = max(restIntervalTime - restTimeAtAdd, 0)
+    
+    // 기본 휴식시간이 0이 된 이후로 새로 추가된 총 휴식 시간
+    // (누적된 추가 시간 - 0에 도달한 시점의 스냅샷)
+    let addSum = max(restAddSeconds - addSnapshot, 0)
+    
+    // 화면에 보여줄 남은 추가 휴식시간
+    // (추가된 총 휴식시간 - 이미 경과한 시간)
+    return max(addSum - addRun, 0)
   }
   
-  /// 시간 포맷터 ("mm:ss")
-  private static func formatMMSS(seconds: Double) -> String {
-    let sec = Int(seconds)
-    // 값이 3600이 들어옴
-    // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
-    let m = sec / 60
-    let s = sec % 60
-    return String(format: "%02d:%02d", m, s)
-  }
-}
-
-extension TimerRunViewModel {
-  /// 현재 구간(state.intervalStart 기준)의 경과 시간을 누적
-  /// - 총 공부 시간을 저장
-  private func addIntervalTime(now: Date = Date()) {
-    let intervalTime = now.timeIntervalSince(state.intervalStart)
-    
-    // 상태에 따라서 시간 누적
-    if state.isStudying {
-      state.totalStudySeconds += intervalTime // 공부 시간 누적
-      print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
-    }
+  /// 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과시간
+  private func remainingBaseRestSeconds(restIntervalTime: Double) -> Double {
+    return max(defaultRestSeconds + restAddSeconds - restIntervalTime, 0)
   }
   
-  /// 최신의 총 공부 시간을 반환
-  /// - 1초마다 바뀌는 현재의 공부 시간이 필요할때 사용
-  private func totalStudyTime(now: Date = Date()) -> (Double) {
-    // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
-    let studyIntervalTime = state.isStudying ? now.timeIntervalSince(state.intervalStart) : 0
-    // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
-    return Double(state.totalStudySeconds) + studyIntervalTime
-  }
-  
-  /// 목표시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
-  private func remainingStudySeconds() -> Double {
-    let total = totalStudyTime()
-    return max(Double(goalTime) - total, 0)
-  }
-  
-  /// 남은 휴식 시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
-  private func remainingRestSeconds(now: Date = Date()) -> Double {
-    let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
-    
-    // 0 이후, 추가 시간 카운트다운
-    if zeroMark {
-      // 값 추가 안하면 0초로 유지
-      guard let remaining = remainingAddedRestSeconds(restIntervalTime: restIntervalTime) else { return 0 }
-      return remaining
-    }
-    
-    // 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과한 시간
-    let base = remainingBaseRestSeconds(restIntervalTime: restIntervalTime)
-    if base > 0 { return base }
-    
-    // 막 0에 진입한 순간
-    return 0
-  }
+  // MARK: - Notification Helpers
   
   /// 목표시간 Notification 예약
   private func scheduleGoalEndNotification() {
@@ -503,6 +434,77 @@ extension TimerRunViewModel {
   /// 휴식 Notification 예약 취소
   private func cancelRestEndNotification() { NotificationScheduler.cancel(id: NotificationID.restingTimeEnd) }
   
+  // MARK: - Time Helpers
+  
+  /// 현재 구간(state.intervalStart 기준)의 경과 시간을 누적
+  /// - 총 공부 시간을 저장
+  private func addIntervalTime(now: Date = Date()) {
+    let intervalTime = now.timeIntervalSince(state.intervalStart)
+    
+    // 상태에 따라서 시간 누적
+    if state.isStudying {
+      state.totalStudySeconds += intervalTime // 공부 시간 누적
+      print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
+    }
+  }
+  
+  /// 최신의 총 공부 시간을 반환
+  /// - 1초마다 바뀌는 현재의 공부 시간이 필요할때 사용
+  private func totalStudyTime(now: Date = Date()) -> (Double) {
+    // 공부중이면 stateStart부터 지금까지 흐른 초(seconds)를 계산 / 휴식중이면 실시간 경과는 0인 상태
+    let studyIntervalTime = state.isStudying ? now.timeIntervalSince(state.intervalStart) : 0
+    // 최신의 누적된 총 공부 시간 = 누적된 총 공부시간 + 진행중 공부 경과시간 계산
+    return Double(state.totalStudySeconds) + studyIntervalTime
+  }
+  
+  /// 목표시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingStudySeconds() -> Double {
+    let total = totalStudyTime()
+    return max(Double(goalTime) - total, 0)
+  }
+  
+  /// 남은 휴식 시간 끝나기까지 남은 시간을 계산 (UserNotification 예약을 위해)
+  private func remainingRestSeconds(now: Date = Date()) -> Double {
+    let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
+    
+    // 0 이후, 추가 시간 카운트다운
+    if zeroMark {
+      // 값 추가 안하면 0초로 유지
+      guard let remaining = remainingAddedRestSeconds(restIntervalTime: restIntervalTime) else { return 0 }
+      return remaining
+    }
+    
+    // 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과한 시간
+    let base = remainingBaseRestSeconds(restIntervalTime: restIntervalTime)
+    if base > 0 { return base }
+    
+    // 막 0에 진입한 순간
+    return 0
+  }
+  
+  // MARK: - Formatters
+
+  /// 시간 포맷터 ("h:mm:ss")
+  private static func formatHMMSS(seconds: Double) -> String {
+    let sec = Int(seconds)
+    let h = sec / 3600
+    let m = (sec % 3600) / 60
+    let s = sec % 60
+    return String(format: "%d:%02d:%02d", h, m, s) // 0:12:53, 1:50:49, 12:49:39등으로 포맷
+  }
+  
+  /// 시간 포맷터 ("mm:ss")
+  private static func formatMMSS(seconds: Double) -> String {
+    let sec = Int(seconds)
+    // 값이 3600이 들어옴
+    // 이 3600을 60으로 나눠서(/) 그 값을 포맷팅
+    let m = sec / 60
+    let s = sec % 60
+    return String(format: "%02d:%02d", m, s)
+  }
+}
+
+extension TimerRunViewModel {
   /// SceneDelegate에서 의존성때문에 인스턴스 생성을 못하니, 타입 메서드로 선언해서 가져다사용
   static func fetchSavedTimerID() -> UUID? {
     guard let data = UserDefaults.standard.object(forKey: self.udSnapshotKey) as? Data,
