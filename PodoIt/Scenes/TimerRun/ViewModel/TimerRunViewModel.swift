@@ -31,16 +31,13 @@ enum RestAddCase {
 }
 
 final class TimerRunViewModel {
-  // MARK: - Dependencies
+  // MARK: - UserDefaults
 
-  @Dependency(\.timerRepository) private var repo
   private static let udSnapshotKey = "timer_key"
   
   // MARK: - State
 
   private(set) var timer: TimerModel
-  private let disposeBag = DisposeBag()
-  
   private(set) var state = TimerSessionState(
     intervalStart: Date(),
     isStudying: true,
