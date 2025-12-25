@@ -74,6 +74,30 @@ final class TimerRunViewModel {
   private var addedMark: Double? // 0상태에서 + 버튼을 처음 누른 시점의 스냅샷
   private var addSnapshot: Double = 0 // 0 도달 당시의 restAddSeconds 스냅샷 (0 도달 전까지 휴식한 시간과 구별하기 위함)
   
+  // MARK: - 휴식 시간 계산 헬퍼
+  
+  /// 휴식 구간에서 "추가된 휴식 시간"만 카운트다운할때, 남은 초를 계산
+  private func remainingAddedRestSeconds(restIntervalTime: Double) -> Double? {
+    guard let restTimeAtAdd = addedMark else { return nil }
+    
+    // 시간 추가(+)를 한 이후로 경과한 시간
+    // (현재 휴식 누적시간 - 추가 버튼을 누른 시점의 스냅샷)
+    let addRun = max(restIntervalTime - restTimeAtAdd, 0)
+    
+    // 기본 휴식시간이 0이 된 이후로 새로 추가된 총 휴식 시간
+    // (누적된 추가 시간 - 0에 도달한 시점의 스냅샷)
+    let addSum = max(restAddSeconds - addSnapshot, 0)
+    
+    // 화면에 보여줄 남은 추가 휴식시간
+    // (추가된 총 휴식시간 - 이미 경과한 시간)
+    return max(addSum - addRun, 0)
+  }
+  
+  /// 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과시간
+  private func remainingBaseRestSeconds(restIntervalTime: Double) -> Double {
+    return max(defaultRestSeconds + restAddSeconds - restIntervalTime, 0)
+  }
+  
   // MARK: - Tick (공유 타이머 스트림)
   
   private lazy var tick: Observable<Int> = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
@@ -318,44 +342,32 @@ final class TimerRunViewModel {
         let now = Date()
         let restIntervalTime = vm.state.isStudying ? 0 : now.timeIntervalSince(vm.state.intervalStart) // 이번 세션에 실시간으로 휴식중인 시간 (공부중인 시간 제외)
         
-        // MARK: 3) 0이후. 이미 값이 0이라면 처리
+        // 3️⃣ 기본 휴식 시간이 0이 된 이후 상태
+        // + 버튼으로 추가된 휴식 시간이 있다면, 그 추가 시간만 별도로 카운트다운
 
-        if vm.zeroMark == true { // 기본 휴식 시간이 0이 된 상태
-          // 아직 시간을 추가하지 않았다면 "00:00" 유지
-          guard let restTimeAtAdd = vm.addedMark else {
+        if vm.zeroMark {
+          // 기본 휴식 시간이 0이에 도달한 이후의 상태
+          guard let remaining = vm.remainingAddedRestSeconds(restIntervalTime: restIntervalTime) else {
             return "00:00"
           }
-          
-          /// 시간 추가(+)를 한 이후로 경과한 시간
-          /// (현재 휴식 누적시간 - 추가 버튼을 누른 시점의 스냅샷)
-          let addRun = max(restIntervalTime - restTimeAtAdd, 0)
-          
-          /// 기본 휴식시간이 0이 된 이후로 새로 추가된 총 휴식 시간
-          /// (누적된 추가 시간 - 0에 도달한 시점의 스냅샷)
-          let addSum = max(vm.restAddSeconds - vm.addSnapshot, 0)
-          
-          /// 화면에 보여줄 남은 추가 휴식시간
-          /// (추가된 총 휴식시간 - 이미 경과한 시간)
-          let remaining = max(addSum - addRun, 0)
           
           if remaining == 0 {
             // 추가된 휴식 시간이 모두 소진되면 기준값 초기화
             vm.addedMark = nil // 추가버튼 눌린 시점 초기화
-            vm.addSnapshot = vm.restAddSeconds // 다음 번의 누적값에서 0되기 전의 추가 시간 제외하기 위해, 현재의 restAddSeconds값 보관
+            vm.addSnapshot = vm.restAddSeconds // 다음 번의 누적값에서 0되기 전의 추가 시간 제외하기 위해 기준값 갱신
           }
+          
           return TimerRunViewModel.formatMMSS(seconds: remaining)
         }
       
-        // MARK: 1) 기본 시간 0분 안된. 일반적인 기본 카운트다운 (0 되기 전 추가 휴식시간 포함)
-
+        // 1️⃣ 기본 시간 0분 안된. 일반적인 기본 카운트다운 (0 되기 전 추가 휴식시간 포함)
         // 기본 300초(5분) + 추가된 휴식 시간 - 휴식중인 시간
-        let base = max(vm.defaultRestSeconds + vm.restAddSeconds - restIntervalTime, 0)
+        let base = vm.remainingBaseRestSeconds(restIntervalTime: restIntervalTime)
         if base > 0 { // 0되기 전에는 이 값을 반환
           return TimerRunViewModel.formatMMSS(seconds: base)
         }
         
-        // MARK: 2) 0으로 막 진입. 스냅샷 준비. 값은 00:00 반환
-
+        // 2️⃣ 0으로 막 진입. 스냅샷 준비. 값은 00:00 반환
         vm.zeroMark = true // 값이 처음 0된 순간. true 상태로 변경
         vm.addSnapshot = vm.restAddSeconds // 0진입 전 추가한 시간 누적량 스냅샷
         return "00:00"
@@ -430,19 +442,15 @@ extension TimerRunViewModel {
   private func remainingRestSeconds(now: Date = Date()) -> Double {
     let restIntervalTime = state.isStudying ? 0 : now.timeIntervalSince(state.intervalStart)
     
-    // 위의 makeRestingTimeText로직과 동일
-    // 0 이후 추가 시간 카운트다운
+    // 0 이후, 추가 시간 카운트다운
     if zeroMark {
       // 값 추가 안하면 0초로 유지
-      guard let addedTick = addedMark else { return 0 }
-      
-      let addRun = max(restIntervalTime - Double(addedTick), 0) // 추가 이후 경과 시간
-      let addSum = max(restAddSeconds - addSnapshot, 0) // 추가된 총 휴식시간
-      return max(addSum - addRun, 0)
+      guard let remaining = remainingAddedRestSeconds(restIntervalTime: restIntervalTime) else { return 0 }
+      return remaining
     }
     
     // 기본 카운트다운 (0되기 전): 기본 5분 + 추가시간 - 경과한 시간
-    let base = max(defaultRestSeconds + restAddSeconds - restIntervalTime, 0)
+    let base = remainingBaseRestSeconds(restIntervalTime: restIntervalTime)
     if base > 0 { return base }
     
     // 막 0에 진입한 순간
