@@ -17,7 +17,7 @@ final class ProgressRestSectionView: UIView {
 
   // progress
   private let progressView = UIView().then { // progressBar를 감싸는 View (isHidden 대상)
-    $0.isHidden = true
+    $0.isHidden = false
   }
 
   private let progressContainer = UIView().then { // 진행률 바 배경 View
@@ -34,7 +34,7 @@ final class ProgressRestSectionView: UIView {
 
   // buttons
   private let restButtonsView = UIView().then { // restButtons를 감싸는 View (isHidden 대상)
-    $0.isHidden = false
+    $0.isHidden = true
   }
 
   private let buttonsHStackView = UIStackView().then { // 3개 버튼의 H스택뷰
