@@ -76,6 +76,9 @@ final class TimerHeaderView: UIView {
     }
     
     ddayButton.addTarget(self, action: #selector(ddayButtonTapped), for: .touchUpInside)
+    
+    // TODO: - dday 기능 완료 후, hidden 처리 삭제
+    ddayButton.isHidden = true
   }
   
   @objc private func ddayButtonTapped() {
