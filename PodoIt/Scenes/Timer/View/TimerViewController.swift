@@ -156,6 +156,11 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
     setupNotificationObservers()
     // 초기 상태 반영
     updateAddButtonState()
+
+    // 디데이 버튼 액션 설정
+    headerView.onDdayButtonTap = { [weak self] in
+      self?.showDdayCalendarSheet()
+    }
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -391,6 +396,18 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
       self?.collectionView.reloadData()
       self?.updateHeaderTotalFocusTime()
     }
+  }
+
+  // MARK: - Dday Calendar Sheet
+
+  private func showDdayCalendarSheet() {
+    let ddaySheet = DdayCalendarSheetViewController()
+    ddaySheet.onDateSelected = { [weak self] selectedDate in
+      print("선택된 디데이 날짜: \(selectedDate)")
+      // TODO: 선택된 날짜를 저장하는 로직 추가
+      self?.dismiss(animated: true)
+    }
+    present(ddaySheet, animated: true)
   }
 
   // MARK: - Delete Timer

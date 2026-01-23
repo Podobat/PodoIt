@@ -18,8 +18,9 @@ final class TimerSectionView: UIView {
     $0.spacing = 8
   }
 
-  private(set) var statusContainerView = UIView().then { // 아이콘 + 목표 시간/달성 Label
+  private(set) var statusContainerView = CapsuleBackgroundView().then { // 아이콘 + 목표 시간/달성 Label
     $0.backgroundColor = .gray100
+    $0.clipsToBounds = true
   }
 
   private var statusIconImageView = UIImageView().then { // 아이콘
@@ -52,14 +53,6 @@ final class TimerSectionView: UIView {
     super.init(frame: frame)
     configureUI()
     configureLayout()
-  }
-
-  // MARK: - layoutSubviews
-
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    layoutIfNeeded()
-    statusContainerView.layer.cornerRadius = statusContainerView.bounds.height / 2
   }
 
   @available(*, unavailable)
@@ -145,5 +138,16 @@ final class TimerSectionView: UIView {
       statusIconImageView.tintColor = .green600
       statusTimeLabel.textColor = .green600
     }
+  }
+}
+
+/// 원형 캡슐모양 유지를 위해 CornerRadius를 높이 기반으로 계산
+/// - 상위 뷰의 layoutSubviews 시점에 frame.height가 0으로 잡혀서 직각으로 되는 문제가 있었음
+/// - 그래서 자체 layoutSubviews에서 frame값이 잡힌 후 cornerRadius를 설정하기 위함.
+/// (iOS 18에서는 우연히 타이밍이 맞았지만, iOS 26에서는 깨져서 별도 서브클래스로 분리)
+final class CapsuleBackgroundView: UIView {
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layer.cornerRadius = bounds.height / 2
   }
 }

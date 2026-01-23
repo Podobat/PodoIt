@@ -102,7 +102,11 @@ final class SwiftDataManager: TimerRepository {
     let predicate = #Predicate<TimerModel> { $0.timerID == id }
     var descriptor = FetchDescriptor<TimerModel>(predicate: predicate)
     descriptor.fetchLimit = 1
-    return try modelContext.fetch(descriptor).first
+    do {
+      return try modelContext.fetch(descriptor).first
+    } catch {
+      throw RepositoryError.fetchFailed
+    }
   }
 }
 

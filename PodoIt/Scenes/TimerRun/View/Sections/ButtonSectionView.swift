@@ -33,7 +33,7 @@ final class ButtonSectionView: UIView {
       bottom: 16,
       trailing: 20
     )
-    config.cornerStyle = .fixed
+    config.cornerStyle = .capsule
     return config
   }())
   
@@ -52,7 +52,7 @@ final class ButtonSectionView: UIView {
       bottom: 16,
       trailing: 20
     )
-    config.cornerStyle = .fixed
+    config.cornerStyle = .capsule
     return config
   }())
   
@@ -67,13 +67,6 @@ final class ButtonSectionView: UIView {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    layoutIfNeeded()
-    stopButton.configuration?.background.cornerRadius = stopButton.bounds.height / 2
-    startPauseButton.configuration?.background.cornerRadius = startPauseButton.bounds.height / 2
   }
   
   // MARK: - configureUI
