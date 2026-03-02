@@ -208,6 +208,8 @@ final class TimerRunViewController: UIViewController {
   }
 
   deinit {
+    #if DEBUG
     print(" ---> [Deinit 확인!] 구독해제!")
+    #endif
   }
 }

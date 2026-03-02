@@ -199,14 +199,18 @@ final class TimerRunViewModel {
         category: timer.title, // 타이머 이름
         time: TimerRunViewModel.elapsedFormatHMMSS(seconds: state.totalStudySeconds) // 총 공부 시간
       )
+      #if DEBUG
       print("""
       [데이터 저장 완료]
       아이콘 이름: \(timer.iconName)
       타이머 이름: \(timer.title)
       총 공부 시간: \(TimerRunViewModel.elapsedFormatHMMSS(seconds: state.totalStudySeconds))
       """)
+      #endif
     } catch {
+      #if DEBUG
       print("데이터 저장 실패: \(RepositoryError.saveFailed)")
+      #endif
     }
   }
   
@@ -369,7 +373,9 @@ final class TimerRunViewModel {
     // 상태에 따라서 시간 누적
     if state.isStudying {
       state.totalStudySeconds += intervalTime // 공부 시간 누적
+      #if DEBUG
       print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
+      #endif
     }
   }
   
