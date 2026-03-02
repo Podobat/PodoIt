@@ -63,11 +63,13 @@ enum NotificationScheduler {
     // 알림 예약 (id지정, 알림 content, 울리는 시간 trigger)
     let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
     center.add(request) { error in // 위에서 만든 current 싱글톤에 예약 등록.
+      #if DEBUG
       if let error = error {
         print("알림 등록에 실패함: \(error)")
       } else {
         print("알림 등록 성공!")
       }
+      #endif
     }
   }
 

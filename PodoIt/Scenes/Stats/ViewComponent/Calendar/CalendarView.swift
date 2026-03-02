@@ -253,7 +253,9 @@ extension CalendarView: UICollectionViewDataSource, UICollectionViewDelegate, UI
       selectedDateRelay.accept(date)
       lastSelectedDate = date
     }
+    #if DEBUG
     print("선택된 날짜: \(titleLabel.text ?? "") \(dayNumber)일")
+    #endif
   }
 
   func collectionView(_: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
