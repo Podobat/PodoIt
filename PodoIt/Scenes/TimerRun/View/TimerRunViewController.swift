@@ -1,9 +1,9 @@
-//
-//  TimerRunViewController.swift
-//  PodoIt
-//
-//  Created by 서광용 on 8/28/25.
-//
+  //
+  //  TimerRunViewController.swift
+  //  PodoIt
+  //
+  //  Created by 서광용 on 8/28/25.
+  //
 
 import RxCocoa
 import RxSwift
@@ -12,12 +12,12 @@ import Then
 import UIKit
 
 final class TimerRunViewController: UIViewController {
-  // MARK: - viewModel & disposeBag
+    // MARK: - viewModel & disposeBag
 
   private let viewModel: TimerRunViewModel
   private let disposeBag = DisposeBag()
 
-  // MARK: - init
+    // MARK: - init
 
   init(timer: TimerModel) {
     self.viewModel = TimerRunViewModel(timer: timer)
@@ -29,7 +29,7 @@ final class TimerRunViewController: UIViewController {
     fatalError("init(coder:) has not been implemented")
   }
 
-  // MARK: - Components
+    // MARK: - Components
 
   private let headerSectionView = HeaderSectionView()
   private let animationSectionView = AnimationSectionView()
@@ -44,7 +44,7 @@ final class TimerRunViewController: UIViewController {
     $0.alignment = .fill
   }
 
-  // MARK: - viewDidLoad
+    // MARK: - viewDidLoad
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -56,7 +56,7 @@ final class TimerRunViewController: UIViewController {
     bind()
   }
 
-  // MARK: - Data Loading
+    // MARK: - Data Loading
 
   private func configureTimer() {
     viewModel.loadUDSaved() // UD 데이터 불러오기 (없으면 내부 return)
@@ -64,14 +64,14 @@ final class TimerRunViewController: UIViewController {
     configureAll(timer: viewModel.timer)
   }
 
-  // MARK: - configureUI
+    // MARK: - configureUI
 
   private func configureUI() {
     view.backgroundColor = .appWhite
     view.addSubview(rootStack)
   }
 
-  // MARK: - configureLayout
+    // MARK: - configureLayout
 
   private func configureLayout() {
     rootStack.snp.makeConstraints {
@@ -83,18 +83,18 @@ final class TimerRunViewController: UIViewController {
     }
   }
 
-  // MARK: - Bindings
+    // MARK: - Bindings
 
-  /// Rx 바인딩 설정 (버튼 탭, 진행률 등)
+    /// Rx 바인딩 설정 (버튼 탭, 진행률 등)
   private func bind() {
     let addOne = progressRestSectionView.plusOneMinuteButtonTap.asSignal().map { RestAddCase.one }
     let addFive = progressRestSectionView.plusFiveMinuteButtonTap.asSignal().map { RestAddCase.five }
     let addTen = progressRestSectionView.plusTenMinuteButtonTap.asSignal().map { RestAddCase.ten }
 
-    // 세 스트림을 하나로 합침
+      // 세 스트림을 하나로 합침
     let restAddSignal = Signal.merge(addOne, addFive, addTen)
 
-    // restAddSignal이 "어떤 버튼이 눌렸는지"를 인식해서 값을 반환
+      // restAddSignal이 "어떤 버튼이 눌렸는지"를 인식해서 값을 반환
     restAddSignal
       .withUnretained(self)
       .emit(onNext: { vc, addTime in
@@ -102,7 +102,7 @@ final class TimerRunViewController: UIViewController {
       })
       .disposed(by: disposeBag)
 
-    // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
+      // 버튼 Tap을 스트림으로 받아서 viewModel의 토글 실행 (start/pause)
     buttonSectionView.startPauseTap
       .asSignal()
       .throttle(.seconds(1)) // 1초 안에 여러번 눌러도 1번만 실행됨
@@ -111,12 +111,12 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // stop 버튼 tap하여 중지
+      // stop 버튼 tap하여 중지
     buttonSectionView.stopButtonTap
-    // TODO: - Driver이 아닌, Signal로 변경. Driver보다 Signal이 맞음
-      .asDriver()
-      .withLatestFrom(viewModel.isOverOneMinute)
-      .drive(with: self) { vc, isOver in
+      .asSignal()
+      // stopButtonTap 순간마다 viewModel.isOverOneMunute 최신값을 뽑아 emit으로 UI 바인딩
+      .withLatestFrom(viewModel.isOverOneMinute.asObservable().asSignal(onErrorJustReturn: false))
+      .emit(with: self) { vc, isOver in
         let type: PodoAlertController.StopAlertType = isOver ? .over1Min : .under1Min
         PodoAlertController
           .presentStopTimerAlert(from: vc, title: type.title, onConfirm: {
@@ -126,7 +126,7 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // muteButton tap하여 음소거 true/false
+      // muteButton tap하여 음소거 true/false
     headerSectionView.muteButtonTap
       .asSignal()
       .emit(with: self) { vc, _ in
@@ -134,11 +134,8 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // progressBar 진행
+      // progressBar 진행
     viewModel.progress
-    // MARK: - 140번줄 삭제 및 143번째줄 VM에서 min 1.0으로 잡았기에 == 1.0으로 변경.
-//      .asObservable() 의미없어서 삭제
-      .asDriver(onErrorJustReturn: 0.0)
       .drive(with: self) { vc, progress in
         if progress >= 0.9999 { // 반올림 생각해서
           vc.progressRestSectionView.updateProgressBar(progress: 1.0)
@@ -157,13 +154,13 @@ final class TimerRunViewController: UIViewController {
     viewModel.isMuteDriver // 음소거(mute)의 Bool 상태
       .distinctUntilChanged()
       .drive(with: self) { vc, isMute in
-        // 아이콘 초기값 바로 반영
+          // 아이콘 초기값 바로 반영
         vc.headerSectionView.updateMuteIcon(isMute: isMute)
       }
       .disposed(by: disposeBag)
 
-    // TODO: - 일회성 이벤트인 토스트 알럿이라서 Signal + emit으로 변경
-    // TODO: - isMuteDriver가 아닌, muteButtonTap으로 변경. VM로직도 다시 확인
+      // TODO: - 일회성 이벤트인 토스트 알럿이라서 Signal + emit으로 변경
+      // TODO: - isMuteDriver가 아닌, muteButtonTap으로 변경. VM로직도 다시 확인
     viewModel.isMuteDriver
       .skip(1) // 토스트 알럿은 초기값 무시
       .distinctUntilChanged()
@@ -176,8 +173,8 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
-    // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
-    // combineLatest: 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
+      // 공부/휴식 상태에 따라서 목표시간 또는 휴식시간 UI를 업데이트
+      // combineLatest: 여러개의 Driver 스트림을 합쳐서 하나로 만들어줌
     Driver.combineLatest(
       viewModel.isStudyingDriver, // 공부/휴식 중 상태 (Bool)
       viewModel.goalTimeText, // 공부 목표시간 (MM:SS)
@@ -187,7 +184,7 @@ final class TimerRunViewController: UIViewController {
     )
     .drive(with: self) { vc, data in
       let (isStudying, goalTime, studyingTime, totalRestTime, restingTime) = data
-      // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
+        // 공부/휴식 중 상태에 따른 버튼 UI 업데이트
       vc.buttonSectionView.updateStartPauseButtonImage(isStudying: isStudying)
       vc.progressRestSectionView.updateIsHiddenView(isStudying: isStudying)
       vc.animationSectionView.updateAnimationsIsHidden(isStudying: isStudying)
@@ -201,15 +198,15 @@ final class TimerRunViewController: UIViewController {
     .disposed(by: disposeBag)
   }
 
-  // MARK: UI Configuration
+    // MARK: UI Configuration
 
   private func configureAll(timer: TimerModel) {
     headerSectionView.configure(model: timer)
   }
 
   deinit {
-    #if DEBUG
+#if DEBUG
     print(" ---> [Deinit 확인!] 구독해제!")
-    #endif
+#endif
   }
 }
