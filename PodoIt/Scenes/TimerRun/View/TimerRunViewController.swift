@@ -129,8 +129,16 @@ final class TimerRunViewController: UIViewController {
       // muteButton tap하여 음소거 true/false
     headerSectionView.muteButtonTap
       .asSignal()
-      .emit(with: self) { vc, _ in
-        vc.viewModel.toggleMute()
+      .do(onNext: { [weak self] _ in
+        self?.viewModel.toggleMute()
+      })
+      .withLatestFrom(viewModel.isMuteDriver.asObservable().asSignal(onErrorJustReturn: false))
+      .emit(with: self) { vc, isMute in
+        vc.showToastBelow(
+          isMute ? "알림이 꺼졌어요." : "알림이 켜졌어요.",
+          icon: UIImage(named: isMute ? "circle-bang" : "circle-check-green"),
+          above: vc.animationSectionView
+        )
       }
       .disposed(by: disposeBag)
 
@@ -151,25 +159,12 @@ final class TimerRunViewController: UIViewController {
       }
       .disposed(by: disposeBag)
 
+    // isMute 상태값에 따른 아이콘 변경
     viewModel.isMuteDriver // 음소거(mute)의 Bool 상태
       .distinctUntilChanged()
       .drive(with: self) { vc, isMute in
           // 아이콘 초기값 바로 반영
         vc.headerSectionView.updateMuteIcon(isMute: isMute)
-      }
-      .disposed(by: disposeBag)
-
-      // TODO: - 일회성 이벤트인 토스트 알럿이라서 Signal + emit으로 변경
-      // TODO: - isMuteDriver가 아닌, muteButtonTap으로 변경. VM로직도 다시 확인
-    viewModel.isMuteDriver
-      .skip(1) // 토스트 알럿은 초기값 무시
-      .distinctUntilChanged()
-      .drive(with: self) { vc, isMute in
-        vc.showToastBelow(
-          isMute ? "알림이 꺼졌어요." : "알림이 켜졌어요.",
-          icon: UIImage(named: isMute ? "circle-bang" : "circle-check-green"),
-          above: vc.animationSectionView
-        )
       }
       .disposed(by: disposeBag)
 
