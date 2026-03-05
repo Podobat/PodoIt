@@ -20,7 +20,7 @@ final class TimerRunViewController: UIViewController {
   // MARK: - init
 
   init(timer: TimerModel) {
-    self.viewModel = TimerRunViewModel(timer: timer)
+    self.viewModel = TimerRunViewModel(timer: timer, statsRepository: SwiftDataManager.shared)
     super.init(nibName: nil, bundle: nil)
   }
 
