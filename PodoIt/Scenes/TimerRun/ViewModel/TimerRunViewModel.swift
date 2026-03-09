@@ -38,6 +38,7 @@ final class TimerRunViewModel {
   // MARK: - State
 
   private(set) var timer: TimerModel
+  private let statsRepository: StatsRepository
   private(set) var state = TimerSessionState(
     intervalStart: Date(),
     isStudying: true,
@@ -97,8 +98,9 @@ final class TimerRunViewModel {
   
   // MARK: - init
 
-  init(timer: TimerModel) {
+  init(timer: TimerModel, statsRepository: StatsRepository) {
     self.timer = timer
+    self.statsRepository = statsRepository
     goalTime = Double(timer.goalTime) * 60 // Int값을 초 단위로 변경
   }
   
@@ -194,19 +196,24 @@ final class TimerRunViewModel {
   @MainActor
   private func save() {
     do {
-      try SwiftDataManager.shared.insertStats(
+      try statsRepository.insertStats(
+        date: Date(),
         icon: timer.iconName, // 타이머 아이콘
         category: timer.title, // 타이머 이름
         time: TimerRunViewModel.elapsedFormatHMMSS(seconds: state.totalStudySeconds) // 총 공부 시간
       )
+      #if DEBUG
       print("""
       [데이터 저장 완료]
       아이콘 이름: \(timer.iconName)
       타이머 이름: \(timer.title)
       총 공부 시간: \(TimerRunViewModel.elapsedFormatHMMSS(seconds: state.totalStudySeconds))
       """)
+      #endif
     } catch {
+      #if DEBUG
       print("데이터 저장 실패: \(RepositoryError.saveFailed)")
+      #endif
     }
   }
   
@@ -369,7 +376,9 @@ final class TimerRunViewModel {
     // 상태에 따라서 시간 누적
     if state.isStudying {
       state.totalStudySeconds += intervalTime // 공부 시간 누적
+      #if DEBUG
       print("현재까지 총 공부 시간: \(state.totalStudySeconds)")
+      #endif
     }
   }
   

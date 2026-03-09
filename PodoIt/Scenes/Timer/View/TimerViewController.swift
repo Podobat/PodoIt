@@ -131,7 +131,9 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
       // 헤더 총 집중 시간 업데이트
       updateHeaderTotalFocusTime()
     } catch {
+      #if DEBUG
       print("❌ fetch 실패: \(error)")
+      #endif
       // 사용자에게 에러 알림 표시
       timers = []
       collectionView.reloadData()
@@ -226,14 +228,18 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   private func requestSystemNotificationAuthorization() {
     let center = UNUserNotificationCenter.current()
     center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+      #if DEBUG
       if let error { print("권한 요청 오류:", error) }
+      #endif
 
       DispatchQueue.main.async {
+        #if DEBUG
         if granted {
           print("알림 권한 허용")
         } else {
           print("알림 권한 거부")
         }
+        #endif
       }
     }
   }
@@ -316,7 +322,9 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
       let totalSeconds = try getTodayFocusSeconds(for: timerTitle, on: today)
       return formatTime(seconds: totalSeconds)
     } catch {
+      #if DEBUG
       print("오늘 집중 시간 조회 실패: \(error)")
+      #endif
       return "00:00:00"
     }
   }
@@ -403,7 +411,9 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
   private func showDdayCalendarSheet() {
     let ddaySheet = DdayCalendarSheetViewController()
     ddaySheet.onDateSelected = { [weak self] selectedDate in
+      #if DEBUG
       print("선택된 디데이 날짜: \(selectedDate)")
+      #endif
       // TODO: 선택된 날짜를 저장하는 로직 추가
       self?.dismiss(animated: true)
     }
@@ -434,7 +444,9 @@ final class TimerViewController: UIViewController, UICollectionViewDelegateFlowL
       updateUI()
       updateHeaderTotalFocusTime()
     } catch {
+      #if DEBUG
       print("❌ 타이머 삭제 실패: \(error)")
+      #endif
       // 에러 발생 시 사용자에게 알림
       let presenter = navigationController ?? self
       PodoAlertController.presentErrorAlert(

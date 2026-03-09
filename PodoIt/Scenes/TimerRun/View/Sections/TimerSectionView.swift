@@ -102,7 +102,6 @@ final class TimerSectionView: UIView {
 
   // MARK: - update Goal Time
 
-  // TODO: VM에서 상태 판정해서 enum으로 묶어서 case로 돌려주도록 리팩토링
   /// 공부 중. 목표시간 달성 시 UI 업데이트
   func updateGoalTimeUI(goalTime: String, studyingTime: String) {
     statusTimeLabel.text = goalTime // 조건 없이 계속해서 줄어드는 타이머 String값 바인딩

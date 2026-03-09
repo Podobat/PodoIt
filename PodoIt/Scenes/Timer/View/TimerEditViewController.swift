@@ -654,7 +654,9 @@ final class TimerEditViewController: UIViewController {
 
       navigationController?.popViewController(animated: true)
     } catch {
+      #if DEBUG
       print("save error:", error)
+      #endif
     }
   }
 
@@ -667,7 +669,9 @@ final class TimerEditViewController: UIViewController {
         try self.viewModel.delete()
         self.navigationController?.popViewController(animated: true)
       } catch {
+        #if DEBUG
         print("delete error:", error)
+        #endif
       }
     }
   }
@@ -675,7 +679,9 @@ final class TimerEditViewController: UIViewController {
   // MARK: - Emoji input
 
   @objc private func emojiButtonTouchDown() {
+    #if DEBUG
     print("emojiButton touchDown detected")
+    #endif
   }
 
   @objc private func emojiButtonTapped() {
